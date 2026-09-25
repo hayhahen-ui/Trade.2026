@@ -13,6 +13,7 @@ const SCREENS = {
   bot:       { ten: "Bot Trade",     emoji: "🤖", render: renderBot },
   tuhoc:     { ten: "Nhật ký & Tự học", emoji: "📓", render: renderTuHoc },
   lichkinhte:{ ten: "Lịch kinh tế",  emoji: "📅", render: renderLich },
+  hoidap:     { ten: "AI Hỏi đáp",      emoji: "💬", render: renderHoiDap },
   kienthuc:  { ten: "Kiến thức",     emoji: "📚", render: renderKienThuc },
 };
 let SCREEN_HIENTAI = "tongquan";
@@ -134,6 +135,9 @@ function boot() {
   setInterval(() => {
     if (SCREEN_HIENTAI === "heatmap" && typeof capNhatHeatmapUI === "function") capNhatHeatmapUI(true);
   }, 60e3);
+
+  // Derivatives: ghi nhận OI định kỳ cho ma trận OI×funding (v2.1.0)
+  if (typeof khoiDongDerivatives === "function") khoiDongDerivatives();
 
   // Render đầu tiên
   dieuHuong();

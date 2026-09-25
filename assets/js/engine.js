@@ -279,6 +279,20 @@ async function phanTichCoin(coin) {
     else if (dongTien.nguoc) score = clamp(score - 5, 0, 100);
   }
 
+  /* ---------- Phái sinh: funding / OI / thanh lý / volatility (v2.1.0) ----------
+   * Logic từ skills Vibe-Trading: perp-funding-basis, liquidation-heatmap,
+   * volatility. Funding quá nóng ngược hướng lệnh → trừ điểm, contrarian → cộng. */
+  let phaiSinh = null;
+  try {
+    if (typeof phanTichPhaiSinh === "function") {
+      phaiSinh = await phanTichPhaiSinh(coin, { side, dongCua1h: c1h.map(c => c.close) });
+      if (phaiSinh) {
+        for (const cb of phaiSinh.canhBao) canhBao.push(cb);
+        if (side && phaiSinh.dieuChinh) score = clamp(score + phaiSinh.dieuChinh, 0, 100);
+      }
+    }
+  } catch (e) {}
+
   /* ---------- Verdict ---------- */
   let verdict = "NO_TRADE";
   if (!side) verdict = "NO_TRADE";
@@ -288,7 +302,7 @@ async function phanTichCoin(coin) {
   else if (side && !choch) verdict = "WAIT_CONFIRM";
 
   const ketQua = {
-    coin, gia, time: Date.now(), dongTien, heatmap,
+    coin, gia, time: Date.now(), dongTien, heatmap, phaiSinh,
     htf: { bias: htfBias, ctBias, ema200: ema200_4h, ema50: ema50_4h, dinh: ct4h.dinhCuoi?.price, day: ct4h.dayCuoi?.price },
     mtf: { obCount: ob1h.filter(o => !o.mitigated).length, poc: vp?.poc, hvn: vp?.hvn || [], range: range1h, eq: eq1h },
     ltf: { sweep: sweepDungPhia, choch, idm, rsi: rsi15, atr: atr15 },

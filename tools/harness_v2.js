@@ -478,7 +478,164 @@ const _p9 = (async () => {
   ok(after.alerts <= 100, "alerts không vượt maxKeep");
 })();
 
-_p9.then(() => {
+/* ---------- 10. derivatives.js — funding/OI/liq/stablecoin/vol ---------- */
+console.log("\n[10] derivatives.js — phân tích phái sinh");
+{
+  const c = makeCtx();
+  c.load("assets/js/derivatives.js");
+  const g = (n) => c.get(n);
+
+  // 10.1 annualized
+  ok(Math.abs(g("annualizedFunding")(0.01) - 10.95) < 1e-9, "annualizedFunding(0.01%) = 10.95%/năm");
+  ok(g("annualizedFunding")(NaN) === null, "annualizedFunding(NaN) = null");
+
+  // 10.2 funding regime theo bảng skill perp-funding-basis
+  const fr = g("fundingRegime");
+  ok(fr(0.06).id === "overheated_long" && fr(0.06).contrarian === "short", "funding >0.05% → overheated_long, contrarian short");
+  ok(fr(-0.03).id === "overheated_short" && fr(-0.03).contrarian === "long", "funding <-0.02% → overheated_short, contrarian long");
+  ok(fr(0.03).id === "bullish_carry", "funding 0.03% → bullish_carry");
+  ok(fr(0.001).id === "balanced", "funding ~0 → balanced");
+  ok(fr(0.01).id === "mild_long" && fr(-0.01).id === "mild_short", "vùng mild ±");
+  ok(fr(NaN).id === "unknown", "funding NaN → unknown, không crash");
+
+  // 10.3 ma trận OI×funding
+  const oif = g("oiFundingSignal");
+  ok(oif(8, 0.04).id === "leveraged_long_buildup", "OI+8% & funding>0.03 → leveraged_long_buildup");
+  ok(oif(8, -0.04).id === "leveraged_short_buildup", "OI+8% & funding<-0.03 → leveraged_short_buildup");
+  ok(oif(-8, 0.05).id === "unwinding", "OI-8% & funding cực → unwinding");
+  ok(oif(2, 0.01).id === "neutral", "OI/funding thường → neutral");
+  ok(oif(NaN, NaN).id === "unknown", "thiếu dữ liệu → unknown");
+
+  // 10.4 áp lực thanh lý
+  const dl = g("danhGiaLiq");
+  const r1 = dl(300e6, 100e6);
+  ok(r1.id === "long_squeeze" && Math.abs(r1.ratio - 3) < 1e-9, "L/S=3 → long_squeeze");
+  ok(dl(100e6, 300e6).id === "short_squeeze", "L/S=0.33 → short_squeeze");
+  ok(dl(600e6, 100e6).canhBao.includes("EXTREME"), "tổng TL >$500M → cảnh báo EXTREME");
+  ok(dl(0, 0).id === "none", "không có thanh lý → none");
+
+  // 10.5 stablecoin composite
+  const dsc = g("diemStablecoin");
+  ok(dsc(6).diem === 8 && dsc(-3).diem === -6, "stablecoin ±: mint mạnh +8, rút vốn -6");
+  ok(dsc(1).diem === 0 && dsc(NaN).diem === 0, "đi ngang/thiếu → 0");
+
+  // 10.6 HV percentile: cuối kỳ vol bùng → percentile cao
+  const hv = g("hvPercentile");
+  const closes = [];
+  let p = 100;
+  for (let i = 0; i < 280; i++) { p *= 1 + (i % 2 ? 0.0005 : -0.0005); closes.push(p); }
+  for (let i = 0; i < 30; i++) { p *= 1 + (i % 2 ? 0.04 : -0.04); closes.push(p); }
+  const r6 = hv(closes);
+  ok(r6.pct > 80 && r6.regime === "high_vol", `HV percentile phát hiện vol bùng (pct=${r6.pct})`);
+  const flat = Array.from({ length: 300 }, (_, i) => 100 + Math.sin(i) * 0.01);
+  const r6b = hv(flat);
+  ok(r6b.hv < 5 && r6b.pct <= 100, "chuỗi phẳng → HV thấp");
+  ok(hv([100]).regime === "unknown", "thiếu nến → unknown");
+}
+
+/* ---------- 11. aichat.js — provider adapters + key vault ---------- */
+const _p10 = async () => {
+console.log("\n[11] aichat.js — AI Hỏi đáp (RAG)");
+{
+  const store = {};
+  const localStorageMock = {
+    getItem: (k) => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v); },
+    removeItem: (k) => { delete store[k]; },
+  };
+  let lastReq = null;
+  const fetchMock = async (url, opts) => {
+    lastReq = { url, opts: JSON.parse(JSON.stringify(opts)) };
+    return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: "Xin chào từ AI" }] } }] }) };
+  };
+  const c = makeCtx({ localStorage: localStorageMock, fetch: fetchMock, window: {}, AbortController, setTimeout, clearTimeout });
+  c.load("assets/js/aichat.js");
+  const g = (n) => c.get(n);
+  const P = g("AI_PROVIDERS");
+
+  // 11.1 3 providers đủ adapter
+  ok(P.gemini && P.openai && P.anthropic, "đủ 3 provider: gemini/openai/anthropic");
+  ok(P.gemini.endpoint("gemini-2.5-flash").includes("generativelanguage.googleapis.com"), "gemini endpoint đúng");
+  ok(P.openai.endpoint().includes("api.openai.com/v1/chat/completions"), "openai endpoint đúng");
+  ok(P.anthropic.endpoint().includes("api.anthropic.com/v1/messages"), "anthropic endpoint đúng");
+
+  // 11.2 headers/body đúng chuẩn từng provider
+  ok(P.openai.headers("k123").Authorization === "Bearer k123", "openai: Bearer token");
+  ok(P.gemini.headers("k123")["x-goog-api-key"] === "k123", "gemini: x-goog-api-key");
+  ok(P.anthropic.headers("k123")["anthropic-version"] === "2023-06-01", "anthropic: version header");
+  const bA = P.anthropic.body("m", "sys", [{ role: "user", content: "hi" }]);
+  ok(bA.system === "sys" && bA.messages[0].role === "user" && bA.max_tokens === 2048, "anthropic body: system riêng + max_tokens");
+  const bG = P.gemini.body("m", "sys", [{ role: "assistant", content: "hi" }]);
+  ok(bG.contents[0].role === "model", "gemini: assistant → model");
+
+  // 11.3 parse response
+  ok(P.gemini.parse({ candidates: [{ content: { parts: [{ text: "ok" }] } }] }) === "ok", "parse gemini");
+  ok(P.openai.parse({ choices: [{ message: { content: "hi" } }] }) === "hi", "parse openai");
+  ok(P.anthropic.parse({ content: [{ type: "text", text: "yo" }] }) === "yo", "parse anthropic");
+
+  // 11.4 key vault: lưu/đọc/xóa trong localStorage
+  const K = g("AI_KEYS");
+  K.set("gemini", "key-that");
+  ok(K.get("gemini") === "key-that" && K.co("gemini"), "vault: lưu + đọc key");
+  ok(store["trade2026_ai_keys"].includes("key-that"), "vault: key nằm trong localStorage key riêng");
+  K.del("gemini");
+  ok(!K.co("gemini"), "vault: xóa key");
+
+  // 11.5 system prompt: tiếng Việt + nguyên tắc chống bịa
+  const sys = g("systemPromptRAG")();
+  ok(sys.includes("TIẾNG VIỆT") && sys.includes("Không bịa"), "system prompt: tiếng Việt + chống bịa dữ liệu");
+
+  // 11.6 hoiAI không key → lỗi rõ ràng, không gọi mạng
+  let loiKhongKey = "";
+  try { await g("hoiAI")("gemini", null, [{ role: "user", content: "hi" }], { boNgucanh: true }); }
+  catch (e) { loiKhongKey = e.message; }
+  ok(loiKhongKey.includes("Chưa nhập API key"), "hoiAI không key → báo thiếu key");
+
+  // 11.7 hoiAI gọi đúng endpoint + body có system (RAG context)
+  K.set("gemini", "k-test");
+  const tl = await g("hoiAI")("gemini", "gemini-2.5-flash", [{ role: "user", content: "BTC thế nào?" }], { boNgucanh: true });
+  ok(tl === "Xin chào từ AI", "hoiAI parse đúng text gemini");
+  ok(lastReq.url.includes(":generateContent"), "hoiAI gọi đúng endpoint gemini");
+  const bodySent = JSON.parse(lastReq.opts.body);
+  ok(bodySent.system_instruction.parts[0].text.includes("Trade.2026"), "request mang system prompt RAG");
+  ok(bodySent.contents[0].parts[0].text === "BTC thế nào?", "request mang đúng câu hỏi user");
+  K.del("gemini");
+}
+};
+
+/* ---------- 12. phanTichPhaiSinh với DataHub/FlowDB giả ---------- */
+const _p11 = async () => {
+console.log("\n[12] phanTichPhaiSinh — tích hợp live (mock)");
+{
+  const windowMock = {
+    DataHub: {
+      funding: () => ({ BTC: { rate: 0.06 } }),
+      oi: () => ({ BTC: { oi: 5e9 } }),
+    },
+    FlowDB: {
+      recentLiqs: async () => [
+        { coin: "BTC", huong: "LONG", usd: 300e6, ts: Date.now() - 3600e3 },
+        { coin: "BTC", huong: "SHORT", usd: 100e6, ts: Date.now() - 7200e3 },
+      ],
+    },
+  };
+  const c = makeCtx({ window: windowMock, localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} } });
+  c.load("assets/js/derivatives.js");
+  const d = await c.get("phanTichPhaiSinh")("BTC", { side: "long" });
+  ok(d.funding.id === "overheated_long", "funding 0.06% → overheated_long");
+  ok(d.liq.id === "long_squeeze", "liq L/S=3 → long_squeeze");
+  ok(d.canhBao.length >= 2, `sinh cảnh báo (${d.canhBao.length})`);
+  ok(d.dieuChinh === -4, `side long + đám đông long → điều chỉnh -4 (được ${d.dieuChinh})`);
+  const d2 = await c.get("phanTichPhaiSinh")("BTC", { side: "short" });
+  ok(d2.dieuChinh === 4, `side short + đám đông long → contrarian +4 (được ${d2.dieuChinh})`);
+  // cache 60s: gọi lại không tính lại
+  const d3 = await c.get("phanTichPhaiSinh")("BTC", { side: "long" });
+  ok(d3.at === d.at, "cache 60s hoạt động");
+  ok(d3.fromCache === true, "lần 2 đọc từ cache");
+}
+};
+
+_p9.then(_p10).then(_p11).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

@@ -418,6 +418,20 @@ function vePanelSMC(kq) {
     if (dt.lenhLon) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Lệnh lớn 1h (mua/bán)"),
       el("b", { class: "mono" }, `${fmtUsd(dt.lenhLon.buy)} / ${fmtUsd(dt.lenhLon.sell)}`)));
   }
+  if (kq.phaiSinh) {
+    const ps = kq.phaiSinh;
+    const fCls = ps.funding.muc > 0 ? "up" : ps.funding.muc < 0 ? "down" : "";
+    panel.appendChild(el("div", { class: "kv" }, el("span", {}, "💱 Funding 8h"),
+      el("b", { class: fCls }, `${ps.funding.nhan}${ps.funding.annualized != null ? ` (${ps.funding.annualized >= 0 ? "+" : ""}${ps.funding.annualized.toFixed(1)}%/năm)` : ""}`)));
+    if (ps.oi.thayDoi24h != null) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "OI 24h"),
+      el("b", { class: "mono" }, `${ps.oi.thayDoi24h >= 0 ? "+" : ""}${ps.oi.thayDoi24h.toFixed(1)}%${ps.oi.tinHieu.id !== "neutral" && ps.oi.tinHieu.id !== "unknown" ? " · " + ps.oi.tinHieu.nhan : ""}`)));
+    if (ps.liq?.total) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Thanh lý 24h"),
+      el("b", { class: "mono" }, `${fmtUsd(ps.liq.total)}${ps.liq.ratio != null ? ` · L/S ${ps.liq.ratio >= 10 ? "≥10" : ps.liq.ratio.toFixed(1)}` : ""}`)));
+    if (ps.hv?.pct != null) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Volatility"),
+      el("b", {}, `${ps.hv.nhan} (pct ${ps.hv.pct})`)));
+    if (ps.dieuChinh) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Điều chỉnh phái sinh"),
+      el("b", { class: ps.dieuChinh > 0 ? "up" : "down" }, `${ps.dieuChinh > 0 ? "+" : ""}${ps.dieuChinh} điểm`)));
+  }
   if (kq.ltf.sweep) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Sweep"), el("b", {}, `${kq.ltf.sweep.phia === "long" ? "quét đáy" : "quét đỉnh"} ${fmtGia(kq.ltf.sweep.mucQuet)}`)));
   if (kq.ltf.choch) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "CHoCH"), el("b", {}, `${fmtGia(kq.ltf.choch.mucPhaVo)} ${kq.ltf.choch.bodyClose ? "✓body" : "⚠wick"}${kq.ltf.idm ? " ✓IDM" : ""}`)));
   if (kq.ltf.rsi?.rsi != null) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "RSI 15m"), el("b", {}, `${fmtSo(kq.ltf.rsi.rsi, 0)} (${kq.ltf.rsi.zone})${kq.ltf.rsi.reversal ? " · " + (kq.ltf.rsi.reversal === "positive" ? "đảo chiều dương" : "đảo chiều âm") : ""}`)));

@@ -542,3 +542,167 @@ function moCaiDat() {
   modal.appendChild(box);
   document.body.appendChild(modal);
 }
+
+/* ============================================================
+ * Trade.2026 — Màn hình AI Hỏi đáp (RAG) — v2.1.0
+ * Chat với LLM (Gemini/OpenAI/Claude) bằng key của user.
+ * Key chỉ lưu trong localStorage trình duyệt user.
+ * ============================================================ */
+"use strict";
+
+function dinhDangAI(text) {
+  const esc = String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return esc
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/^### (.*)$/gm, "<b>$1</b>")
+    .replace(/^## (.*)$/gm, "<b>$1</b>")
+    .replace(/^[-•] (.*)$/gm, "• $1")
+    .replace(/\n/g, "<br>");
+}
+
+function renderHoiDap(root) {
+  root.innerHTML = "";
+  const cfg = AI_CFG.get();
+  let providerId = AI_PROVIDERS[cfg.provider] ? cfg.provider : "gemini";
+
+  const wrap = el("div", { class: "ai-wrap" });
+
+  /* --- Thanh chọn provider --- */
+  const bar = el("div", { class: "toolbar" });
+  const selP = el("select", { class: "input" });
+  for (const [id, p] of Object.entries(AI_PROVIDERS)) {
+    const o = el("option", { value: id }, p.ten);
+    if (id === providerId) o.selected = true;
+    selP.appendChild(o);
+  }
+  const selM = el("select", { class: "input", style: "min-width:220px" });
+  const napModel = () => {
+    selM.innerHTML = "";
+    const P = AI_PROVIDERS[providerId];
+    const cur = AI_CFG.get().model || P.modelMacDinh;
+    for (const m of P.models) {
+      const o = el("option", { value: m }, m);
+      if (m === cur) o.selected = true;
+      selM.appendChild(o);
+    }
+    const oCus = el("option", { value: "__custom" }, "✏️ Model khác…");
+    selM.appendChild(oCus);
+  };
+  napModel();
+  const badgeKey = el("span", { class: "badge" });
+  const capNhatBadge = () => {
+    const co = AI_KEYS.co(providerId);
+    badgeKey.textContent = co ? "🔑 Đã lưu key" : "⚠ Chưa có key";
+    badgeKey.className = "badge " + (co ? "ok" : "warn");
+  };
+  capNhatBadge();
+  selP.onchange = () => { providerId = selP.value; AI_CFG.set({ provider: providerId, model: "" }); napModel(); capNhatBadge(); };
+  selM.onchange = () => {
+    if (selM.value === "__custom") {
+      const m = prompt("Nhập tên model:", "");
+      if (m) { AI_CFG.set({ model: m.trim() }); napModel(); selM.value = m.trim(); }
+      else napModel();
+    } else AI_CFG.set({ model: selM.value });
+  };
+  const btnKey = el("button", { class: "btn", onclick: () => panelKey.style.display = panelKey.style.display === "none" ? "" : "none" }, "🔑 Key API");
+  const btnXoaLichSu = el("button", { class: "btn", onclick: () => { resetLichSuAI(); veLai(); } }, "🗑 Xóa hội thoại");
+  bar.append(selP, selM, badgeKey, btnKey, btnXoaLichSu);
+  wrap.appendChild(bar);
+
+  /* --- Panel cài đặt key (gập/mở) --- */
+  const panelKey = el("div", { class: "card", style: "display:none;margin-bottom:12px" });
+  panelKey.appendChild(el("div", { class: "card-title" }, "🔑 Kết nối API key"));
+  panelKey.appendChild(el("p", { class: "muted small" },
+    "Key do bạn nhập, chỉ lưu trong trình duyệt này (localStorage) — không gửi đi đâu ngoài API chính thức của provider bạn chọn. Không nhập key trên máy lạ/chung."));
+  for (const [id, P] of Object.entries(AI_PROVIDERS)) {
+    const inp = el("input", { class: "input", type: "password", placeholder: `API key ${P.ten}…`, value: AI_KEYS.co(id) ? "••••••••" : "", style: "flex:1" });
+    const hang = el("div", { class: "row-gap", style: "margin:8px 0" },
+      el("b", { style: "min-width:150px" }, P.ten),
+      inp,
+      el("button", { class: "btn primary", onclick: async () => {
+        const v = inp.value.trim();
+        if (!v || v === "••••••••") { alert("Hãy dán key thật vào ô (không phải dấu •)."); return; }
+        AI_KEYS.set(id, v); inp.value = "••••••••"; capNhatBadge(); alert(`Đã lưu key ${P.ten} vào trình duyệt này.`);
+      } }, "💾 Lưu"),
+      el("button", { class: "btn", onclick: async () => {
+        const v = inp.value.trim();
+        const keyTest = (v && v !== "••••••••") ? v : AI_KEYS.get(id);
+        if (!keyTest) { alert("Chưa có key để kiểm tra."); return; }
+        if (v && v !== "••••••••") AI_KEYS.set(id, v);
+        try {
+          const r = await kiemTraKetNoiAI(id, AI_CFG.get().provider === id ? (AI_CFG.get().model || undefined) : undefined);
+          alert(`✅ ${P.ten}: ${r}`);
+        } catch (e) { alert(`❌ ${P.ten}: ${e.message}`); }
+        inp.value = AI_KEYS.co(id) ? "••••••••" : ""; capNhatBadge();
+      } }, "📡 Kiểm tra"),
+      el("button", { class: "btn danger", onclick: () => { if (confirm(`Xóa key ${P.ten} khỏi trình duyệt?`)) { AI_KEYS.del(id); inp.value = ""; capNhatBadge(); } } }, "Xóa"),
+    );
+    panelKey.appendChild(hang);
+    if (P.corsNote) panelKey.appendChild(el("p", { class: "muted small", style: "margin:-4px 0 8px 158px" }, "⚠ " + P.corsNote));
+  }
+  wrap.appendChild(panelKey);
+
+  /* --- Gợi ý nhanh --- */
+  const goiY = [
+    "BTC hiện tại có tín hiệu vào lệnh không?",
+    "Dòng tiền cá mập 24h qua thế nào?",
+    "Funding rate đang cảnh báo gì?",
+    "Tin kinh tế nào cần né trong 24h tới?",
+    "Giải thích điểm hợp lưu của ETH cho tôi",
+  ];
+  const chips = el("div", { class: "row-gap", style: "margin-bottom:10px;flex-wrap:wrap" });
+  for (const g of goiY) chips.appendChild(el("button", { class: "btn small", onclick: () => { inpChat.value = g; gui(); } }, g));
+  wrap.appendChild(chips);
+
+  /* --- Khung chat --- */
+  const log = el("div", { class: "ai-log", id: "ai-log" });
+  wrap.appendChild(log);
+
+  const inpChat = el("input", { class: "input", placeholder: "Hỏi về thị trường, tín hiệu, dòng tiền… (Enter để gửi)", style: "flex:1" });
+  const btnGui = el("button", { class: "btn primary", style: "min-width:90px" }, "Gửi ➤");
+  const form = el("div", { class: "row-gap", style: "margin-top:10px" }, inpChat, btnGui);
+  wrap.appendChild(form);
+  wrap.appendChild(el("p", { class: "muted small", style: "margin-top:8px" },
+    "🤖 AI trả lời dựa trên dữ liệu thật của app (kèm nguồn + thời điểm). Đây là công cụ phân tích, không phải lời khuyên đầu tư — luôn tự quản trị rủi ro."));
+
+  async function gui() {
+    const text = inpChat.value.trim();
+    if (!text || AI_CHAT.dangHoi) return;
+    if (!AI_KEYS.co(providerId)) { alert(`Chưa có API key cho ${AI_PROVIDERS[providerId].ten} — bấm "🔑 Key API" để nhập.`); panelKey.style.display = ""; return; }
+    AI_CHAT.dangHoi = true;
+    inpChat.value = "";
+    AI_CHAT.lichSu.push({ role: "user", content: text });
+    veLai();
+    const dangGo = el("div", { class: "ai-msg ai" }, el("span", { class: "muted" }, "🤖 đang phân tích dữ liệu…"));
+    log.appendChild(dangGo); log.scrollTop = log.scrollHeight;
+    try {
+      const model = AI_CFG.get().model || AI_PROVIDERS[providerId].modelMacDinh;
+      const traLoi = await hoiAI(providerId, model, AI_CHAT.lichSu.slice(-10));
+      AI_CHAT.lichSu.push({ role: "assistant", content: traLoi });
+    } catch (e) {
+      AI_CHAT.lichSu.push({ role: "assistant", content: "❌ " + e.message, loi: true });
+    }
+    AI_CHAT.dangHoi = false;
+    veLai();
+  }
+  btnGui.onclick = gui;
+  inpChat.onkeydown = (e) => { if (e.key === "Enter") gui(); };
+
+  function veLai() {
+    log.innerHTML = "";
+    if (!AI_CHAT.lichSu.length) {
+      log.appendChild(el("div", { class: "ai-msg ai" },
+        el("div", {}, "👋 Chào! Tôi là trợ lý AI của Trade.2026."),
+        el("div", { class: "muted small" }, "Tôi đọc được dữ liệu thật của app: tín hiệu SMC, dòng tiền cá voi/thanh lý (FlowDB), funding/OI, lịch kinh tế. Hãy hỏi tôi — ví dụ bấm một gợi ý ở trên.")));
+    }
+    for (const m of AI_CHAT.lichSu) {
+      const div = el("div", { class: "ai-msg " + (m.role === "user" ? "user" : "ai") + (m.loi ? " loi" : "") });
+      div.innerHTML = m.role === "user" ? dinhDangAI(m.content) : dinhDangAI(m.content);
+      if (m.role === "user") div.style.textAlign = "right";
+      log.appendChild(div);
+    }
+    log.scrollTop = log.scrollHeight;
+  }
+  veLai();
+  root.appendChild(wrap);
+}
