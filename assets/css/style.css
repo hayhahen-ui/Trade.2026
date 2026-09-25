@@ -336,3 +336,14 @@ li { margin: 4px 0; font-size: 13.5px; }
 .size-hint { margin: 4px 0 6px; }
 .size-active label { color: var(--gold); font-weight: 700; }
 .size-active .input { border-color: var(--gold); box-shadow: 0 0 0 1px hsla(38,92%,50%,.3); }
+
+/* ---- Sức khỏe nguồn dữ liệu (Tổng quan) ---- */
+.sk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; margin-top: 10px; }
+.sk-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: hsla(220,30%,12%,.5); }
+.sk-ten { font-weight: 700; }
+.sk-tra { margin-left: auto; white-space: nowrap; }
+.sk-warnbox { margin-top: 10px; border: 1px solid hsla(38,92%,50%,.45); background: hsla(38,92%,50%,.08); border-radius: 10px; padding: 10px 12px; }
+.sk-warn-title { font-weight: 800; color: var(--gold); margin-bottom: 4px; }
+.sk-warn-item { font-size: 13px; color: var(--text); opacity: .9; margin: 2px 0; }
+/* Ô giá quá cũ (>30s không tick) trong bảng watchlist */
+td.gia-cu { opacity: .45; text-decoration: line-through dotted; }

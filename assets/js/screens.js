@@ -20,6 +20,15 @@ function renderTongQuan(root) {
   );
   root.appendChild(hang);
 
+  // Sức khỏe nguồn dữ liệu — cảnh báo trễ/mất tick ngay trên Tổng quan
+  root.appendChild(veSucKhoeNguon());
+  capNhatSucKhoeNguon();
+  clearInterval(window._skTimer);
+  window._skTimer = setInterval(() => {
+    if (SCREEN_HIENTAI === "tongquan") capNhatSucKhoeNguon();
+    else clearInterval(window._skTimer);
+  }, 2000);
+
   // Cố vấn lệnh — gõ text / import ảnh / dán
   root.appendChild(el("div", { id: "advisor-panel" }));
   veAdvisorPanel();
@@ -204,6 +213,105 @@ function capNhatConnCard() {
     return `<span class="dot ${st === "on" ? "on" : st === "retry" ? "retry" : "off"}"></span>${s === "BINANCE" ? "BN" : s}`;
   });
   c.innerHTML = items.join(" ");
+}
+
+/* ============ SỨC KHỎE NGUỒN DỮ LIỆU (cảnh báo trễ/mất tick trên Tổng quan) ============
+ * Tick mới nhất = độ trễ thực của dữ liệu bạn đang nhìn (quan trọng hơn ping).
+ * WS: sàn đẩy tick liên tục · REST: app hỏi định kỳ. >10s: vàng · >30s/mất kết nối: đỏ. */
+const SK_NGUON_GIA = [
+  { id: "BINANCE", ten: "Binance", kieu: "WS · spot+fut" },
+  { id: "OKX", ten: "OKX", kieu: "WS · spot" },
+  { id: "MEXC", ten: "MEXC", kieu: "WS · futures" },
+  { id: "BYBIT_PERP", ten: "Bybit", kieu: "WS · perp" },
+  { id: "HYPERLIQUID", ten: "Hyperliquid", kieu: "WS · perp" },
+];
+const SK_TICK_VANG = 10e3, SK_TICK_DO = 30e3;
+const SK_BOQUA_DH = new Set(["binance", "okx", "bybit", "hyperliquid"]); // giá đã đếm ở PriceHub
+
+function skTuoiTickMoiNhat(san) {
+  const slot = (typeof PRICE_HUB !== "undefined" && PRICE_HUB?.prices?.[san]) || null;
+  if (!slot) return null;
+  let moi = 0;
+  for (const c of (typeof SETTINGS !== "undefined" ? SETTINGS.watchlist : [])) {
+    const t = slot[c]?.ts; if (t > moi) moi = t;
+  }
+  return moi || null;
+}
+function skFmtTuoi(ms) {
+  if (ms == null) return "chưa có";
+  if (ms < 1500) return "vừa xong";
+  if (ms < 60e3) return `${(ms / 1000).toFixed(ms < 10e3 ? 1 : 0)}s trước`;
+  return `${Math.round(ms / 60e3)}ph trước`;
+}
+function veSucKhoeNguon() {
+  const wrap = el("div", { class: "card", id: "card-suckhoe" });
+  wrap.appendChild(el("div", { class: "card-title" }, "🛰 Sức khỏe nguồn dữ liệu ",
+    el("span", { class: "tiny muted" }, "WS = sàn đẩy real-time · REST = app hỏi định kỳ")));
+  wrap.appendChild(el("div", { id: "sk-warn" }));
+  wrap.appendChild(el("div", { class: "sk-grid", id: "sk-grid" }));
+  wrap.appendChild(el("p", { class: "muted small", style: "margin:8px 0 0" },
+    "“Tick mới nhất” = độ trễ thực của con số bạn đang nhìn. Vàng: tick quá 10s · Đỏ: quá 30s hoặc mất kết nối — lúc đó tín hiệu/bot đang dùng giá cũ, nên chờ."));
+  return wrap;
+}
+function capNhatSucKhoeNguon() {
+  const grid = $("#sk-grid");
+  if (!grid || !grid.isConnected) return;
+  const warnBox = $("#sk-warn");
+  const nowMs = Date.now();
+  const rows = [], warns = [];
+
+  // 1. Giá real-time từ PriceHub (5 sàn)
+  for (const n of SK_NGUON_GIA) {
+    const ts = skTuoiTickMoiNhat(n.id);
+    const tuoi = ts ? nowMs - ts : null;
+    let st = "on", cls = "ok", note = "";
+    if (tuoi == null) { st = "off"; cls = "neutral"; note = "chưa kết nối"; warns.push(`${n.ten}: chưa có dữ liệu giá`); }
+    else if (tuoi > SK_TICK_DO) { st = "off"; cls = "warn"; note = `tick cũ ${skFmtTuoi(tuoi)}`; warns.push(`${n.ten}: tick cũ ${skFmtTuoi(tuoi)} — con số trên màn hình có thể đã lệch`); }
+    else if (tuoi > SK_TICK_VANG) { st = "degraded"; cls = "warn"; note = `chậm ${skFmtTuoi(tuoi)}`; warns.push(`${n.ten}: tick chậm ${skFmtTuoi(tuoi)}`); }
+    rows.push({ ten: n.ten, kieu: n.kieu, st, cls, tra: skFmtTuoi(tuoi), note });
+  }
+  // 2. Nguồn bổ trợ từ DataHub (Fear&Greed, Polymarket…)
+  if (typeof DataHub !== "undefined" && DataHub) {
+    for (const s of DataHub.sources()) {
+      if (SK_BOQUA_DH.has(s.id)) continue;
+      const tuoi = s.lastMsg ? nowMs - s.lastMsg : null;
+      let cls = "ok";
+      if (s.status === "off") cls = "neutral";
+      else if (s.status === "degraded" || s.status === "retry") cls = "warn";
+      rows.push({
+        ten: s.ten, kieu: /rest/i.test(s.note || "") || s.id === "macro" || s.id === "polymarket" ? "REST · poll" : "WS",
+        st: s.status, cls, tra: s.lastMsg ? skFmtTuoi(tuoi) : (s.note || s.status),
+        note: s.status === "on" ? "" : (s.note || ""),
+      });
+      if (s.status === "degraded" || s.status === "retry") warns.push(`${s.ten}: ${s.note || s.status}`);
+      else if (s.status === "off" && s.msgs === 0 && !/đã tắt/.test(s.note || "")) warns.push(`${s.ten}: chưa kết nối`);
+    }
+  }
+
+  grid.innerHTML = "";
+  for (const r of rows)
+    grid.appendChild(el("div", { class: "sk-row" },
+      el("span", { class: `dh-chip dh-${r.st}` }, el("i", { class: "dh-dot" })),
+      el("span", { class: "sk-ten" }, r.ten),
+      el("span", { class: "tiny muted" }, r.kieu),
+      el("span", { class: `badge ${r.cls} sk-tra` }, r.tra),
+      r.note ? el("span", { class: "tiny muted" }, r.note) : null));
+
+  warnBox.innerHTML = "";
+  if (warns.length)
+    warnBox.appendChild(el("div", { class: "sk-warnbox" },
+      el("div", { class: "sk-warn-title" }, `⚠ ${warns.length} cảnh báo dữ liệu`),
+      ...warns.slice(0, 6).map(w => el("div", { class: "sk-warn-item" }, "• " + w))));
+
+  // Làm mờ ô giá quá cũ trong bảng watchlist (BINANCE/OKX/MEXC)
+  for (const coin of SETTINGS.watchlist) for (const n of SK_NGUON_GIA) {
+    const cell = $(`#p-${n.id}-${coin}`);
+    if (!cell) continue;
+    const ts = PRICE_HUB?.prices?.[n.id]?.[coin]?.ts;
+    const cu = ts ? nowMs - ts > SK_TICK_DO : !!cell.dataset.v;
+    cell.classList.toggle("gia-cu", cu);
+    cell.title = cu && ts ? `Giá cũ ${skFmtTuoi(nowMs - ts)} — ${n.ten} chưa đẩy tick mới` : "";
+  }
 }
 
 /* ================= BIỂU ĐỒ ================= */

@@ -252,5 +252,65 @@ console.log("\n[5] bot.js — phí taker trừ vào PnL · SL/TP fallback chéo 
   ok(bot.state.positions.some(p => p.id === "T3"), "feed tươi + giá trên SL → vị thế còn mở");
 }
 
+/* ---------- 6. screens.js — panel sức khỏe nguồn dữ liệu ---------- */
+console.log("\n[6] screens.js — panel sức khỏe nguồn dữ liệu");
+{
+  // DOM stub tối thiểu cho el()/$
+  const mkEl = (tag) => ({
+    tag, className: "", innerHTML: "", textContent: "", title: "", style: {},
+    dataset: {}, children: [], isConnected: true,
+    classList: { _s: new Set(), toggle(c, f) { f ? this._s.add(c) : this._s.delete(c); }, remove() {}, add() {}, contains(c) { return this._s.has(c); } },
+    setAttribute() {}, addEventListener() {},
+    appendChild(c) { this.children.push(c); return c; },
+  });
+  const fakeDoc = {
+    createElement: (t) => mkEl(t),
+    createTextNode: (s) => ({ text: s }),
+  };
+  const nowMs = Date.now();
+  const c = makeCtx({
+    document: fakeDoc,
+    window: {},
+    $: () => null,
+    PRICE_HUB: { prices: {
+      BINANCE: { BTC: { gia: 67000, ts: nowMs - 500 } },       // tươi
+      OKX: { BTC: { gia: 67010, ts: nowMs - 15_000 } },          // vàng (>10s)
+      MEXC: { BTC: { gia: 66990, ts: nowMs - 45_000 } },         // đỏ (>30s)
+      BYBIT_PERP: {}, HYPERLIQUID: { BTC: { gia: 67005, ts: nowMs - 800 } },
+    } },
+    SETTINGS: { watchlist: ["BTC"] },
+    DataHub: { sources: () => [
+      { id: "macro", ten: "Macro", status: "on", note: "REST", msgs: 12, lastMsg: nowMs - 60_000 },
+      { id: "polymarket", ten: "Polymarket", status: "degraded", note: "REST poll chậm", msgs: 3, lastMsg: nowMs - 300_000 },
+    ] },
+    SCREEN_HIENTAI: "tongquan",
+  });
+  c.load("assets/js/utils.js"); // el, $
+  // screens.js gọi nhiều hàm toàn cục khác ở top-level? chỉ load phần cần: trích function sức khỏe
+  const src = read("assets/js/screens.js");
+  const names = ["skTuoiTickMoiNhat", "skFmtTuoi", "veSucKhoeNguon", "capNhatSucKhoeNguon",
+                 "SK_NGUON_GIA", "SK_TICK_VANG", "SK_TICK_DO", "SK_BOQUA_DH"];
+  // nạp const + function bằng extract
+  for (const n of ["skTuoiTickMoiNhat", "skFmtTuoi", "veSucKhoeNguon", "capNhatSucKhoeNguon"]) {
+    try { c.evalIn(extractFunction(src, n) + `\n;globalThis.__${n} = ${n};`); }
+    catch (e) { console.log("  ⚠ không trích được " + n + ": " + e.message); }
+  }
+  const skFmtTuoi = c.get("__skFmtTuoi"), skTuoi = c.get("__skTuoiTickMoiNhat");
+  ok(skFmtTuoi(500) === "vừa xong", "skFmtTuoi <1.5s → 'vừa xong'");
+  ok(skFmtTuoi(5500) === "5.5s trước", `skFmtTuoi 5.5s (được "${skFmtTuoi(5500)}")`);
+  ok(skFmtTuoi(95000) === "2ph trước", "skFmtTuoi >60s → phút");
+  ok(skFmtTuoi(null) === "chưa có", "skFmtTuoi null → 'chưa có'");
+  const tMoi = skTuoi("BINANCE");
+  ok(tMoi && nowMs - tMoi < 2000, "skTuoiTickMoiNhat lấy ts mới nhất của sàn");
+  ok(skTuoi("BYBIT_PERP") === null, "slot rỗng → null (chưa kết nối)");
+
+  // smoke test render panel
+  const veSK = c.get("__veSucKhoeNguon");
+  const panel = veSK();
+  ok(panel && panel.children.length >= 3, "veSucKhoeNguon render đủ khối (title/warn/grid)");
+  const grid = panel.children.find(x => x.tag === "div" && x.className === "sk-grid");
+  ok(!!grid, "có sk-grid chứa các dòng nguồn");
+}
+
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

@@ -3,7 +3,7 @@
  * ============================================================ */
 "use strict";
 
-const APP_VERSION = "2.0.0";
+const APP_VERSION = "2.0.1";
 const APP_NAME = "Trade.2026";
 const SIRO_VERSION = "1.0.0"; // giữ tương thích ngược với state cũ
 
