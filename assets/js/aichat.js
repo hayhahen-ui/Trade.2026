@@ -63,6 +63,24 @@ const AI_PROVIDERS = {
     loi: (st) => st === 401 ? "Key sai hoặc hết hạn." : st === 429 ? "Hết quota — thử lại sau." : `Lỗi HTTP ${st}.`,
     corsNote: "Anthropic có thể chặn gọi trực tiếp từ trình duyệt (CORS) — nếu báo lỗi mạng, hãy dùng Gemini/OpenAI.",
   },
+  apmix: {
+    ten: "APMIX.AI (free)",
+    models: ["deepseek-v4-flash-free"],
+    modelMacDinh: "deepseek-v4-flash-free",
+    endpoint: () => "https://api.apmix.ai/v1/chat/completions",
+    headers: (key) => ({
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + key,
+    }),
+    body: (model, system, msgs) => ({
+      model,
+      messages: [{ role: "system", content: system }, ...msgs.map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }))],
+      temperature: 0.3,
+      max_tokens: 2048,
+    }),
+    parse: (j) => j?.choices?.[0]?.message?.content?.trim() || "",
+    loi: (st) => st === 401 ? "Key APMIX sai hoặc hết hạn." : st === 429 ? "Hết quota — thử lại sau." : `Lỗi HTTP ${st}.`,
+  },
 };
 
 /* ---------- Key vault: localStorage của user, không rời trình duyệt ---------- */

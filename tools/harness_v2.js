@@ -554,10 +554,13 @@ console.log("\n[11] aichat.js — AI Hỏi đáp (RAG)");
   const P = g("AI_PROVIDERS");
 
   // 11.1 3 providers đủ adapter
-  ok(P.gemini && P.openai && P.anthropic, "đủ 3 provider: gemini/openai/anthropic");
+  ok(P.gemini && P.openai && P.anthropic && P.apmix, "đủ 4 provider: gemini/openai/anthropic/apmix");
   ok(P.gemini.endpoint("gemini-2.5-flash").includes("generativelanguage.googleapis.com"), "gemini endpoint đúng");
   ok(P.openai.endpoint().includes("api.openai.com/v1/chat/completions"), "openai endpoint đúng");
   ok(P.anthropic.endpoint().includes("api.anthropic.com/v1/messages"), "anthropic endpoint đúng");
+  ok(P.apmix.endpoint().includes("api.apmix.ai/v1/chat/completions"), "apmix endpoint đúng");
+  ok(P.apmix.headers("k").Authorization === "Bearer k", "apmix: Bearer token (OpenAI-compatible)");
+  ok(P.apmix.modelMacDinh === "deepseek-v4-flash-free", "apmix model mặc định là bản free");
 
   // 11.2 headers/body đúng chuẩn từng provider
   ok(P.openai.headers("k123").Authorization === "Bearer k123", "openai: Bearer token");
