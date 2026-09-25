@@ -312,5 +312,84 @@ console.log("\n[6] screens.js — panel sức khỏe nguồn dữ liệu");
   ok(!!grid, "có sk-grid chứa các dòng nguồn");
 }
 
+/* ---------- 7. screens.js — chart TradingView-style ---------- */
+console.log("\n[7] screens.js — chart TradingView-style");
+{
+  // Canvas 2D mock: ghi lại các lệnh vẽ
+  const calls = [];
+  const grad = { addColorStop() {} };
+  const ctxMock = new Proxy({
+    canvas: null,
+    measureText: (t) => ({ width: String(t).length * 6 }),
+  }, {
+    get(t, k) {
+      if (k === "measureText") return t.measureText;
+      if (k === "canvas") return t.canvas;
+      if (typeof t[k] !== "undefined") return t[k];
+      return (...a) => { calls.push(k); t[k] = t[k]; };
+    },
+    set(t, k, v) { t[k] = v; return true; },
+  });
+  const canvasMock = {
+    clientWidth: 1200, width: 0, height: 0,
+    getContext: () => ctxMock,
+  };
+  const nowT = Date.now();
+  const mkC = (i, o, h, l, c, v) => ({ openTime: nowT - (60 - i) * 900000, open: o, high: h, low: l, close: c, volume: v });
+  const candles = [];
+  let p = 83000;
+  for (let i = 0; i < 60; i++) {
+    const o = p, drift = (i % 7 - 3) * 40;
+    const c = o + drift, h = Math.max(o, c) + 30, l = Math.min(o, c) - 30;
+    candles.push(mkC(i, o, h, l, c, 100 + (i % 5) * 20));
+    p = c;
+  }
+  const c = makeCtx({
+    window: { devicePixelRatio: 2 },
+    document: {},
+    $: (sel) => sel === "#smc-canvas" ? canvasMock : null,
+    CHART_COIN: "BTC",
+    CHART_HOVER: { x: 600, y: 200 },   // crosshair giữa chart
+    PRICE_HUB: { gia: () => 84200 },
+    clamp: (v, a, b) => Math.max(a, Math.min(b, v)),
+    fmtGia: (v) => Number(v).toLocaleString("en-US"),
+  });
+  const src = read("assets/js/screens.js");
+  try { c.evalIn(extractFunction(src, "veCanvasSMC") + "\n;globalThis.__veCanvasSMC = veCanvasSMC;"); }
+  catch (e) { console.log("  ⚠ không trích được veCanvasSMC: " + e.message); }
+  const ve = c.get("__veCanvasSMC");
+  const kq = {
+    coin: "BTC",
+    candles15: candles, candles15full: candles,
+    ob15: [{ zone: [83800, 84000], huong: "bullish" }],
+    fvg15: [{ zone: [84100, 84150] }],
+    poi: { zone: [83600, 83700] },
+    mtf: { eq: { eqh: [{ gia: 84915 }], eql: [{ gia: 84646 }] }, poc: 84413 },
+    ltf: { sweep: { index: 55, wick: 83200, phia: "long" }, choch: { index: 50, mucPhaVo: 84500 } },
+    plan: { entry: 84300, sl: 83800, tp1: 84800, tp2: 85200 },
+  };
+  // CHART_COIN là let trong ctx? gán qua eval
+  c.evalIn("CHART_COIN = 'BTC';");
+  ve(kq);
+  ok(canvasMock.width === 2400 && canvasMock.height === 880, `HiDPI: canvas 2400x880 theo DPR=2 (được ${canvasMock.width}x${canvasMock.height})`);
+  ok(calls.includes("fillRect") && calls.includes("moveTo"), "có lệnh vẽ nền + đường");
+  const nFillText = calls.filter(k => k === "fillText").length;
+  ok(nFillText > 20, `vẽ đủ nhãn trục/pill/marker (fillText ×${nFillText})`);
+  // không hover → vẫn vẽ xong
+  calls.length = 0;
+  c.evalIn("CHART_HOVER = null;");
+  ve(kq);
+  ok(calls.includes("fillRect"), "vẽ lại OK khi không có crosshair");
+  // coin khác → bỏ qua
+  calls.length = 0;
+  c.evalIn("CHART_COIN = 'ETH';");
+  ve(kq);
+  ok(calls.length === 0, "coin khác CHART_COIN thì không vẽ");
+  // nến rỗng → không crash
+  c.evalIn("CHART_COIN = 'BTC';");
+  ve({ ...kq, candles15: [] });
+  ok(true, "candles rỗng không crash");
+}
+
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
