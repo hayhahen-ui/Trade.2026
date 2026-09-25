@@ -1,0 +1,36 @@
+# Trade.2026 — Tự động cập nhật lịch kinh tế Trading Economics vào data/economic_calendar_data.json
+name: Cap nhat lich kinh te TE
+on:
+  schedule:
+    - cron: "15 0,6,12,18 * * *"   # 4 lần/ngày (UTC) = 7h15/13h15/19h15/1h15 giờ VN
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tai va parse TE calendar
+        run: python3 tools/update_calendar.py
+      - name: Kiem tra du lieu tuoi
+        run: |
+          python3 -c "
+          import json, sys
+          from datetime import datetime, timezone
+          d = json.load(open('data/economic_calendar_data.json'))
+          age_h = (datetime.now(timezone.utc) - datetime.strptime(d['generatedAt'], '%Y-%m-%dT%H:%M:%S%z')).total_seconds() / 3600
+          rows = sum(len(v) for v in d['sheets'].values())
+          print(f'generatedAt={d[\"generatedAt\"]} age={age_h:.1f}h rows={rows}')
+          sys.exit(0 if (age_h < 12 and rows > 50) else 1)
+          "
+      - name: Commit neu co thay doi
+        run: |
+          git config user.name "trade2026-calendar-bot"
+          git config user.email "actions@github.com"
+          git add data/economic_calendar_data.json
+          git diff --cached --quiet || git commit -m "auto: cap nhat lich kinh te $(date -u +%F_%H%M)"
+          git push
