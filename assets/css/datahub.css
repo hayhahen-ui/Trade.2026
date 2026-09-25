@@ -1,0 +1,89 @@
+/* ============================================================
+ * SIRO DataHub — giao diện màn hình "Dòng tiền"
+ * Theme dark navy & gold, đồng bộ với style.css của Siro
+ * ============================================================ */
+.dh-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+.dh-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.dh-head h2 { margin: 0 0 4px; font-size: 20px; color: var(--gold, #e9c46a); }
+.dh-head p { margin: 0; font-size: 12.5px; }
+.dh-tools { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+.dh-tools select {
+  background: rgba(255,255,255,.05); color: inherit; border: 1px solid rgba(255,255,255,.14);
+  border-radius: 8px; padding: 5px 8px;
+}
+.dh-btn {
+  background: linear-gradient(180deg, rgba(233,196,106,.22), rgba(233,196,106,.08));
+  border: 1px solid rgba(233,196,106,.45); color: var(--gold, #e9c46a);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 12.5px;
+}
+.dh-btn:hover { filter: brightness(1.15); }
+
+/* ---- chip trạng thái nguồn ---- */
+.dh-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.dh-chip {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.10);
+}
+.dh-chip b { opacity: .55; font-weight: 500; }
+.dh-dot { width: 7px; height: 7px; border-radius: 50%; background: #6b7280; }
+.dh-on  .dh-dot { background: #22c55e; box-shadow: 0 0 8px #22c55e88; }
+.dh-retry .dh-dot { background: #eab308; animation: dh-blink 1s infinite; }
+.dh-degraded .dh-dot { background: #f97316; }
+.dh-off .dh-dot { background: #6b7280; }
+@keyframes dh-blink { 50% { opacity: .25; } }
+
+/* ---- KPI ---- */
+.dh-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.dh-kpi {
+  background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px; padding: 12px 14px;
+}
+.dh-kpi-lb { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; opacity: .6; }
+.dh-kpi-v { font-size: 22px; font-weight: 700; margin-top: 4px; }
+.dh-kpi-sub { font-size: 12px; opacity: .7; margin-top: 4px; }
+
+.dh-bar { height: 8px; border-radius: 999px; background: rgba(239,68,68,.35); overflow: hidden; margin-top: 10px; }
+.dh-bar i { display: block; height: 100%; background: linear-gradient(90deg, #22c55e, #4ade80); }
+.dh-bar-sm { height: 6px; margin: 0; flex: 1; }
+
+/* ---- lưới thẻ ---- */
+.dh-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 12px; align-items: start; }
+.dh-col { display: flex; flex-direction: column; gap: 12px; }
+@media (max-width: 1100px) { .dh-grid { grid-template-columns: 1fr; } }
+
+.dh-card {
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px; padding: 12px 14px;
+}
+.dh-card h3 { margin: 0 0 10px; font-size: 14px; color: var(--gold, #e9c46a); font-weight: 600; }
+
+/* ---- bảng ---- */
+.dh-scroll { max-height: 420px; overflow: auto; }
+.dh-table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.dh-table th {
+  position: sticky; top: 0; z-index: 1; text-align: left; font-weight: 500; font-size: 11.5px;
+  text-transform: uppercase; letter-spacing: .03em; opacity: .55;
+  padding: 6px 8px; background: #0d1526; border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.dh-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,.05); white-space: nowrap; }
+.dh-table tbody tr:hover { background: rgba(255,255,255,.04); }
+.dh-r-up td:first-child  { box-shadow: inset 3px 0 0 #22c55e; }
+.dh-r-down td:first-child{ box-shadow: inset 3px 0 0 #ef4444; }
+.dh-title { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.dh-up { color: #4ade80; }
+.dh-down { color: #f87171; }
+.dh-dim { opacity: .55; }
+.dh-strong { font-weight: 600; }
+
+/* ---- phân bổ cỡ lệnh ---- */
+.dh-dist-row { display: flex; align-items: center; gap: 10px; font-size: 12px; padding: 4px 0; }
+.dh-dist-lb { width: 86px; opacity: .75; }
+.dh-dist-v { width: 210px; text-align: right; opacity: .8; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .dh-dist-v { width: auto; } }
+
+/* ---- vĩ mô ---- */
+.dh-macro .dh-mini { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.dh-macro .dh-mini:last-child { border-bottom: 0; }
