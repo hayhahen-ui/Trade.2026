@@ -561,6 +561,8 @@ console.log("\n[11] aichat.js — AI Hỏi đáp (RAG)");
   ok(P.apmix.endpoint().includes("api.apmix.ai/v1/chat/completions"), "apmix endpoint đúng");
   ok(P.apmix.headers("k").Authorization === "Bearer k", "apmix: Bearer token (OpenAI-compatible)");
   ok(P.apmix.modelMacDinh === "deepseek-v4-flash-free", "apmix model mặc định là bản free");
+  ok(P.apmix.proxy === true && P.anthropic.proxy === true, "apmix + anthropic đi qua proxy");
+  ok(typeof P.apmix.proxyNote === "string" && P.apmix.proxyNote.length > 10, "apmix có ghi chú proxy");
 
   // 11.2 headers/body đúng chuẩn từng provider
   ok(P.openai.headers("k123").Authorization === "Bearer k123", "openai: Bearer token");
@@ -638,7 +640,57 @@ console.log("\n[12] phanTichPhaiSinh — tích hợp live (mock)");
 }
 };
 
-_p9.then(_p10).then(_p11).then(() => {
+/* ---------- 13. api/ai-proxy.js — Vercel proxy vượt chặn mạng/CORS ---------- */
+const _p12 = async () => {
+console.log("\n[13] api/ai-proxy.js — proxy");
+{
+  const handler = require(path.join(ROOT, "api/ai-proxy.js"));
+  ok(typeof handler === "function", "export handler function");
+  const goi = async (method, body) => {
+    const calls = [];
+    const req = { method, body };
+    const res = {
+      statusCode: 0, headers: {}, payload: null,
+      status(c) { this.statusCode = c; return this; },
+      setHeader(k, v) { this.headers[k] = v; return this; },
+      json(o) { this.payload = o; return this; },
+      send(t) { this.payload = t; return this; },
+    };
+    await handler(req, res);
+    return { res, calls };
+  };
+  // 13.1 chặn method khác POST
+  let r = await goi("GET", {});
+  ok(r.res.statusCode === 405, "GET → 405");
+  // 13.2 chặn provider ngoài allowlist (chống open-proxy)
+  r = await goi("POST", { provider: "evil", key: "k", model: "m" });
+  ok(r.res.statusCode === 400, "provider lạ → 400");
+  // 13.3 thiếu key/model
+  r = await goi("POST", { provider: "apmix", key: "", model: "m" });
+  ok(r.res.statusCode === 400, "thiếu key → 400");
+  // 13.4 forward đúng tới APMIX (fetch mock), không log key
+  const realFetch = global.fetch;
+  let lastReq = null;
+  global.fetch = async (url, opts) => {
+    lastReq = { url, body: JSON.parse(opts.body), auth: opts.headers.Authorization };
+    return { status: 200, text: async () => '{"choices":[{"message":{"content":"pong"}}]}' };
+  };
+  r = await goi("POST", { provider: "apmix", key: "k-bi-mat", model: "deepseek-v4-flash-free", system: "sys", messages: [{ role: "user", content: "hi" }] });
+  global.fetch = realFetch;
+  ok(r.res.statusCode === 200, "proxy forward → 200");
+  ok(lastReq.url === "https://api.apmix.ai/v1/chat/completions", "proxy gọi đúng endpoint APMIX");
+  ok(lastReq.auth === "Bearer k-bi-mat", "proxy gắn Bearer key");
+  ok(lastReq.body.model === "deepseek-v4-flash-free" && lastReq.body.messages[0].role === "system", "proxy dựng body OpenAI-compatible + system");
+  ok(!JSON.stringify(r.res.headers).includes("k-bi-mat"), "response không lộ key ở header");
+  // 13.5 provider down → 502 gọn, không crash
+  global.fetch = async () => { throw new Error("down"); };
+  r = await goi("POST", { provider: "apmix", key: "k", model: "m", system: "", messages: [] });
+  global.fetch = realFetch;
+  ok(r.res.statusCode === 502, "provider down → 502");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

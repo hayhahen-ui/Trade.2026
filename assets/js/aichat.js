@@ -62,6 +62,8 @@ const AI_PROVIDERS = {
     parse: (j) => (j?.content || []).filter(b => b.type === "text").map(b => b.text || "").join("").trim(),
     loi: (st) => st === 401 ? "Key sai hoặc hết hạn." : st === 429 ? "Hết quota — thử lại sau." : `Lỗi HTTP ${st}.`,
     corsNote: "Anthropic có thể chặn gọi trực tiếp từ trình duyệt (CORS) — nếu báo lỗi mạng, hãy dùng Gemini/OpenAI.",
+    proxy: true,
+    proxyNote: "Gọi qua proxy của chính app này (Vercel) để tránh chặn mạng/CORS — key vẫn chỉ nằm ở trình duyệt bạn.",
   },
   apmix: {
     ten: "APMIX.AI (free)",
@@ -80,6 +82,8 @@ const AI_PROVIDERS = {
     }),
     parse: (j) => j?.choices?.[0]?.message?.content?.trim() || "",
     loi: (st) => st === 401 ? "Key APMIX sai hoặc hết hạn." : st === 429 ? "Hết quota — thử lại sau." : `Lỗi HTTP ${st}.`,
+    proxy: true,
+    proxyNote: "Gọi qua proxy của chính app này (Vercel) để tránh chặn mạng/CORS — key vẫn chỉ nằm ở trình duyệt bạn.",
   },
 };
 
@@ -225,13 +229,24 @@ async function hoiAI(providerId, model, messages, opts = {}) {
   const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs || 90000);
   let res;
   try {
-    res = await fetch(P.endpoint(mdl), {
-      method: "POST", headers: P.headers(key),
-      body: JSON.stringify(P.body(mdl, system, messages)),
-      signal: ctrl.signal,
-    });
+    if (P.proxy) {
+      // Đi qua proxy cùng domain (Vercel function) để vượt chặn mạng/CORS
+      res = await fetch("/api/ai-proxy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: providerId, key, model: mdl, system, messages }),
+        signal: ctrl.signal,
+      });
+    } else {
+      res = await fetch(P.endpoint(mdl), {
+        method: "POST", headers: P.headers(key),
+        body: JSON.stringify(P.body(mdl, system, messages)),
+        signal: ctrl.signal,
+      });
+    }
   } catch (e) {
     clearTimeout(timer);
+    if (e.name === "AbortError") throw new Error("Hết thời gian chờ (90s) — thử lại hoặc đổi model/proxy.");
     const cors = P.corsNote ? " " + P.corsNote : "";
     throw new Error("Không kết nối được tới API (mạng/CORS)." + cors);
   }

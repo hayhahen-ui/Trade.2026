@@ -639,6 +639,7 @@ function renderHoiDap(root) {
     );
     panelKey.appendChild(hang);
     if (P.corsNote) panelKey.appendChild(el("p", { class: "muted small", style: "margin:-4px 0 8px 158px" }, "⚠ " + P.corsNote));
+    if (P.proxyNote) panelKey.appendChild(el("p", { class: "muted small", style: "margin:-4px 0 8px 158px" }, "🔀 " + P.proxyNote));
   }
   wrap.appendChild(panelKey);
 
