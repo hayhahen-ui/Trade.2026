@@ -87,3 +87,10 @@
 /* ---- vĩ mô ---- */
 .dh-macro .dh-mini { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
 .dh-macro .dh-mini:last-child { border-bottom: 0; }
+
+/* ---- FlowDB: cảnh báo + chip database (v2.0.3) ---- */
+.dh-alerts { border-left: 3px solid #f59e0b; }
+.dh-alert-list { display: flex; flex-direction: column; gap: 6px; }
+.dh-alert { font-size: 13px; padding: 7px 10px; background: rgba(245,158,11,.07);
+  border: 1px solid rgba(245,158,11,.22); border-radius: 8px; }
+.dh-dbchip { font-size: 12px; color: #7dd3a8; margin: 4px 0 0; }

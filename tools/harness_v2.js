@@ -391,5 +391,94 @@ console.log("\n[7] screens.js — chart TradingView-style");
   ok(true, "candles rỗng không crash");
 }
 
+
+/* ---------- 9. flowdb.js — database dòng tiền ---------- */
+console.log("\n[9] flowdb.js — database dòng tiền (backend RAM)");
+const _p9 = (async () => {
+  const c = makeCtx();
+  c.load("assets/js/flowdb.js");
+  const FDB = c.get("FlowDB");
+  const T0 = Date.now();
+  const W = (coin, side, usd, ts, san) => ({ coin, side, usd, ts: ts || T0, san: san || "BINANCE", price: 100, qty: usd / 100 });
+  const L = (coin, huong, usd, ts) => ({ coin, huong, usd, ts: ts || T0, san: "BYBIT", price: 100 });
+
+  await FDB._useBackend(FDB._memBackend());
+  ok(true, "init với backend RAM");
+
+  // 9.1 track + flush + đọc desc
+  FDB.trackWhale(W("BTC", "BUY", 400e3, T0 - 3000));
+  FDB.trackWhale(W("BTC", "SELL", 100e3, T0 - 2000));
+  FDB.trackWhale(W("ETH", "BUY", 250e3, T0 - 1000));
+  FDB.trackLiq(L("BTC", "LONG", 600e3));
+  await FDB._flushBuf();
+  const wAll = await FDB.recentWhales({ limit: 10 });
+  ok(wAll.length === 3 && wAll[0].coin === "ETH" && wAll[2].coin === "BTC",
+    "recentWhales trả desc theo ts");
+  const wBtc = await FDB.recentWhales({ coin: "btc", limit: 10 });
+  ok(wBtc.length === 2 && wBtc.every(x => x.coin === "BTC"), "lọc theo coin (không phân biệt hoa/thường)");
+  const lAll = await FDB.recentLiqs({ limit: 10 });
+  ok(lAll.length === 1 && lAll[0].huong === "LONG" && lAll[0].usd === 600e3, "recentLiqs ghi đúng");
+
+  // 9.2 flowWindow 60'
+  const fw = await FDB.flowWindow(60);
+  ok(fw.buy === 650e3 && fw.sell === 100e3 && fw.net === 550e3 && fw.count === 3,
+    "flowWindow: buy/sell/net/count đúng");
+  ok(fw.perCoin.BTC.volume === 500e3 && fw.perCoin.BTC.count === 2, "perCoin gom đúng");
+  ok(fw.liqLong === 600e3 && fw.liqShort === 0 && fw.liqCount === 1, "tổng thanh lý đúng");
+  const d = fw.dist["100K-500K"];
+  ok(d && d.count === 3 && d.volume === 750e3, "phân bổ cỡ lệnh đúng");
+
+  // 9.3 flowScore cùng công thức DataHub: flow=(650-100)/750*70, liq=(600-0)/600*30
+  const sc = await FDB.flowScore("BTC");
+  const expect = Math.round(((400e3 - 100e3) / 500e3) * 70 + 30);
+  ok(sc === expect, `flowScore(BTC)=${sc}, kỳ vọng ${expect}`);
+  const scEth = await FDB.flowScore("ETH");
+  ok(scEth === 70, `flowScore(ETH) toàn BUY = 70 (được ${scEth})`);
+  const scX = await FDB.flowScore("DOGE");
+  ok(scX === 0, "coin không có dữ liệu → 0");
+
+  // 9.4 bucket gom theo phút trong RAM
+  ok(FDB._bk.size >= 2, "bucket phút được gom trong RAM");
+  const bk = [...FDB._bk.values()].find(b => b.coin === "BTC");
+  ok(bk && bk.buy === 400e3 && bk.sell === 100e3 && bk.n === 2, "bucket BTC: buy/sell/n đúng");
+
+  // 9.5 cảnh báo whale burst: 3 lệnh BUY BTC tổng ≥$1M trong 5'
+  FDB._lastAlert = {};
+  FDB.trackWhale(W("BTC", "BUY", 400e3, T0 - 4 * 60e3));
+  FDB.trackWhale(W("BTC", "BUY", 400e3, T0 - 3 * 60e3));
+  FDB.trackWhale(W("BTC", "BUY", 400e3, T0 - 2 * 60e3));
+  await FDB._flushBuf();
+  await FDB._checkAlerts();
+  const als = await FDB.alerts({ limit: 20 });
+  const burst = als.find(a => a.loai === "burst" && a.coin === "BTC");
+  ok(!!burst && /\d+ lệnh MUA/.test(burst.text), "phát hiện whale burst BTC (" + (burst ? burst.text : "?") + ")");
+  // chống spam: check lại ngay → không thêm alert trùng
+  const n1 = als.length;
+  await FDB._checkAlerts();
+  const als2 = await FDB.alerts({ limit: 20 });
+  ok(als2.length === n1, "cooldown chống spam cảnh báo trùng");
+
+  // 9.6 liq cascade: thanh lý ≥$500K/5'
+  FDB._lastAlert = {};
+  FDB.trackLiq(L("ETH", "SHORT", 300e3, T0 - 60000));
+  FDB.trackLiq(L("ETH", "LONG", 300e3, T0 - 30000));
+  await FDB._flushBuf();
+  await FDB._checkAlerts();
+  const als3 = await FDB.alerts({ limit: 20 });
+  ok(als3.some(a => a.loai === "liq" && a.coin === "ETH"), "phát hiện liq cascade ETH");
+
+  // 9.7 prune xóa dữ liệu >7 ngày
+  await FDB._be.put("whales", { coin: "BTC", side: "BUY", usd: 1e5, ts: T0 - 8 * 24 * 3600e3, san: "X", price: 1, qty: 1 });
+  const before = await FDB.stats();
+  await FDB.prune(7);
+  const after = await FDB.stats();
+  ok(after.whales === before.whales - 1, "prune xóa bản ghi quá 7 ngày");
+
+  // 9.8 giới hạn alerts ≤ maxKeep
+  ok(after.alerts <= 100, "alerts không vượt maxKeep");
+})();
+
+_p9.then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
+});

@@ -112,11 +112,27 @@
   };
   global.DataHubBridge = Bridge;
 
+  /* ---------- 4b. FlowDB — thu thập dòng tiền LIÊN TỤC vào database ----------
+   * Mọi sự kiện whale/thanh lý được ghi vào IndexedDB ngay khi xảy ra,
+   * kể cả khi user chưa mở màn hình "Dòng tiền" → mở là có sẵn lịch sử. */
+  function khoiDongFlowDB() {
+    try {
+      const FDB = global.FlowDB;
+      if (!FDB) return;
+      FDB.init().then(() => {
+        DH.on("whale", (t) => { try { FDB.trackWhale(t); } catch (e) {} });
+        DH.on("liq",   (l) => { try { FDB.trackLiq(l); } catch (e) {} });
+        Bridge.flowDB = FDB;
+      }).catch(() => {});
+    } catch (err) {}
+  }
+
   /* ---------- 5. Khởi động ---------- */
   function boot() {
     dangKyManHinh();
     themNavItem();
     if (!DH.isRunning()) DH.start();
+    khoiDongFlowDB();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(boot, 0));
   else setTimeout(boot, 0);

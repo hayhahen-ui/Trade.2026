@@ -34,6 +34,67 @@
   /* ---------- trạng thái màn hình ---------- */
   let root = null, dirty = false, timer = null;
 
+  /* ---------- FlowDB: lịch sử dòng tiền (mở màn hình là có ngay) ---------- */
+  const FDB = () => global.FlowDB || null;
+  let HIST = { whales: [], liqs: [], alerts: [], ok: false, db: false };
+
+  const _keyEv = (t) => [t.ts, t.coin, t.usd, t.san, t.side || t.huong].join("|");
+  function _napLichSu(dst, item, max) {
+    if (!item) return;
+    const k = _keyEv(item);
+    if (dst.some((x) => _keyEv(x) === k)) return;
+    dst.unshift(item);
+    if (dst.length > max) dst.length = max;
+  }
+
+  /* Nạp 1 lần khi mở màn hình: lệnh lớn / thanh lý / cảnh báo gần nhất từ DB */
+  async function napLichSu() {
+    const db = FDB();
+    if (!db || HIST.ok) return;
+    try {
+      await db.init();
+      const [w, l, a] = await Promise.all([
+        db.recentWhales({ limit: 150 }),
+        db.recentLiqs({ limit: 80 }),
+        db.alerts({ limit: 12 }),
+      ]);
+      HIST.whales = w; HIST.liqs = l; HIST.alerts = a; HIST.ok = true; HIST.db = true;
+      db.onAlert((al) => { _napLichSu(HIST.alerts, al, 30); markDirty(); });
+    } catch (err) { /* fallback: dùng RAM của DataHub */ }
+  }
+
+  /* Chuẩn hóa stats: ưu tiên FlowDB (đủ 60' lịch sử), fallback DH.stats() */
+  async function layStats() {
+    const db = FDB();
+    if (db) {
+      try {
+        await db.init();
+        const fw = await db.flowWindow(CFG.whale.windowMin);
+        const scores = {};
+        for (const coin of Object.keys(fw.perCoin)) scores[coin] = await db.flowScore(coin);
+        return {
+          tuDB: true, windowMin: CFG.whale.windowMin,
+          whale: {
+            netFlow: fw.net, totalVolume: fw.volume, tradeCount: fw.count,
+            momentum: fw.volume ? fw.buy / fw.volume : 0.5,
+          },
+          liquidation: {
+            totalVolume: fw.liqLong + fw.liqShort, longVolume: fw.liqLong,
+            shortVolume: fw.liqShort, count: fw.liqCount,
+          },
+          coinStats: fw.perCoin, distribution: fw.dist, scores,
+        };
+      } catch (err) { /* fallback bên dưới */ }
+    }
+    return { tuDB: false, ...DH.stats(), scores: {} };
+  }
+
+  async function demDB() {
+    const db = FDB();
+    if (!db) return null;
+    try { await db.init(); return await db.stats(); } catch (err) { return null; }
+  }
+
   function markDirty() {
     if (!root || !root.isConnected) return;
     dirty = true;
@@ -76,7 +137,9 @@
   }
 
   function veWhaleTable() {
-    const rows = DH.whales(CFG.ui.rows).map((t) =>
+    // Ưu tiên lịch sử DB (có sẵn nhiều giờ) — live event đã được nạp vào HIST
+    const rows = (HIST.ok && HIST.whales.length ? HIST.whales : DH.whales(CFG.ui.rows))
+      .slice(0, CFG.ui.rows).map((t) =>
       e("tr", { class: t.side === "BUY" ? "dh-r-up" : "dh-r-down" },
         e("td", {}, gio(t.ts)), e("td", {}, e("b", {}, t.coin)),
         e("td", { class: t.side === "BUY" ? "dh-up" : "dh-down" }, t.side === "BUY" ? "MUA" : "BÁN"),
@@ -92,7 +155,8 @@
   }
 
   function veLiqTable() {
-    const rows = DH.liqs(20).map((t) =>
+    const rows = (HIST.ok && HIST.liqs.length ? HIST.liqs : DH.liqs(20))
+      .slice(0, 20).map((t) =>
       e("tr", {},
         e("td", {}, gio(t.ts)), e("td", {}, e("b", {}, t.coin)),
         e("td", { class: t.huong === "LONG" ? "dh-down" : "dh-up" }, t.huong),
@@ -122,7 +186,8 @@
 
   function veCoinFlow(st) {
     const rows = Object.entries(st.coinStats).sort((a, b) => b[1].volume - a[1].volume).map(([c, d]) => {
-      const net = d.buy - d.sell, sc = DH.flowScore(c);
+      const net = d.buy - d.sell;
+      const sc = (st.scores && st.scores[c] != null) ? st.scores[c] : DH.flowScore(c);
       return e("tr", {},
         e("td", {}, e("b", {}, c)),
         e("td", {}, "$" + fmtUsd(d.volume)),
@@ -154,18 +219,40 @@
   }
 
   /* ---------- render chính ---------- */
-  function renderDongTien(container) {
+  function veAlerts() {
+    if (!HIST.alerts.length) return null;
+    return e("div", { class: "dh-card dh-alerts" },
+      e("h3", {}, "🔔 Cảnh báo dòng tiền"),
+      e("div", { class: "dh-alert-list" },
+        HIST.alerts.slice(0, 6).map((a) =>
+          e("div", { class: "dh-alert" },
+            e("span", { class: "dh-dim" }, gio(a.ts)), " ",
+            a.coin ? e("b", {}, a.coin + " ") : null,
+            e("span", {}, a.text)))));
+  }
+
+  function veDbChip(n) {
+    if (!n) return null;
+    const tong = n.whales + n.liqs;
+    return e("p", { class: "dh-dbchip" },
+      `💾 Database: ${fmtNum(tong, 0)} sự kiện đã lưu (7 ngày) · thu thập liên tục khi tab mở — mở màn hình là có sẵn dữ liệu.`);
+  }
+
+  async function renderDongTien(container) {
     root = container;
     root.innerHTML = "";
     if (!DH.isRunning()) DH.start();
-    const st = DH.stats();
+    await napLichSu();
+    const st = await layStats();
+    const n = await demDB();
 
     root.append(
       e("div", { class: "dh-wrap" },
         e("div", { class: "dh-head" },
           e("div", {},
             e("h2", {}, "🌊 Dòng tiền Real-time"),
-            e("p", { class: "dh-dim" }, "Gom trực tiếp từ Binance · OKX · Bybit · Hyperliquid · Polymarket — không qua server trung gian.")),
+            e("p", { class: "dh-dim" }, "Gom trực tiếp từ Binance · OKX · Bybit · Hyperliquid · Polymarket — không qua server trung gian."),
+            veDbChip(n)),
           e("div", { class: "dh-tools" },
             e("label", {}, "Ngưỡng lệnh lớn ",
               e("select", { onchange: (ev) => { DH.setFilter({ minUsd: +ev.target.value }); ve(); } },
@@ -177,15 +264,18 @@
               a.href = URL.createObjectURL(blob); a.download = `siro-datahub-${Date.now()}.json`; a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
             } }, "⬇︎ Xuất snapshot"))),
-        veHealth(), veKpi(st),
+        veHealth(), veAlerts(), veKpi(st),
         e("div", { class: "dh-grid" }, veWhaleTable(), e("div", { class: "dh-col" }, veLiqTable(), veCoinFlow(st))),
         e("div", { class: "dh-grid" }, vePoly(), e("div", { class: "dh-col" }, veDist(st), veMacro()))));
   }
 
   function ve() { if (root && root.isConnected) renderDongTien(root); }
 
-  /* Cập nhật tiết chế — chỉ vẽ lại khi màn hình đang mở */
-  DH.on("whale", markDirty); DH.on("liq", markDirty); DH.on("poly", markDirty);
+  /* Cập nhật tiết chế — chỉ vẽ lại khi màn hình đang mở.
+   * Live event đồng thời được nạp vào HIST (lịch sử DB) để bảng luôn đầy. */
+  DH.on("whale", (t) => { _napLichSu(HIST.whales, t, 300); markDirty(); });
+  DH.on("liq",   (l) => { _napLichSu(HIST.liqs, l, 200); markDirty(); });
+  DH.on("poly", markDirty);
   DH.on("stats", markDirty); DH.on("source", markDirty); DH.on("macro", markDirty);
   clearInterval(timer);
   timer = setInterval(() => { if (dirty) { dirty = false; ve(); } }, CFG.ui.rerenderMs);
