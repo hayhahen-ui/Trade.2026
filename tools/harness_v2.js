@@ -467,12 +467,17 @@ const _p9 = (async () => {
   const als3 = await FDB.alerts({ limit: 20 });
   ok(als3.some(a => a.loai === "liq" && a.coin === "ETH"), "phát hiện liq cascade ETH");
 
-  // 9.7 prune xóa dữ liệu >7 ngày
+  // 9.7 donDep (thủ công, khi user bấm nút) xóa dữ liệu >7 ngày — KHÔNG tự chạy
   await FDB._be.put("whales", { coin: "BTC", side: "BUY", usd: 1e5, ts: T0 - 8 * 24 * 3600e3, san: "X", price: 1, qty: 1 });
   const before = await FDB.stats();
-  await FDB.prune(7);
+  await FDB.donDep(7);
   const after = await FDB.stats();
-  ok(after.whales === before.whales - 1, "prune xóa bản ghi quá 7 ngày");
+  ok(after.whales === before.whales - 1, "donDep xóa bản ghi quá 7 ngày (chỉ khi user bấm)");
+
+  // 9.7b kiemTraKho: chưa đầy → dungGhi=false; quá 200k sự kiện → dừng ghi
+  const kho1 = await FDB.kiemTraKho();
+  ok(kho1.dungGhi === false, "kiemTraKho: chưa đầy thì ghi tiếp");
+  ok(typeof FDB.trangThaiKho().dungGhi === "boolean", "trangThaiKho trả trạng thái kho");
 
   // 9.8 giới hạn alerts ≤ maxKeep
   ok(after.alerts <= 100, "alerts không vượt maxKeep");
@@ -779,7 +784,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.1"') >= 0, "APP_VERSION = 2.4.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.5.0"') >= 0, "APP_VERSION = 2.4.1");
 }
 };
 
@@ -824,7 +829,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.1"') >= 0, "APP_VERSION = 2.4.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.5.0"') >= 0, "APP_VERSION = 2.4.1");
 }
 };
 
@@ -846,7 +851,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   const pf = JSON.parse(read("data/flow-247.json"));
   ok(pj.meta && typeof pj.meta.bytes === "number" && pj.meta.bytes > 0, "journal payload có meta.bytes");
   ok(pf.meta && typeof pf.meta.bytes === "number" && pf.meta.bytes > 0, "flow payload có meta.bytes");
-  ok(pf.meta.storeBytes > 0 && pf.meta.giuNgay === 7, "flow meta có storeBytes + giữ 7 ngày");
+  ok(pf.meta.storeBytes > 0 && /không tự xóa/.test(pf.meta.chinhSach || ""), "flow meta có storeBytes + chính sách không tự xóa");
   const uisrc = read("assets/js/datahub-ui.js");
   ok(uisrc.indexOf("navigator.storage.estimate") >= 0, "panel dùng storage.estimate đo IndexedDB");
   ok(uisrc.indexOf("doDungLuong") >= 0 && uisrc.indexOf("veDungLuong") >= 0, "có đo + vẽ panel dung lượng");
@@ -854,11 +859,53 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.1"') >= 0, "APP_VERSION = 2.4.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.5.0"') >= 0, "APP_VERSION = 2.4.1");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(() => {
+const _p17 = async () => {
+console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì dừng ghi + nhắc user");
+{
+  const { execSync } = require("child_process");
+  for (const f of ["tools/collector-247.js", "tools/flow-collector.js"]) {
+    try { execSync("node --check " + f, { cwd: ROOT, stdio: "pipe" }); ok(true, f + " parse OK"); }
+    catch (e) { ok(false, f + " parse OK", e.message); }
+  }
+  const fc = read("tools/flow-collector.js"), cc = read("tools/collector-247.js");
+  ok(fc.indexOf("STORAGE_FULL") >= 0 && fc.indexOf("process.exit(2)") >= 0, "flow-collector dừng ghi + báo STORAGE_FULL khi đầy");
+  ok(fc.indexOf("slice(-4000)") === -1 && fc.indexOf("prune(") === -1, "flow-collector không còn tự xóa/cắt");
+  ok(cc.indexOf("STORAGE_FULL") >= 0 && cc.indexOf("process.exit(2)") >= 0, "collector-247 dừng ghi + báo STORAGE_FULL khi đầy");
+  const pf = JSON.parse(read("data/flow-247.json"));
+  ok(pf.meta && pf.meta.hetBoNho === false && /không tự xóa/.test(pf.meta.chinhSach || ""), "payload flow có cờ hetBoNho + chính sách");
+  // journal: đầy → _luu từ chối, không cắt bớt
+  const c = makeCtx({ localStorage: (() => { const s = {}; return {
+    getItem: (k) => (k in s ? s[k] : null), setItem: (k, v) => { s[k] = String(v); },
+    removeItem: (k) => { delete s[k]; }, key: (i) => Object.keys(s)[i], get length() { return Object.keys(s).length; }, _raw: s }; })() });
+  c.load("assets/js/journal.js");
+  const J = c.get("JOURNAL");
+  const ds301 = []; for (let i = 0; i < 301; i++) ds301.push({ id: "t" + i });
+  ok(J._luu(ds301) === false && J.hetBoNho() === true, "journal _luu từ chối khi quá 300 (không tự cắt)");
+  ok(J._luu(ds301.slice(0, 10)) === true && J.hetBoNho() === false, "journal ghi lại bình thường khi đã dọn");
+  J.xoaHet();
+  ok(J.hetBoNho() === false, "xoaHet reset cờ hết bộ nhớ");
+  // flowdb: bỏ prune tự động, có kiemTraKho/donDep/trangThaiKho, gate ghi
+  const fs2 = read("assets/js/flowdb.js");
+  ok(fs2.indexOf("self.prune(") === -1, "FlowDB không còn tự prune");
+  ok(fs2.indexOf("kiemTraKho") >= 0 && fs2.indexOf("donDep") >= 0 && fs2.indexOf("trangThaiKho") >= 0,
+    "FlowDB có kiemTraKho/donDep/trangThaiKho");
+  ok(fs2.indexOf("if (this._hetBoNho) return;") >= 0, "trackWhale/trackLiq dừng ghi khi đầy");
+  // UI: nút dọn thủ công + trạng thái dừng ghi
+  const ui = read("assets/js/datahub-ui.js");
+  ok(ui.indexOf("Dọn dữ liệu cũ hơn 7 ngày") >= 0 && ui.indexOf("layTrangThaiKho") >= 0,
+    "panel có nút dọn thủ công + đọc trạng thái kho");
+  ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
+  const js = read("assets/js/journal.js");
+  ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.5.0"') >= 0, "APP_VERSION = 2.5.0");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

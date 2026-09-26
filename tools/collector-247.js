@@ -54,10 +54,34 @@ function napStore() {
 function luuStore() {
   try { fs.writeFileSync(STORE_PATH, JSON.stringify(lsMem)); } catch {}
 }
+/* Chính sách bộ nhớ (theo yêu cầu user 26/09/2026): KHÔNG tự xóa.
+ * Kho ≥ MAX → dừng ghi, đánh dấu payload, thoát code 2 để cron nhắc user. */
+const JOURNAL_CB = 512 * 1024;   // cảnh báo
+const JOURNAL_MAX = 1024 * 1024; // đầy → dừng ghi
+function dungLuongKhoJournal() {
+  try { return fs.statSync(STORE_PATH).size; } catch { return 0; }
+}
+function danhDauDungGhi(lyDo) {
+  try {
+    const p = JSON.parse(fs.readFileSync(PUBLIC_PATH, "utf8"));
+    p.meta = p.meta || {};
+    p.meta.hetBoNho = true;
+    p.meta.lyDo = lyDo;
+    fs.writeFileSync(PUBLIC_PATH, JSON.stringify(p));
+  } catch {}
+}
 
 async function main() {
   const batDau = Date.now();
   console.log(`[collector-247] bắt đầu ${new Date().toISOString()}`);
+  const khoBytes = dungLuongKhoJournal();
+  if (khoBytes >= JOURNAL_MAX) {
+    const lyDo = `kho journal ${Math.round(khoBytes / 1024)}KB ≥ giới hạn`;
+    danhDauDungGhi(lyDo);
+    console.log(`[collector-247] STORAGE_FULL: ${lyDo} — dừng ghi, chờ user dọn`);
+    process.exit(2);
+  }
+  if (khoBytes >= JOURNAL_CB) console.log(`[collector-247] STORAGE_WARN: kho ${Math.round(khoBytes / 1024)}KB gần đầy`);
   const n0 = napStore();
   console.log(`  store: ${n0} keys`);
 
@@ -111,7 +135,9 @@ async function main() {
     try { storeBytes = fs.statSync(STORE_PATH).size; } catch {}
     payload.meta = {
       bytes: statPub.size, storeBytes,
-      banGhi: ds.length, giuToiDa: 300,
+      banGhi: ds.length, gioiHanBoNho: "1MB",
+      hetBoNho: false,
+      chinhSach: "không tự xóa; đầy thì dừng ghi và nhắc user",
       chuThich: "file công khai (nhánh data) + kho server",
     };
     fs.writeFileSync(PUBLIC_PATH, JSON.stringify(payload));

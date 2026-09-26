@@ -171,6 +171,7 @@ label.chk-line { display: block; margin: 7px 0; font-size: 13.5px; cursor: point
 .plan-title { font-weight: 800; margin-bottom: 6px; }
 .warn-box { background: hsla(38,92%,50%,.08); border: 1px solid hsla(38,92%,50%,.4); border-radius: 10px; padding: 8px 12px; margin-top: 10px; font-size: 12.5px; }
 .note-box { background: hsla(199,80%,55%,.07); border: 1px solid hsla(199,80%,55%,.35); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; }
+.note-box.warn { background: hsla(38,92%,50%,.08); border-color: hsla(38,92%,50%,.5); }
 
 /* ---------- Signal cards ---------- */
 .signal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }

@@ -238,7 +238,7 @@
         self._be = memBackend();
       }).then(function () {
         self._startTimers();
-        self.prune().catch(function () {});
+        self.kiemTraKho().catch(function () {});
         return true;
       });
       return self._readyP;
@@ -250,7 +250,7 @@
       self._timers.push(setInterval(function () { self._flushBuf().catch(function () {}); }, FLUSH_MS));
       self._timers.push(setInterval(function () { self._flushBuckets().catch(function () {}); }, BUCKET_MS));
       self._timers.push(setInterval(function () { self._checkAlerts().catch(function () {}); }, ALERT.checkMs));
-      self._timers.push(setInterval(function () { self.prune().catch(function () {}); }, 24 * 3600e3));
+      self._timers.push(setInterval(function () { self.kiemTraKho().catch(function () {}); }, 3600e3));
     },
 
     /* ---------- ghi ---------- */
@@ -267,6 +267,7 @@
     },
 
     trackWhale: function (t) {
+      if (this._hetBoNho) return; // đầy → dừng ghi, chờ user dọn
       var o = this._chuanHoa(t, false);
       if (!o || !o.coin) return;
       if (o.id) FDB_IDS.add(o.id);
@@ -281,6 +282,7 @@
     },
 
     trackLiq: function (l) {
+      if (this._hetBoNho) return; // đầy → dừng ghi, chờ user dọn
       var o = this._chuanHoa(l, true);
       if (!o || !o.coin) return;
       if (o.id) FDB_IDS.add(o.id);
@@ -438,9 +440,8 @@
         return self._be.count("alerts");
       }).then(function (n) {
         if (n > ALERT.maxKeep) {
-          return self._be.query("alerts", { index: "ts", limit: n - ALERT.maxKeep }).then(function (old) {
-            return Promise.all(old.map(function (o) { return self._be.del("alerts", o._id); }));
-          });
+          // KHÔNG tự xóa cảnh báo cũ (chính sách user): chỉ dừng ghi thêm
+          self._hetBoNho = self._hetBoNho || n > ALERT.maxKeep + 500;
         }
       }).then(function () {
         self._onAlert.forEach(function (cb) { try { cb(a); } catch (e) {} });
@@ -502,8 +503,35 @@
       });
     },
 
-    /* ---------- bảo trì ---------- */
-    prune: function (days) {
+    /* ---------- kiểm tra dung lượng (KHÔNG tự xóa) ----------
+     * Chính sách (user 26/09/2026): đầy → dừng ghi, hiện cảnh báo,
+     * chờ user bấm "Dọn" thủ công. Không bao giờ tự xóa dữ liệu. */
+    kiemTraKho: function () {
+      var self = this;
+      function xong(dungGhi, lyDo) {
+        self._hetBoNho = dungGhi;
+        self._lyDoDay = dungGhi ? lyDo : "";
+        return { dungGhi: dungGhi, lyDo: self._lyDoDay };
+      }
+      var p = Promise.resolve(null);
+      try {
+        if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.estimate) {
+          p = navigator.storage.estimate().catch(function () { return null; });
+        }
+      } catch (e) {}
+      return p.then(function (es) {
+        if (es && es.quota && es.usage / es.quota >= 0.85) {
+          return xong(true, "bộ nhớ trình duyệt đã dùng " + Math.round((es.usage / es.quota) * 100) + "% quota");
+        }
+        return Promise.all([self._be.count("whales"), self._be.count("liqs")]).then(function (n) {
+          if (n[0] + n[1] >= 200000) return xong(true, "đã lưu quá 200.000 sự kiện");
+          return xong(false, "");
+        });
+      });
+    },
+
+    /* Dọn thủ công — CHỈ gọi khi user bấm nút (không tự chạy). */
+    donDep: function (days) {
       var self = this;
       var before = Date.now() - (days || 7) * 24 * 3600e3;
       return Promise.all([
@@ -511,7 +539,11 @@
         self._be.delOld("liqs", "ts", before),
         self._be.delOld("buckets", "t", before),
         self._be.delOld("alerts", "ts", before),
-      ]);
+      ]).then(function () { return self.kiemTraKho(); });
+    },
+
+    trangThaiKho: function () {
+      return { dungGhi: !!this._hetBoNho, lyDo: this._lyDoDay || "" };
     },
 
     stats: function () {

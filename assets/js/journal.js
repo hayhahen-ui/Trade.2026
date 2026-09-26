@@ -12,9 +12,19 @@ const JOURNAL = {
   _hanGio: 48, // cửa sổ đánh giá 1 tín hiệu
 
   _doc() { try { return JSON.parse(localStorage.getItem(this._k) || "[]"); } catch (e) { return []; } },
-  _luu(ds) { try { localStorage.setItem(this._k, JSON.stringify(ds.slice(-this._max))); } catch (e) {} },
+  /* Chính sách bộ nhớ (user 26/09/2026): KHÔNG tự xóa.
+   * Đầy (quá _max hoặc localStorage hết chỗ) → dừng ghi, chờ user dọn thủ công. */
+  _luu(ds) {
+    try {
+      if (ds.length > this._max) { this._hetBoNho = true; return false; }
+      localStorage.setItem(this._k, JSON.stringify(ds));
+      this._hetBoNho = false;
+      return true;
+    } catch (e) { this._hetBoNho = true; return false; }
+  },
   all() { return this._doc(); },
-  xoaHet() { try { localStorage.removeItem(this._k); } catch (e) {} },
+  hetBoNho() { return !!this._hetBoNho; },
+  xoaHet() { try { localStorage.removeItem(this._k); } catch (e) {} this._hetBoNho = false; },
 
   /* Ghi nhận 1 tín hiệu đã xác nhận từ engine (tự động).
    * Chống trùng: cùng coin+hướng đang theo dõi trong 6h → bỏ qua. */
@@ -45,7 +55,7 @@ const JOURNAL = {
         daDanhGiaDen: 0,
       };
       ds.push(rec);
-      this._luu(ds);
+      if (!this._luu(ds)) return null; // đầy bộ nhớ → không ghi, báo null
       return rec;
     } catch (e) { return null; }
   },
@@ -235,6 +245,10 @@ function bangPhanBo(tieuDe, bucket) {
 
 function renderSoTinHieu(root) {
   root.innerHTML = "";
+  if (JOURNAL.hetBoNho()) {
+    root.appendChild(el("div", { class: "note-box warn" },
+      "⏸ Sổ đã ", el("b", {}, "dừng ghi"), " vì đầy (300 bản ghi). Tôi không tự xóa — bạn bấm nút Xóa bên dưới để dọn, hệ thống sẽ ghi tiếp."));
+  }
   root.appendChild(el("div", { class: "note-box" },
     "📝 Mỗi tín hiệu ", el("b", {}, "LONG/SHORT được xác nhận"), " tự ghi lại thời điểm, entry/SL/TP vào sổ này. ",
     "Hệ thống dùng ", el("b", {}, "nến 15m thật"), " sau đó để chấm điểm đúng/sai → rút bài học Kaizen. ",

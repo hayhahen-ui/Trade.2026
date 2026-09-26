@@ -64,7 +64,10 @@
       if (!d || d.tram !== "flow-247") return null;
       await db.init();
       const kq = await db.mergeTram(d);
-      tramInfo = { them: kq.whales + kq.liqs, capNhat: kq.capNhat, nguon: kq.nguon, bytes: txt.length };
+      tramInfo = {
+        them: kq.whales + kq.liqs, capNhat: kq.capNhat, nguon: kq.nguon, bytes: txt.length,
+        hetBoNho: !!(d.meta && d.meta.hetBoNho), lyDo: d.meta && d.meta.lyDo,
+      };
       return tramInfo;
     } catch (err) { return null; }
   }
@@ -90,7 +93,7 @@
     return bytes;
   }
   async function doDungLuong() {
-    const kq = { idb: null, quota: null, ls: doLocalStorage(), journalBytes: null, flowBytes: tramInfo ? tramInfo.bytes : null };
+    const kq = { idb: null, quota: null, ls: doLocalStorage(), journalBytes: null, flowBytes: tramInfo ? tramInfo.bytes : null, tramDay: tramInfo ? !!tramInfo.hetBoNho : false, tramLyDo: tramInfo ? tramInfo.lyDo : "" };
     try {
       if (navigator.storage && navigator.storage.estimate) {
         const es = await navigator.storage.estimate();
@@ -104,7 +107,12 @@
     } catch (e) {}
     return kq;
   }
-  function veDungLuong(dl) {
+  async function layTrangThaiKho() {
+    const db = FDB();
+    if (!db) return null;
+    try { await db.init(); return db.trangThaiKho(); } catch (e) { return null; }
+  }
+  function veDungLuong(dl, kho) {
     if (!dl) return null;
     const canhBao = [];
     let idbTxt = "không đo được";
@@ -115,13 +123,28 @@
     }
     const lsPct = Math.round((dl.ls / LS_GIOI_HAN) * 100);
     if (lsPct >= 80) canhBao.push(`localStorage đã dùng ${lsPct}% (~5MB)`);
-    const tramTxt = (dl.flowBytes != null || dl.journalBytes != null)
-      ? ` · trạm server: flow ${fmtKB(dl.flowBytes)} + journal ${fmtKB(dl.journalBytes)}`
-      : "";
+    let tramTxt = "";
+    if (dl.flowBytes != null || dl.journalBytes != null)
+      tramTxt = ` · trạm server: flow ${fmtKB(dl.flowBytes)} + journal ${fmtKB(dl.journalBytes)}`;
+    if (dl.tramDay) canhBao.push(`trạm server ⏸ đã dừng ghi (${dl.tramLyDo || "kho đầy"})`);
+    const kids = [
+      `💾 Dung lượng: trình duyệt ${idbTxt} · localStorage ${fmtKB(dl.ls)} / ~5MB (${lsPct}%)${tramTxt}.`,
+    ];
+    if (kho && kho.dungGhi) {
+      canhBao.push(`database dòng tiền ⏸ đã dừng ghi (${kho.lyDo})`);
+      kids.push(e("div", { style: "margin-top:4px" },
+        e("button", {
+          class: "dh-btn", onclick: async () => {
+            if (!confirm("Xóa sự kiện dòng tiền cũ hơn 7 ngày để giải phóng bộ nhớ? (Chỉ xóa khi bạn đồng ý)")) return;
+            const db = FDB();
+            if (db) { await db.init(); await db.donDep(7); }
+            ve();
+          },
+        }, "🗑 Dọn dữ liệu cũ hơn 7 ngày")));
+    }
+    if (canhBao.length) kids.push(e("div", { style: "margin-top:4px" }, `⚠️ ${canhBao.join(" · ")} — tôi không tự xóa, bạn dọn xong hệ thống sẽ ghi tiếp.`));
     const cls = canhBao.length ? "dh-dbchip dh-warn" : "dh-dbchip";
-    return e("p", { class: cls },
-      `💾 Dung lượng: trình duyệt ${idbTxt} · localStorage ${fmtKB(dl.ls)} / ~5MB (${lsPct}%)${tramTxt}.` +
-      (canhBao.length ? ` ⚠️ ${canhBao.join(" · ")} — dữ liệu cũ tự xóa (7 ngày / 300 bản ghi), không cần làm gì.` : ""));
+    return e("div", { class: cls }, ...kids);
   }
 
   /* Nạp 1 lần khi mở màn hình: lệnh lớn / thanh lý / cảnh báo gần nhất từ DB */
@@ -328,6 +351,7 @@
     await napLichSu();
     await mergeTram247(); // trạm 24/7 trước, để stats tính trên master data đầy đủ
     const dl = await doDungLuong();
+    const kho = await layTrangThaiKho();
     const st = await layStats();
     const n = await demDB();
 
@@ -338,7 +362,7 @@
             e("h2", {}, "🌊 Dòng tiền Real-time"),
             e("p", { class: "dh-dim" }, "Gom trực tiếp từ Binance · OKX · Bybit · Hyperliquid · Polymarket — không qua server trung gian."),
             veDbChip(n),
-            veDungLuong(dl)),
+            veDungLuong(dl, kho)),
           e("div", { class: "dh-tools" },
             e("label", {}, "Ngưỡng lệnh lớn ",
               e("select", { onchange: (ev) => { DH.setFilter({ minUsd: +ev.target.value }); ve(); } },

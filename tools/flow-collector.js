@@ -17,7 +17,11 @@ const PUBLIC_PATH = path.join(DATA_DIR, "flow-247.json");
 const STORE_PATH = path.join(DATA_DIR, ".flow-247-store.json");
 const COINS = ["BTC", "ETH", "SOL", "BNB", "DOGE", "DYDX"];
 const NGUONG = 100000;          // $100K như web
-const GIU_NGAY = 7;
+/* Chính sách bộ nhớ (theo yêu cầu user 26/09/2026): KHÔNG tự xóa.
+ * Kho ≥ WARN → in STORAGE_WARN (vẫn ghi). Kho ≥ MAX → dừng ghi,
+ * đánh dấu payload, thoát code 2 để cron nhắc user (1 lần/ngày). */
+const CB_BYTES = 3 * 1024 * 1024;   // 3MB: cảnh báo
+const MAX_BYTES = 5 * 1024 * 1024;  // 5MB: đầy → dừng ghi
 
 const jget = async (url, opt = {}) => {
   const r = await fetch(url, { headers: { "User-Agent": "trade2026-flow-247" }, ...opt });
@@ -31,9 +35,18 @@ function napStore() {
   catch { return { last: {}, whales: [], liqs: [] }; }
 }
 function luuStore(s) { fs.writeFileSync(STORE_PATH, JSON.stringify(s)); }
-function prune(arr) {
-  const han = Date.now() - GIU_NGAY * 864e5;
-  return arr.filter((o) => o.ts >= han).slice(-4000);
+function dungLuongKho() {
+  try { return fs.statSync(STORE_PATH).size; } catch { return 0; }
+}
+/* Đánh dấu payload là đã dừng ghi (giữ nguyên dữ liệu cũ), để web hiện cảnh báo. */
+function danhDauDungGhi(lyDo) {
+  try {
+    const p = JSON.parse(fs.readFileSync(PUBLIC_PATH, "utf8"));
+    p.meta = p.meta || {};
+    p.meta.hetBoNho = true;
+    p.meta.lyDo = lyDo;
+    fs.writeFileSync(PUBLIC_PATH, JSON.stringify(p));
+  } catch {}
 }
 
 async function okxTrades(st) {
@@ -123,12 +136,18 @@ async function okxLiqs(st) {
 async function main() {
   const t0 = Date.now();
   console.log(`[flow-247] bắt đầu ${new Date().toISOString()}`);
+  const khoBytes = dungLuongKho();
+  if (khoBytes >= MAX_BYTES) {
+    const lyDo = `kho dòng tiền ${Math.round(khoBytes / 1048576)}MB ≥ giới hạn`;
+    danhDauDungGhi(lyDo);
+    console.log(`[flow-247] STORAGE_FULL: ${lyDo} — dừng ghi, chờ user dọn`);
+    process.exit(2);
+  }
+  if (khoBytes >= CB_BYTES) console.log(`[flow-247] STORAGE_WARN: kho ${Math.round(khoBytes / 1024)}KB gần đầy`);
   const st = napStore();
   const w1 = await okxTrades(st);
   const w2 = await hlTrades(st);
   const l1 = await okxLiqs(st);
-  st.whales = prune(st.whales);
-  st.liqs = prune(st.liqs);
   luuStore(st);
   fs.mkdirSync(DATA_DIR, { recursive: true });
   const payloadFlow = {
@@ -148,7 +167,8 @@ async function main() {
     payloadFlow.meta = {
       bytes: statPub.size, storeBytes,
       whales: st.whales.length, liqs: st.liqs.length,
-      giuToiDa: 4000, giuNgay: GIU_NGAY,
+      hetBoNho: false,
+      chinhSach: "không tự xóa; đầy 5MB thì dừng ghi và nhắc user",
       chuThich: "file công khai (nhánh data) + kho server",
     };
     fs.writeFileSync(PUBLIC_PATH, JSON.stringify(payloadFlow));
