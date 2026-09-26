@@ -873,6 +873,7 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   }
   const fc = read("tools/flow-collector.js"), cc = read("tools/collector-247.js");
   ok(fc.indexOf("STORAGE_FULL") >= 0 && fc.indexOf("process.exit(2)") >= 0, "flow-collector dừng ghi + báo STORAGE_FULL khi đầy");
+  ok(fc.indexOf("AbortController") >= 0 && fc.indexOf("25000") >= 0, "flow-collector fetch có timeout 25s (chống treo vòng cron)");
   ok(fc.indexOf("slice(-4000)") === -1 && fc.indexOf("prune(") === -1, "flow-collector không còn tự xóa/cắt");
   ok(cc.indexOf("STORAGE_FULL") >= 0 && cc.indexOf("process.exit(2)") >= 0, "collector-247 dừng ghi + báo STORAGE_FULL khi đầy");
   const pf = JSON.parse(read("data/flow-247.json"));

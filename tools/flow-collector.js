@@ -24,9 +24,13 @@ const CB_BYTES = 3 * 1024 * 1024;   // 3MB: cảnh báo
 const MAX_BYTES = 5 * 1024 * 1024;  // 5MB: đầy → dừng ghi
 
 const jget = async (url, opt = {}) => {
-  const r = await fetch(url, { headers: { "User-Agent": "trade2026-flow-247" }, ...opt });
-  if (!r.ok) throw new Error(`HTTP ${r.status} ${url.slice(0, 60)}`);
-  return r.json();
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 25000); // 25s: tránh treo cả vòng cron
+  try {
+    const r = await fetch(url, { headers: { "User-Agent": "trade2026-flow-247" }, ...opt, signal: ctl.signal });
+    if (!r.ok) throw new Error(`HTTP ${r.status} ${url.slice(0, 60)}`);
+    return r.json();
+  } finally { clearTimeout(t); }
 };
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
 
