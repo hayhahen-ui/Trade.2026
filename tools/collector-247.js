@@ -104,6 +104,18 @@ async function main() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.writeFileSync(PUBLIC_PATH, JSON.stringify(payload));
   luuStore();
+  /* meta dung lượng: web hiện cảnh báo chiếm dụng */
+  try {
+    const statPub = fs.statSync(PUBLIC_PATH);
+    let storeBytes = 0;
+    try { storeBytes = fs.statSync(STORE_PATH).size; } catch {}
+    payload.meta = {
+      bytes: statPub.size, storeBytes,
+      banGhi: ds.length, giuToiDa: 300,
+      chuThich: "file công khai (nhánh data) + kho server",
+    };
+    fs.writeFileSync(PUBLIC_PATH, JSON.stringify(payload));
+  } catch {}
   console.log(`  quét: ${tomTat.join(" ")}`);
   console.log(`  journal: ${ds.length} bản ghi | chấm: ${cham.ok}/${cham.tong} (lỗi ${cham.loi})`);
   console.log(`  xong trong ${((Date.now() - batDau) / 1000).toFixed(0)}s → ${PUBLIC_PATH}`);

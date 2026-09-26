@@ -51,6 +51,7 @@
    * Chạy mỗi khi mở màn hình Dòng tiền: mở web là có ngay master data,
    * không cần chờ tab gom từ đầu. Lỗi mạng → bỏ qua lặng lẽ. */
   const TRAM_FLOW_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/flow-247.json";
+  const TRAM_JOURNAL_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json";
   let tramInfo = null;
   async function mergeTram247() {
     const db = FDB();
@@ -58,13 +59,69 @@
     try {
       const r = await fetch(TRAM_FLOW_URL + "?t=" + Date.now());
       if (!r.ok) return null;
-      const d = await r.json();
+      const txt = await r.text();
+      const d = JSON.parse(txt);
       if (!d || d.tram !== "flow-247") return null;
       await db.init();
       const kq = await db.mergeTram(d);
-      tramInfo = { them: kq.whales + kq.liqs, capNhat: kq.capNhat, nguon: kq.nguon };
+      tramInfo = { them: kq.whales + kq.liqs, capNhat: kq.capNhat, nguon: kq.nguon, bytes: txt.length };
       return tramInfo;
     } catch (err) { return null; }
+  }
+
+  /* ---------- Dung lượng: cảnh báo chiếm dụng ----------
+   * 3 nơi lưu: IndexedDB trình duyệt (quota qua storage.estimate),
+   * localStorage (~5MB), file trạm trên server (meta.bytes trong payload). */
+  const LS_GIOI_HAN = 5 * 1024 * 1024;
+  function fmtKB(b) {
+    if (b == null || isNaN(b)) return "—";
+    if (b < 1024) return b + " B";
+    if (b < 1048576) return (b / 1024).toFixed(0) + " KB";
+    return (b / 1048576).toFixed(1) + " MB";
+  }
+  function doLocalStorage() {
+    let bytes = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        bytes += (k.length + (localStorage.getItem(k) || "").length) * 2;
+      }
+    } catch (e) {}
+    return bytes;
+  }
+  async function doDungLuong() {
+    const kq = { idb: null, quota: null, ls: doLocalStorage(), journalBytes: null, flowBytes: tramInfo ? tramInfo.bytes : null };
+    try {
+      if (navigator.storage && navigator.storage.estimate) {
+        const es = await navigator.storage.estimate();
+        kq.idb = es.usage; kq.quota = es.quota;
+      }
+    } catch (e) {}
+    try {
+      const r = await fetch(TRAM_JOURNAL_URL + "?t=" + Date.now(), { method: "HEAD" });
+      const len = r.headers.get("content-length");
+      if (len) kq.journalBytes = +len;
+    } catch (e) {}
+    return kq;
+  }
+  function veDungLuong(dl) {
+    if (!dl) return null;
+    const canhBao = [];
+    let idbTxt = "không đo được";
+    if (dl.idb != null && dl.quota) {
+      const pct = Math.round((dl.idb / dl.quota) * 100);
+      idbTxt = `${fmtKB(dl.idb)} / ${fmtKB(dl.quota)} (${pct}%)`;
+      if (pct >= 80) canhBao.push(`IndexedDB đã dùng ${pct}% quota`);
+    }
+    const lsPct = Math.round((dl.ls / LS_GIOI_HAN) * 100);
+    if (lsPct >= 80) canhBao.push(`localStorage đã dùng ${lsPct}% (~5MB)`);
+    const tramTxt = (dl.flowBytes != null || dl.journalBytes != null)
+      ? ` · trạm server: flow ${fmtKB(dl.flowBytes)} + journal ${fmtKB(dl.journalBytes)}`
+      : "";
+    const cls = canhBao.length ? "dh-dbchip dh-warn" : "dh-dbchip";
+    return e("p", { class: cls },
+      `💾 Dung lượng: trình duyệt ${idbTxt} · localStorage ${fmtKB(dl.ls)} / ~5MB (${lsPct}%)${tramTxt}.` +
+      (canhBao.length ? ` ⚠️ ${canhBao.join(" · ")} — dữ liệu cũ tự xóa (7 ngày / 300 bản ghi), không cần làm gì.` : ""));
   }
 
   /* Nạp 1 lần khi mở màn hình: lệnh lớn / thanh lý / cảnh báo gần nhất từ DB */
@@ -270,6 +327,7 @@
     if (!DH.isRunning()) DH.start();
     await napLichSu();
     await mergeTram247(); // trạm 24/7 trước, để stats tính trên master data đầy đủ
+    const dl = await doDungLuong();
     const st = await layStats();
     const n = await demDB();
 
@@ -279,7 +337,8 @@
           e("div", {},
             e("h2", {}, "🌊 Dòng tiền Real-time"),
             e("p", { class: "dh-dim" }, "Gom trực tiếp từ Binance · OKX · Bybit · Hyperliquid · Polymarket — không qua server trung gian."),
-            veDbChip(n)),
+            veDbChip(n),
+            veDungLuong(dl)),
           e("div", { class: "dh-tools" },
             e("label", {}, "Ngưỡng lệnh lớn ",
               e("select", { onchange: (ev) => { DH.setFilter({ minUsd: +ev.target.value }); ve(); } },

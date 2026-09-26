@@ -131,14 +131,28 @@ async function main() {
   st.liqs = prune(st.liqs);
   luuStore(st);
   fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(PUBLIC_PATH, JSON.stringify({
+  const payloadFlow = {
     tram: "flow-247",
     capNhat: new Date().toISOString(),
     nguon: ["OKX", "Hyperliquid"],
     nguong: NGUONG,
     whales: st.whales.slice(-800),
     liqs: st.liqs.slice(-800),
-  }));
+  };
+  fs.writeFileSync(PUBLIC_PATH, JSON.stringify(payloadFlow));
+  /* meta dung lượng: web hiện cảnh báo chiếm dụng */
+  try {
+    const statPub = fs.statSync(PUBLIC_PATH);
+    let storeBytes = 0;
+    try { storeBytes = fs.statSync(STORE_PATH).size; } catch {}
+    payloadFlow.meta = {
+      bytes: statPub.size, storeBytes,
+      whales: st.whales.length, liqs: st.liqs.length,
+      giuToiDa: 4000, giuNgay: GIU_NGAY,
+      chuThich: "file công khai (nhánh data) + kho server",
+    };
+    fs.writeFileSync(PUBLIC_PATH, JSON.stringify(payloadFlow));
+  } catch {}
   console.log(`  mới: ${w1 + w2} lệnh lớn, ${l1} thanh lý | kho: ${st.whales.length}W/${st.liqs.length}L | ${(Date.now() - t0) / 1000 | 0}s`);
 }
 main().catch((e) => { console.error("[flow-247] FAIL:", e.message); process.exit(1); });

@@ -259,8 +259,9 @@ function renderSoTinHieu(root) {
       const d = await resp.json();
       cTram.innerHTML = "";
       const capNhat = d.capNhat ? fmtNgayGio(new Date(d.capNhat).getTime()) : "—";
+      const dlTram = d.meta && d.meta.bytes ? ` · file ${d.meta.bytes < 1048576 ? Math.round(d.meta.bytes / 1024) + " KB" : (d.meta.bytes / 1048576).toFixed(1) + " MB"}` : "";
       cTram.appendChild(el("div", { class: "card-title" }, "🛰️ Trạm quan trắc 24/7",
-        el("span", { class: "muted small" }, ` · cập nhật ${capNhat} · ${Array.isArray(d.vongQuet) ? d.vongQuet.join(" ") : ""}`)));
+        el("span", { class: "muted small" }, ` · cập nhật ${capNhat}${dlTram} · ${Array.isArray(d.vongQuet) ? d.vongQuet.join(" ") : ""}`)));
       const st = d.thongKe || {};
       cTram.appendChild(el("div", { class: "stat-row" },
         theStat("Tín hiệu trạm", String(st.tong || 0)),

@@ -779,7 +779,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0 (trạm 24/7)");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.1"') >= 0, "APP_VERSION = 2.4.1");
 }
 };
 
@@ -824,11 +824,41 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.1"') >= 0, "APP_VERSION = 2.4.1");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(() => {
+const _p16 = async () => {
+console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chiếm dụng");
+{
+  const { execSync } = require("child_process");
+  for (const f of ["tools/collector-247.js", "tools/flow-collector.js"]) {
+    try { execSync("node --check " + f, { cwd: ROOT, stdio: "pipe" }); ok(true, f + " parse OK"); }
+    catch (e) { ok(false, f + " parse OK", e.message); }
+  }
+  // chạy 2 collector để sinh meta
+  try {
+    execSync("node tools/collector-247.js", { cwd: ROOT, stdio: "pipe", timeout: 120000 });
+    execSync("node tools/flow-collector.js", { cwd: ROOT, stdio: "pipe", timeout: 120000 });
+    ok(true, "2 collector chạy OK");
+  } catch (e) { ok(false, "2 collector chạy OK", String(e.message).slice(0, 120)); }
+  const pj = JSON.parse(read("data/journal-247.json"));
+  const pf = JSON.parse(read("data/flow-247.json"));
+  ok(pj.meta && typeof pj.meta.bytes === "number" && pj.meta.bytes > 0, "journal payload có meta.bytes");
+  ok(pf.meta && typeof pf.meta.bytes === "number" && pf.meta.bytes > 0, "flow payload có meta.bytes");
+  ok(pf.meta.storeBytes > 0 && pf.meta.giuNgay === 7, "flow meta có storeBytes + giữ 7 ngày");
+  const uisrc = read("assets/js/datahub-ui.js");
+  ok(uisrc.indexOf("navigator.storage.estimate") >= 0, "panel dùng storage.estimate đo IndexedDB");
+  ok(uisrc.indexOf("doDungLuong") >= 0 && uisrc.indexOf("veDungLuong") >= 0, "có đo + vẽ panel dung lượng");
+  ok(uisrc.indexOf("method: \"HEAD\"") >= 0, "đo file journal server bằng HEAD (không tải)");
+  ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
+  ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
+  ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.1"') >= 0, "APP_VERSION = 2.4.1");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });
