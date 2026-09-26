@@ -690,7 +690,73 @@ console.log("\n[13] api/ai-proxy.js — proxy");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(() => {
+/* ---------- 14. journal.js — Sổ tín hiệu & Kaizen ---------- */
+const _p13 = async () => {
+console.log("\n[14] journal.js — chấm điểm, thống kê, bài học");
+{
+  const store = {};
+  const lsStub = {
+    getItem: (k) => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v); },
+    removeItem: (k) => { delete store[k]; },
+  };
+  const c = makeCtx({ localStorage: lsStub, fetchKlines: async () => [] });
+  c.load("assets/js/journal.js");
+  const chamDiemLenh = c.get("chamDiemLenh");
+  const thongKeJournal = c.get("thongKeJournal");
+  const rutBaiHocKaizen = c.get("rutBaiHocKaizen");
+  const JOURNAL = c.get("JOURNAL");
+  const nen = (o, h, l, cl, t) => ({ openTime: t, open: o, high: h, low: l, close: cl, volume: 1 });
+
+  // 14.1 long thắng
+  let dg = chamDiemLenh([nen(100,101,99,100.5,1000), nen(100.5,106,100,105,2000)], { side:"long", entry:100, sl:98, tp:105 });
+  ok(dg.ketQua === "thang" && dg.at === 2000 && dg.r === 2.5, "long chạm TP → thắng R=2.5");
+  // 14.2 long thua
+  dg = chamDiemLenh([nen(100,101,97,99,1000)], { side:"long", entry:100, sl:98, tp:105 });
+  ok(dg.ketQua === "thua" && dg.r === -1, "long chạm SL → thua R=-1");
+  // 14.3 SL & TP cùng nến → thua (bảo thủ)
+  dg = chamDiemLenh([nen(100,110,90,100,1000)], { side:"long", entry:100, sl:98, tp:105 });
+  ok(dg.ketQua === "thua", "SL+TP cùng nến → thua (bảo thủ)");
+  // 14.4 short thắng
+  dg = chamDiemLenh([nen(100,101,94,95,1000)], { side:"short", entry:100, sl:102, tp:95 });
+  ok(dg.ketQua === "thang" && dg.r === 2.5, "short chạm TP → thắng R=2.5");
+  // 14.5 chưa chạm → tracking + MFE/MAE
+  dg = chamDiemLenh([nen(100,103,99,102,1000), nen(102,104,101,103,2000)], { side:"long", entry:100, sl:98, tp:110 });
+  ok(dg.ketQua === "dang_theo_doi" && dg.mfeR === 2 && dg.maeR === 0.5, "chưa chạm → tracking, MFE=2R MAE=0.5R");
+  // 14.6 ghiNhan: chỉ LONG/SHORT có plan
+  const kqL = { verdict:"LONG", coin:"ETH", time:Date.now(), score:78, phase:"alert_ready",
+    killzone:{ ten:"New York KZ" }, htf:{ bias:"bearish" },
+    plan:{ entry:2698.1, sl:2705.6, tp1:2683.1, rr1:2 },
+    checklist:[{ id:"htf_bias", dat:true }, { id:"poi_context", dat:false }] };
+  const rec = JOURNAL.ghiNhan(kqL);
+  ok(rec && rec.side === "long" && rec.coin === "ETH" && rec.checklist.length === 1, "ghiNhan LONG → bản ghi long/ETH");
+  ok(JOURNAL.ghiNhan({ verdict:"PREPARE", plan:{ entry:1, sl:2, tp1:3 } }) === null, "verdict PREPARE → không ghi");
+  ok(JOURNAL.ghiNhan({ verdict:"LONG", plan:null }) === null, "thiếu plan → không ghi");
+  ok(JOURNAL.ghiNhan(Object.assign({}, kqL, { time:Date.now()+60000 })) === null, "trùng coin+side trong 6h → bỏ qua");
+  // 14.7 thống kê
+  const mk = (coin, side, tt, r, diem, phien, gio) => ({ coin, side, trangThai:tt, diem, phien,
+    ketQua: tt === "dang_theo_doi" ? null : { r, gioDenKQ:gio } });
+  const ds = [
+    mk("ETH","long","thang",2,88,"New York KZ",5),
+    mk("ETH","long","thang",2,90,"New York KZ",7),
+    mk("ETH","short","thua",-1,72,"Phiên Á",3),
+    mk("BTC","long","thua",-1,71,"Phiên Á",4),
+    mk("BTC","short","dang_theo_doi",null,80,"—",null),
+  ];
+  const st = thongKeJournal(ds);
+  ok(st.tong === 5 && st.xong === 4 && st.winRate === 50, "thống kê tổng / winrate 50%");
+  ok(st.expectancy === 0.5, "expectancy = (2+2-1-1)/4 = 0.5R");
+  ok(st.tbGioDenTP === 6 && st.tbGioDenSL === 3.5, "TB giờ tới TP=6h, tới SL=3.5h");
+  ok(st.theo.side.long.wr === 67 && st.theo.nhomDiem["85–100"].wr === 100, "phân bổ theo side / nhóm điểm");
+  // 14.8 bài học
+  const bh = rutBaiHocKaizen(st, ds);
+  ok(bh.some(l => l.tieuDe.indexOf("Bao lâu") >= 0), "có bài học về thời gian tới TP/SL");
+  const bh2 = rutBaiHocKaizen(thongKeJournal([mk("ETH","long","thang",2,88,"A",5)]), []);
+  ok(bh2.length === 1 && bh2[0].tieuDe.indexOf("tích lũy") >= 0, "ít hơn 3 lệnh → chỉ nhắc tích lũy");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

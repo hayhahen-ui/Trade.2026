@@ -12,6 +12,7 @@ const SCREENS = {
   heatmap:   { ten: "Bản đồ thanh lý", emoji: "🔥", render: renderHeatmap },
   bot:       { ten: "Bot Trade",     emoji: "🤖", render: renderBot },
   tuhoc:     { ten: "Nhật ký & Tự học", emoji: "📓", render: renderTuHoc },
+  sotinhieu: { ten: "Sổ tín hiệu", emoji: "📝", render: renderSoTinHieu },
   lichkinhte:{ ten: "Lịch kinh tế",  emoji: "📅", render: renderLich },
   hoidap:     { ten: "AI Hỏi đáp",      emoji: "💬", render: renderHoiDap },
   kienthuc:  { ten: "Kiến thức",     emoji: "📚", render: renderKienThuc },
