@@ -23,6 +23,40 @@
   var FLUSH_MS = 2000;                   // gom ghi mỗi 2 giây
   var BUCKET_MS = 60e3;                  // bucket theo phút
 
+  /* ---------- Tập id đã thấy — khử trùng với Trạm 24/7 ----------
+   * Web (live) và trạm server có thể ghi CÙNG 1 sự kiện (vd lệnh OKX).
+   * Cả hai dùng chung format id (okx-<tradeId>, hl-..., okxl-...),
+   * nên giữ tập id trong localStorage để merge không đếm trùng. */
+  var FDB_IDS = (function () {
+    var KEY = "fdb_ids_v1", MAX = 12000, set = null;
+    function store() { try { return typeof localStorage !== "undefined" ? localStorage : null; } catch (e) { return null; } }
+    function load() {
+      if (set) return set;
+      set = new Set();
+      try {
+        var raw = store() && store().getItem(KEY);
+        var arr = raw ? JSON.parse(raw) : [];
+        for (var i = 0; i < arr.length; i++) set.add(arr[i]);
+      } catch (e) {}
+      return set;
+    }
+    return {
+      has: function (id) { return id != null && load().has(id); },
+      add: function (id) {
+        if (id == null) return;
+        var s = load(); s.add(id);
+        if (s.size > MAX) {
+          var it = s.values(), drop = s.size - MAX;
+          for (var i = 0; i < drop; i++) { var v = it.next(); if (!v.done) s.delete(v.value); }
+        }
+      },
+      save: function () {
+        try { var st = store(); if (st) st.setItem(KEY, JSON.stringify(Array.from(load()))); } catch (e) {}
+      },
+      _reset: function () { set = null; },
+    };
+  })();
+
   var ALERT = {
     burstUsd: 1e6, burstN: 3, burstMin: 5,   // ≥3 lệnh cùng chiều, tổng ≥$1M / 5'
     flipUsd: 3e5, flipMin: 15,                // net 15' đảo dấu, biên ≥$300K
@@ -223,6 +257,7 @@
     _chuanHoa: function (t, isLiq) {
       if (!t || !t.usd) return null;
       return {
+        id: t.id != null ? String(t.id) : undefined,
         coin: String(t.coin || "").toUpperCase(),
         side: isLiq ? undefined : (t.side === "SELL" ? "SELL" : "BUY"),
         huong: isLiq ? (t.huong === "SHORT" ? "SHORT" : "LONG") : undefined,
@@ -234,6 +269,7 @@
     trackWhale: function (t) {
       var o = this._chuanHoa(t, false);
       if (!o || !o.coin) return;
+      if (o.id) FDB_IDS.add(o.id);
       this._bufW.push(o);
       // gom bucket phút
       var m = Math.floor(o.ts / BUCKET_MS) * BUCKET_MS;
@@ -247,7 +283,33 @@
     trackLiq: function (l) {
       var o = this._chuanHoa(l, true);
       if (!o || !o.coin) return;
+      if (o.id) FDB_IDS.add(o.id);
       this._bufL.push(o);
+    },
+
+    /* ---------- Merge dữ liệu Trạm 24/7 (server) vào database ----------
+     * Trạm thu OKX + Hyperliquid liên tục kể cả khi tab tắt.
+     * Khử trùng bằng id (đã thấy qua live hoặc lần merge trước thì bỏ). */
+    mergeTram: function (d) {
+      var self = this, tw = 0, tl = 0, jobs = [];
+      var ws = Array.isArray(d && d.whales) ? d.whales : [];
+      var ls = Array.isArray(d && d.liqs) ? d.liqs : [];
+      ws.forEach(function (t) {
+        var o = self._chuanHoa(t, false);
+        if (!o || !o.id || FDB_IDS.has(o.id)) return;
+        FDB_IDS.add(o.id); tw++;
+        jobs.push(self._be.put("whales", o));
+      });
+      ls.forEach(function (l) {
+        var o = self._chuanHoa(l, true);
+        if (!o || !o.id || FDB_IDS.has(o.id)) return;
+        FDB_IDS.add(o.id); tl++;
+        jobs.push(self._be.put("liqs", o));
+      });
+      FDB_IDS.save();
+      return Promise.all(jobs).then(function () {
+        return { whales: tw, liqs: tl, capNhat: d && d.capNhat, nguon: d && d.nguon };
+      });
     },
 
     _flushBuf: function () {
@@ -471,4 +533,5 @@
   }
 
   global.FlowDB = FlowDB;
+  global.__FDB_IDS__ = FDB_IDS; // cho test khử trùng
 })(typeof window !== "undefined" ? window : globalThis);

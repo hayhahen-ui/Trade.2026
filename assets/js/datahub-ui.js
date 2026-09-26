@@ -47,6 +47,26 @@
     if (dst.length > max) dst.length = max;
   }
 
+  /* Merge dữ liệu Trạm 24/7 (server thu OKX+Hyperliquid liên tục) vào FlowDB.
+   * Chạy mỗi khi mở màn hình Dòng tiền: mở web là có ngay master data,
+   * không cần chờ tab gom từ đầu. Lỗi mạng → bỏ qua lặng lẽ. */
+  const TRAM_FLOW_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/flow-247.json";
+  let tramInfo = null;
+  async function mergeTram247() {
+    const db = FDB();
+    if (!db) return null;
+    try {
+      const r = await fetch(TRAM_FLOW_URL + "?t=" + Date.now());
+      if (!r.ok) return null;
+      const d = await r.json();
+      if (!d || d.tram !== "flow-247") return null;
+      await db.init();
+      const kq = await db.mergeTram(d);
+      tramInfo = { them: kq.whales + kq.liqs, capNhat: kq.capNhat, nguon: kq.nguon };
+      return tramInfo;
+    } catch (err) { return null; }
+  }
+
   /* Nạp 1 lần khi mở màn hình: lệnh lớn / thanh lý / cảnh báo gần nhất từ DB */
   async function napLichSu() {
     const db = FDB();
@@ -234,8 +254,14 @@
   function veDbChip(n) {
     if (!n) return null;
     const tong = n.whales + n.liqs;
+    let tram = "";
+    if (tramInfo) {
+      const cn = tramInfo.capNhat ? new Date(tramInfo.capNhat) : null;
+      const gio = cn ? cn.toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", timeZone: "Asia/Ho_Chi_Minh" }) : "—";
+      tram = ` · 🛰️ Trạm 24/7: +${fmtNum(tramInfo.them, 0)} sự kiện từ ${(tramInfo.nguon || []).join("+")} (cập nhật ${gio})`;
+    }
     return e("p", { class: "dh-dbchip" },
-      `💾 Database: ${fmtNum(tong, 0)} sự kiện đã lưu (7 ngày) · thu thập liên tục khi tab mở — mở màn hình là có sẵn dữ liệu.`);
+      `💾 Database: ${fmtNum(tong, 0)} sự kiện đã lưu (7 ngày)${tram} · thu thập liên tục — mở màn hình là có sẵn master data.`);
   }
 
   async function renderDongTien(container) {
@@ -243,6 +269,7 @@
     root.innerHTML = "";
     if (!DH.isRunning()) DH.start();
     await napLichSu();
+    await mergeTram247(); // trạm 24/7 trước, để stats tính trên master data đầy đủ
     const st = await layStats();
     const n = await demDB();
 

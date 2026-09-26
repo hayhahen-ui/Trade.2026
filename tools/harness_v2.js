@@ -779,11 +779,56 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0 (trạm 24/7)");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(() => {
+const _p15 = async () => {
+console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử trùng + master data cho engine");
+{
+  const { execSync } = require("child_process");
+  try {
+    execSync("node --check tools/flow-collector.js", { cwd: ROOT, stdio: "pipe" });
+    ok(true, "flow-collector.js parse OK");
+  } catch (e) { ok(false, "flow-collector.js parse OK", e.message); }
+  // 16.1 payload flow
+  let p = null;
+  try { p = JSON.parse(read("data/flow-247.json")); } catch {}
+  ok(p && p.tram === "flow-247" && Array.isArray(p.whales) && Array.isArray(p.liqs),
+    "payload flow có whales + liqs");
+  ok(p && p.whales.every((w) => typeof w.id === "string" && w.usd >= 1e5),
+    "whale có id + usd ≥ $100K");
+  ok(p && p.liqs.every((l) => typeof l.id === "string" && (l.huong === "LONG" || l.huong === "SHORT")),
+    "liq có id + huong LONG/SHORT");
+  // 16.2 id format trùng web (khử trùng được)
+  const w0 = p.whales[0];
+  ok(!w0 || /^(okx-|hl-)/.test(w0.id), "id whale trùng format web (okx-/hl-)");
+  const l0 = p.liqs[0];
+  ok(!l0 || /^okxl-/.test(l0.id), "id liq trùng format web (okxl-)");
+  // 16.3 FDB_IDS: khử trùng + FIFO cap
+  const c = makeCtx({ localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} } });
+  c.load("assets/js/flowdb.js");
+  const IDS = c.get("__FDB_IDS__");
+  IDS._reset();
+  IDS.add("okx-1"); IDS.add("okx-2");
+  ok(IDS.has("okx-1") && !IDS.has("okx-3"), "FDB_IDS has/add");
+  for (let i = 0; i < 12050; i++) IDS.add("x-" + i);
+  ok(!IDS.has("okx-1") && IDS.has("x-12049"), "FDB_IDS FIFO khi quá 12000");
+  // 16.4 flowdb giữ id + có mergeTram; engine ưu tiên master data
+  const fsrc = read("assets/js/flowdb.js");
+  ok(fsrc.indexOf("mergeTram: function") >= 0, "FlowDB có mergeTram");
+  ok(fsrc.indexOf("TRAM_FLOW_URL") < 0, "TRAM_FLOW_URL nằm ở datahub-ui (không lẫn vào flowdb)");
+  const uisrc = read("assets/js/datahub-ui.js");
+  ok(uisrc.indexOf("data/flow-247.json") >= 0 && uisrc.indexOf("mergeTram247") >= 0,
+    "Dòng tiền tải + merge dữ liệu trạm");
+  const esrc = read("assets/js/engine.js");
+  ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
+    "engine ưu tiên điểm dòng tiền master data");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

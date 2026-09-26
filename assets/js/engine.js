@@ -220,17 +220,30 @@ async function phanTichCoin(coin) {
     else if (sap.nextBig && sap.nextBig.ts - Date.now() < 60 * 60e3) canhBao.push(`⏰ Tin ★★★ ${sap.nextBig.iso} · ${sap.nextBig.suKien} sau ${fmtDemNguoc(sap.nextBig.ts - Date.now())} — tránh mở lệnh sát giờ tin`);
   }
 
-  /* ---------- Dòng tiền real-time (DataHub) — mapping vào trường phân tích ---------- */
+  /* ---------- Dòng tiền (DataHub + FlowDB master data) — mapping vào phân tích ----------
+   * Ưu tiên MASTER DATA: FlowDB gồm dữ liệu live của tab + trạm 24/7 (OKX/Hyperliquid
+   * thu liên tục trên server kể cả khi tắt máy). Fallback về điểm live RAM nếu chưa đủ. */
   let dongTien = null;
   try {
     if (window.DataHub && DataHub.isRunning()) {
-      const fs = DataHub.flowScore(coin);
+      let fs = DataHub.flowScore(coin), nguonDiem = "live";
+      try {
+        if (window.FlowDB && typeof FlowDB.init === "function") {
+          await FlowDB.init();
+          const fw30 = await FlowDB.flowWindow(30);
+          const pc = fw30.perCoin[coin];
+          if (pc && pc.count >= 3) {
+            fs = await FlowDB.flowScore(coin);
+            nguonDiem = "master";
+          }
+        }
+      } catch (e2) {}
       const st = DataHub.stats();
       const cs = st?.coinStats?.[coin] || null;
       const tl = window.DataHubBridge ? DataHubBridge.thanhLyGanDay(coin, 15) : null;
       const dhGia = DataHub.prices()?.[coin]?.gia ?? null;
       dongTien = {
-        score: fs,
+        score: fs, nguon: nguonDiem,
         huong: fs >= 15 ? "mua" : fs <= -15 ? "bán" : "trung lập",
         lenhLon: cs ? { count: cs.count, buy: cs.buy, sell: cs.sell, net: cs.buy - cs.sell } : null,
         thanhLy15p: tl,
@@ -238,7 +251,7 @@ async function phanTichCoin(coin) {
         dongThuan: side ? ((side === "long" && fs >= 15) || (side === "short" && fs <= -15)) : null,
         nguoc: side ? ((side === "long" && fs <= -15) || (side === "short" && fs >= 15)) : null,
       };
-      if (dongTien.nguoc) canhBao.push(`🌊 Dòng tiền real-time NGƯỢC hướng (điểm ${fs > 0 ? "+" : ""}${fs}${cs ? `, lệnh lớn mua ${fmtUsd(cs.buy)} / bán ${fmtUsd(cs.sell)}` : ""})`);
+      if (dongTien.nguoc) canhBao.push(`🌊 Dòng tiền ${nguonDiem === "master" ? "master data" : "real-time"} NGƯỢC hướng (điểm ${fs > 0 ? "+" : ""}${fs}${cs ? `, lệnh lớn mua ${fmtUsd(cs.buy)} / bán ${fmtUsd(cs.sell)}` : ""})`);
       if (tl && tl.tong > 20e6) canhBao.push(`💥 Thanh lý mạnh 15 phút qua ${fmtUsd(tl.tong)} (long ${fmtUsd(tl.long)} / short ${fmtUsd(tl.short)}) — đang quét thanh khoản, chờ ổn định`);
       if (dhGia && gia && Math.abs(dhGia - gia) / gia > 0.004) canhBao.push(`Giá lệch giữa các sàn ${fmtPct((dhGia - gia) / gia * 100)} — kiểm tra lại trước khi vào`);
     }
