@@ -246,6 +246,72 @@ function renderSoTinHieu(root) {
     el("span", { class: "muted small", id: "journal-tiendo" }, ""));
   root.appendChild(bar);
 
+  /* ---------- Trạm quan trắc 24/7 (chạy trên server, không cần mở web) ---------- */
+  const TRAM_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json";
+  const cTram = el("div", { class: "card", id: "tram-247" },
+    el("div", { class: "card-title" }, "🛰️ Trạm quan trắc 24/7"),
+    el("p", { class: "muted small" }, "Đang tải dữ liệu trạm…"));
+  root.appendChild(cTram);
+  (async () => {
+    try {
+      const resp = await fetch(TRAM_URL + "?t=" + Date.now());
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const d = await resp.json();
+      cTram.innerHTML = "";
+      const capNhat = d.capNhat ? fmtNgayGio(new Date(d.capNhat).getTime()) : "—";
+      cTram.appendChild(el("div", { class: "card-title" }, "🛰️ Trạm quan trắc 24/7",
+        el("span", { class: "muted small" }, ` · cập nhật ${capNhat} · ${Array.isArray(d.vongQuet) ? d.vongQuet.join(" ") : ""}`)));
+      const st = d.thongKe || {};
+      cTram.appendChild(el("div", { class: "stat-row" },
+        theStat("Tín hiệu trạm", String(st.tong || 0)),
+        theStat("Đã ngã ngũ", String(st.xong || 0)),
+        theStat("Win rate", (st.winRate || 0) + "%", st.xong >= 6 ? (st.winRate >= 50 ? "up" : "down") : ""),
+        theStat("Expectancy", ((st.expectancy || 0) >= 0 ? "+" : "") + (st.expectancy || 0) + "R", st.xong >= 6 ? (st.expectancy >= 0 ? "up" : "down") : ""),
+        theStat("Đang theo dõi", String(st.dangTheoDoi || 0)),
+      ));
+      const lessons = Array.isArray(d.baiHoc) ? d.baiHoc : [];
+      if (lessons.length) {
+        const cL = el("div", {}, el("div", { class: "card-title" }, `🧠 Bài học Kaizen từ trạm (${lessons.length})`));
+        for (const l of lessons.slice(0, 6)) {
+          const mau = l.muc === "tot" ? "up" : l.muc === "xau" ? "down" : "warn";
+          cL.appendChild(el("div", { class: "kv" },
+            el("div", {}, el("b", { class: mau }, l.tieuDe), el("div", { class: "muted small" }, l.chiTiet)),
+            el("div", { class: "muted small", style: "max-width:46%" }, "💡 " + l.goiY)));
+        }
+        cTram.appendChild(cL);
+      }
+      const tinHieu = Array.isArray(d.tinHieu) ? d.tinHieu : [];
+      const cT = el("div", {}, el("div", { class: "card-title" }, `📋 Tín hiệu trạm mới nhất (${tinHieu.length})`));
+      if (tinHieu.length) {
+        const tbl = el("table", { class: "mini-table" });
+        tbl.appendChild(el("tr", {},
+          el("th", {}, "Giờ vào"), el("th", {}, "Coin"), el("th", {}, "Hướng"),
+          el("th", {}, "Entry"), el("th", {}, "Điểm"), el("th", {}, "Trạng thái"), el("th", {}, "R")));
+        for (const r of tinHieu.slice(0, 20)) {
+          const [nhan, cls] = TRANG_THAI_JOURNAL[r.trangThai] || ["?", ""];
+          const kq = r.ketQua;
+          tbl.appendChild(el("tr", {},
+            el("td", {}, fmtNgayGio(r.tsVao)),
+            el("td", { class: "strong" }, r.coin),
+            el("td", { class: r.side === "long" ? "up" : "down" }, r.side === "long" ? "🟢 LONG" : "🔴 SHORT"),
+            el("td", {}, fmtGia(r.giaVao)),
+            el("td", {}, String(r.diem)),
+            el("td", { class: cls }, nhan),
+            el("td", { class: kq && kq.r != null ? (kq.r >= 0 ? "up" : "down") : "" },
+              kq && kq.r != null ? (kq.r >= 0 ? "+" : "") + kq.r + "R" : "—")));
+        }
+        cT.appendChild(tbl);
+      } else {
+        cT.appendChild(el("p", { class: "muted" }, "Trạm chưa ghi nhận tín hiệu LONG/SHORT nào."));
+      }
+      cTram.appendChild(cT);
+    } catch (e) {
+      cTram.innerHTML = "";
+      cTram.appendChild(el("div", { class: "card-title" }, "🛰️ Trạm quan trắc 24/7"));
+      cTram.appendChild(el("p", { class: "muted" }, "Không tải được dữ liệu trạm lúc này (mạng/GitHub). Trạm vẫn chạy ngầm trên server, mở lại sau sẽ thấy."));
+    }
+  })();
+
   const ve = () => {
     const ds = JOURNAL.all().slice().reverse();
     const st = thongKeJournal(JOURNAL.all());

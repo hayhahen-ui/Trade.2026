@@ -756,7 +756,34 @@ console.log("\n[14] journal.js — chấm điểm, thống kê, bài học");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(() => {
+const _p14 = async () => {
+console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web");
+{
+  const { execSync } = require("child_process");
+  // 15.1 hai script trạm parse được
+  try {
+    execSync("node --check tools/collector-247.js && node --check tools/push-247.js", { cwd: ROOT, stdio: "pipe" });
+    ok(true, "collector-247.js + push-247.js parse OK");
+  } catch (e) { ok(false, "collector-247.js + push-247.js parse OK", e.message); }
+  // 15.2 payload vòng thử có đủ trường
+  let p = null;
+  try { p = JSON.parse(read("data/journal-247.json")); } catch {}
+  ok(p && p.tram === "collector-247" && typeof p.capNhat === "string",
+    "payload có tram + capNhat");
+  ok(p && p.thongKe && typeof p.thongKe.tong === "number" && Array.isArray(p.baiHoc) && Array.isArray(p.tinHieu),
+    "payload có thongKe + baiHoc + tinHieu");
+  ok(p && Array.isArray(p.vongQuet) && p.vongQuet.length === 6, "vòng quét đủ 6 coin");
+  // 15.3 journal.js có thẻ trạm trỏ đúng nhánh data
+  const jsrc = read("assets/js/journal.js");
+  ok(jsrc.indexOf("tram-247") >= 0, "Sổ tín hiệu có thẻ trạm 24/7");
+  ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
+    "thẻ trạm tải đúng nhánh data");
+  // 15.4 version
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });
