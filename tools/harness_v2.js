@@ -1196,7 +1196,7 @@ console.log("\n[22] lịch sử 12h — snapshot trạm + UI");
   c.get("__ve")();
   const rows = c.evalIn(`ui.tbHist.children[0].children`);
   ok(rows.length === 2, `mặc định lọc theo coin BTC → 2 dòng (được ${rows.length})`);
-  const netW1 = c.evalIn(`ui.tbHist.children[0].children[0].children[3].children[0].text`);
+  const netW1 = c.evalIn(`ui.tbHist.children[0].children[0].children[5].children[0].text`);
   ok(netW1.indexOf("+$3.00M") >= 0, `net whale dòng 1 = +$3.00M (được "${netW1}")`);
   const tabs = c.evalIn(`ui.histTabs.children.length`);
   ok(tabs === 2, `tab coin BTC+ETH (được ${tabs})`);

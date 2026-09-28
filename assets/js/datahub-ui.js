@@ -199,26 +199,30 @@
     const hien = HIST12.full ? list : list.slice(0, 60);
     ui.tbHist.innerHTML = "";
     const frag = document.createDocumentFragment();
+    const usd = (v) => (v == null ? "—" : "$" + fmtUsd(v));
     if (!hien.length)
-      frag.append(e("tr", {}, e("td", { colspan: "7", class: "dh-dim" },
+      frag.append(e("tr", {}, e("td", { colspan: "9", class: "dh-dim" },
         HIST12.dangTai ? "đang tải…" : "chưa có dữ liệu (backfill đang chạy)")));
     for (const r of hien) {
       const netW = (r.whaleMua || 0) - (r.whaleBan || 0);
       const netL = (r.liqLong || 0) - (r.liqShort || 0);
       frag.append(e("tr", {},
         e("td", { class: "dh-dim" }, ngayGio(r.w)),
-        e("td", { class: "dh-up" }, "$" + fmtUsd(r.whaleMua || 0)),
-        e("td", { class: "dh-down" }, "$" + fmtUsd(r.whaleBan || 0)),
+        e("td", { class: "dh-up" }, usd(r.takerMua)),
+        e("td", { class: "dh-down" }, usd(r.takerBan)),
+        e("td", { class: "dh-up" }, usd(r.whaleMua)),
+        e("td", { class: "dh-down" }, usd(r.whaleBan)),
         e("td", { class: netW >= 0 ? "dh-up" : "dh-down" },
           (netW >= 0 ? "+$" : "−$") + fmtUsd(Math.abs(netW))),
-        e("td", { class: "dh-up" }, "$" + fmtUsd(r.liqLong || 0)),
-        e("td", { class: "dh-down" }, "$" + fmtUsd(r.liqShort || 0)),
+        e("td", { class: "dh-up" }, usd(r.liqLong)),
+        e("td", { class: "dh-down" }, usd(r.liqShort)),
         e("td", { class: netL >= 0 ? "dh-up" : "dh-down" },
           (netL >= 0 ? "+$" : "−$") + fmtUsd(Math.abs(netL)))));
     }
     ui.tbHist.append(frag);
+    const srcTxt = HIST12.meta && HIST12.meta.moTa ? ` · ${HIST12.meta.moTa.split(".")[0]}.` : "";
     ui.capHist.textContent = `Hiện ${hien.length} / ${list.length} khung 12h · ${HIST12.coin}` +
-      (HIST12.meta && HIST12.meta.capNhat ? ` · cập nhật ${HIST12.meta.capNhat}` : "");
+      (HIST12.meta && HIST12.meta.capNhat ? ` · cập nhật ${HIST12.meta.capNhat}` : "") + srcTxt;
     ui.btnFullHist.textContent = HIST12.full ? "🔼 Thu gọn" : `📜 Xem toàn bộ (${list.length} khung)`;
   }
 
@@ -471,10 +475,10 @@
     const cardHist = e("div", { class: "dh-card" },
       e("h3", {}, "📚 Lịch sử dòng tiền 12h — từ 01/01/2026"),
       e("p", { class: "dh-dim", style: "font-size:11px;margin:0 0 6px" },
-        "Mỗi ngày 2 khung: 00:00 và 12:00 (giờ VN). Whale/taker: Binance · Thanh lý: CoinEx · Từ 28/09/2026: trạm 24/7 (OKX+Hyperliquid)."),
+        "Mỗi ngày 2 khung (khung bắt đầu 00:00 và 12:00 giờ VN). Taker/Whale: Binance · Thanh lý: chỉ sàn CoinEx (không phải toàn thị trường) · Từ 28/09/2026: trạm 24/7 (OKX+Hyperliquid, taker = —)."),
       ui.histTabs,
       e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
-        thead(["Khung", "Whale mua", "Whale bán", "Net whale", "TL Long", "TL Short", "Net TL"]), ui.tbHist)),
+        thead(["Khung bắt đầu", "Taker mua", "Taker bán", "Whale mua", "Whale bán", "Net whale", "TL Long", "TL Short", "Net TL"]), ui.tbHist)),
       ui.capHist, ui.btnFullHist);
     wrap.append(cardHist);
 

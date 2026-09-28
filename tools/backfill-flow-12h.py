@@ -14,7 +14,7 @@ raw.githubusercontent.com/.../data/data/flow-history-12h.json).
 
 Chạy: python3 tools/backfill-flow-12h.py  (có checkpoint, chạy lại an toàn)
 """
-import csv, datetime, io, json, os, sys, time, urllib.request, zipfile
+import csv, datetime, io, json, os, subprocess, sys, time, urllib.request, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT, "data")
@@ -34,6 +34,10 @@ def ms(y, mo, d, h=0, mi=0):
 CUTOFF_START = ms(2026, 1, 1)                       # từ 01/01/2026 00:00 +07
 now_ms = int(time.time() * 1000)
 LAST_DONE = ((now_ms + OFF7) // W12H) * W12H - OFF7  # biên 12h hoàn chỉnh gần nhất
+# Không backfill cửa sổ của "hôm nay": file daily Binance chưa xuất bản đủ,
+# cửa sổ hôm nay là việc của snapshot cron (trạm 24/7)
+_start_today = ((now_ms + OFF7) // 86400000) * 86400000 - OFF7
+LAST_DONE = min(LAST_DONE, _start_today)
 print(f"[backfill] cutoff: w >= {CUTOFF_START}, w_end <= {LAST_DONE}", flush=True)
 
 def wstart(ts):
@@ -70,28 +74,48 @@ def wlog(m):
 
 # ---------- Phase 1: Binance aggTrades ----------
 def dl(url, path):
-    """Tải file. Trả về True / "404" / False (lỗi tạm thời)."""
+    """Tải file bằng curl (ổn định hơn urllib qua proxy). Hỗ trợ resume. Trả về True / "404" / False."""
     if os.path.exists(path):
-        return True
-    for attempt in range(4):
+        # chỉ coi là xong nếu mở được zip hoàn chỉnh
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "trade2026-backfill"})
-            with urllib.request.urlopen(req, timeout=600) as r, open(path, "wb") as f:
-                while True:
-                    ch = r.read(1 << 20)
-                    if not ch:
-                        break
-                    f.write(ch)
-            return True
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
+            with zipfile.ZipFile(path) as z:
+                if z.namelist():
+                    return True
+        except Exception:
+            pass  # file dở -> resume bên dưới
+    for attempt in range(4):
+        # -C - : resume nếu file đã tồn tại một phần
+        r = subprocess.run(
+            ["curl", "-sSL", "-C", "-", "--retry", "2", "--retry-delay", "5",
+             "--connect-timeout", "30", "--max-time", "1800",
+             "--speed-limit", "10240", "--speed-time", "120",
+             "-o", path, "-w", "%{http_code}", url],
+            capture_output=True, text=True, timeout=1850)
+        code = r.stdout.strip()[-3:]
+        if code == "404" or (code == "416" and os.path.getsize(path) > 1000):
+            # 416: resume nhưng file đã đủ (server từ chối range vượt EOF)
+            if code == "404":
+                try: os.remove(path)
+                except OSError: pass
                 return "404"
-            wlog(f"download thử {attempt+1}: HTTP {e.code} {url}")
-        except Exception as e:
-            wlog(f"download thử {attempt+1} lỗi {url}: {e}")
-        try: os.remove(path)
-        except OSError: pass
+            try:
+                with zipfile.ZipFile(path) as z:
+                    if z.namelist():
+                        return True
+            except Exception:
+                pass
+        if code in ("200", "206") and os.path.exists(path) and os.path.getsize(path) > 0:
+            try:
+                with zipfile.ZipFile(path) as z:
+                    if z.namelist():
+                        return True
+                wlog(f"download thử {attempt+1}: zip chưa hoàn chỉnh, resume tiếp {url}")
+            except Exception:
+                wlog(f"download thử {attempt+1}: file không phải zip {url}")
+        else:
+            wlog(f"download thử {attempt+1} lỗi HTTP {code} {url}")
         time.sleep(5)
+    # không xóa file dở để lần sau resume
     return False
 
 def proc_zip(coin, path):
@@ -113,7 +137,7 @@ def proc_zip(coin, path):
                 w = wstart(ts)
                 if w < CUTOFF_START or w >= LAST_DONE:
                     continue
-                maker = p[6][0] == 84  # 'T': buyer là maker -> taker SELL
+                maker = p[6].strip().lower() == b"true"  # buyer là maker -> taker SELL
                 usd = price * qty
                 b = B(coin, w)
                 if maker:
@@ -129,11 +153,7 @@ def proc_zip(coin, path):
     return n
 
 def phase_binance():
-    # dọn file zip dở từ lần chạy trước (checkpoint chỉ đánh dấu file xử lý xong)
-    for f in os.listdir(TMP):
-        if f.endswith(".zip"):
-            try: os.remove(os.path.join(TMP, f)); wlog(f"xóa zip dở: {f}")
-            except OSError: pass
+    # KHÔNG xóa zip ở đây — dl() tự resume file dở, checkpoint đánh dấu file đã xử lý xong
     ck = os.path.join(TMP, "ck-binance.json")
     done = set(json.load(open(ck))) if os.path.exists(ck) else set()
     jobs = []
