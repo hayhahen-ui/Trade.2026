@@ -14,6 +14,173 @@ let LEARN = lsGet(LEARN_KEY, { rules: [], lessons: [], stats: null, updatedAt: 0
 
 function luuLearn() { lsSet(LEARN_KEY, LEARN); }
 
+/* ============================================================
+ * HỌC TỪ TÍN HIỆU HỆ THỐNG (v2.3.0) — mapping toàn bộ tín hiệu
+ * đã chấm điểm từ 📝 Sổ tín hiệu (local) + 🛰️ Trạm 24/7 vào
+ * Nhật ký & Tự học, sinh quy tắc Kaizen áp ngược vào Cố vấn.
+ * Mỗi tín hiệu ngã ngũ (thang/thua/het_han) = 1 "lệnh" để học.
+ * ============================================================ */
+const TRAM_JOURNAL_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json";
+let TIN_HIEU_TRAM = null;      // tinHieu[] của trạm (cache)
+let _tramBaiHoc = [];          // bài học Kaizen do trạm tự rút
+let _tramCapNhat = 0;
+let _tramTimer = 0;
+let SIG = { stats: null, lessons: [], rules: [] }; // kết quả học từ tín hiệu (phiên hiện tại)
+
+/* 1 record journal (local hoặc trạm) → 1 mục lịch sử học. Thuần — test được. */
+function tinHieuSangMuc(r, nguon) {
+  if (!r) return null;
+  const tt = r.trangThai;
+  if (tt !== "thang" && tt !== "thua" && tt !== "het_han") return null; // đang theo dõi → chưa học được
+  const kq = r.ketQua || {};
+  let R = (typeof kq.r === "number" && isFinite(kq.r)) ? kq.r
+        : (typeof r.r === "number" && isFinite(r.r)) ? r.r : null;
+  if (R == null) { const rr = +r.rr || 0; R = tt === "thang" ? rr : tt === "thua" ? -1 : 0; }
+  const coin = String(r.coin || "").toUpperCase();
+  const sideU = String(r.side || "").toUpperCase();   // LONG/SHORT (lát cắt)
+  const sideL = String(r.side || "").toLowerCase();   // long/short (khớp ctx advisor)
+  return {
+    coin, side: sideU, pnl: R, rQuy: R, ts: +r.tsVao || Date.now(), nguon,
+    trangThai: tt, // thang | thua | het_han — het_han không tính WR
+    ctx: {
+      theoTinHieu: true, nguon, coin, side: sideL,
+      score: (typeof r.diem === "number" && isFinite(r.diem)) ? r.diem : null,
+      phien: r.phien || null, bias4h: r.bias4h || null,
+    },
+  };
+}
+
+/* Gom toàn bộ tín hiệu đã chấm điểm: local JOURNAL + trạm 24/7. */
+function layLichSuTinHieu() {
+  const ds = [];
+  try {
+    if (typeof JOURNAL !== "undefined" && JOURNAL && typeof JOURNAL.all === "function") {
+      for (const r of JOURNAL.all()) {
+        const m = tinHieuSangMuc(r, "local");
+        if (m) ds.push(m);
+      }
+    }
+  } catch (e) {}
+  const thay = new Set();
+  for (const r of (TIN_HIEU_TRAM || [])) {
+    if (!r || (r.id != null && thay.has(r.id))) continue;
+    if (r.id != null) thay.add(r.id);
+    const m = tinHieuSangMuc(r, "tram_247");
+    if (m) ds.push(m);
+  }
+  return ds.sort((a, b) => a.ts - b.ts);
+}
+
+/* Tải tín hiệu trạm (cache 5 phút). fetchFn để test chích được. */
+async function napTinHieuTram(fetchFn) {
+  const f = fetchFn || (typeof fetch !== "undefined" ? fetch : null);
+  if (!f) return false;
+  if (TIN_HIEU_TRAM && Date.now() - _tramTimer < 5 * 60e3) return false;
+  try {
+    const resp = await f(TRAM_JOURNAL_URL + "?t=" + Date.now());
+    if (!resp.ok) return false;
+    const d = await resp.json();
+    const th = Array.isArray(d && d.tinHieu) ? d.tinHieu : [];
+    TIN_HIEU_TRAM = th;
+    _tramBaiHoc = Array.isArray(d && d.baiHoc) ? d.baiHoc : [];
+    _tramCapNhat = (d && d.capNhat) || 0;
+    _tramTimer = Date.now();
+    return th.length > 0;
+  } catch (e) { return false; }
+}
+
+/* Học từ lịch sử tín hiệu: cắt lát Hướng/Coin/Điểm/Phiên/Nguồn.
+ * Thuần (nhận mảng, trả kết quả) — test được. */
+function hocTuTinHieu(ds) {
+  // het_han là outcome riêng — không tính vào win-rate
+  const ket = (ds || []).filter((h) => h.trangThai === "thang" || h.trangThai === "thua");
+  const hetHan = (ds || []).length - ket.length;
+  const n = ket.length;
+  const thang = ket.filter((h) => h.pnl > 0).length;
+  const stats = {
+    n: (ds || []).length, ket: n, hetHan, thang,
+    winRate: n ? Math.round(thang / n * 100) : 0,
+    avgR: n ? +(ket.reduce((a, h) => a + h.rQuy, 0) / n).toFixed(2) : 0,
+    tram: (ds || []).filter((h) => h.nguon === "tram_247").length,
+    local: (ds || []).filter((h) => h.nguon === "local").length,
+    tienBo: null,
+  };
+  if (n >= 6) {
+    const half = Math.floor(n / 2);
+    const wr = (arr) => Math.round(arr.filter((h) => h.pnl > 0).length / arr.length * 100);
+    stats.tienBo = { dau: wr(ket.slice(0, half)), sau: wr(ket.slice(half)), n1: half, n2: n - half };
+  }
+  const lessons = [], rules = [];
+  const them = (dim, nhan, s, base, khuyenNghi, rule) => {
+    if (!s || s.n < 3) return;
+    const wr = _wr(s), diff = wr - base;
+    if (Math.abs(diff) < 15 && Math.abs(s.sumR) < 3) return;
+    const tot = diff >= 0;
+    lessons.push({
+      dim: dim + " · tín hiệu", nhan, winRate: wr, n: s.n,
+      avgR: +(s.sumR / s.n).toFixed(2), diff, tot, khuyenNghi, nguon: "tin_hieu",
+    });
+    if (rule) {
+      const cu = (typeof LEARN !== "undefined" && LEARN.rules || []).find((x) => x.kieu === rule.kieu);
+      rules.push({
+        ...rule, nhan, winRate: wr, n: s.n, nguon: "tin_hieu",
+        delta: tot ? Math.min(8, Math.round(Math.abs(diff) / 4)) : -Math.min(15, Math.round(Math.abs(diff) / 3)),
+        khuyenNghi, active: cu ? cu.active : true,
+      });
+    }
+  };
+  if (n >= 3) {
+    const base = stats.winRate;
+    // Hướng — quy tắc áp ngược vào Cố vấn (khớp ctx.side)
+    const mSide = _slice(ket, (h) => h.side);
+    for (const [k, s] of mSide) {
+      const xau = _wr(s) < base;
+      them("Hướng", `Tín hiệu ${k} của hệ thống`, s, base,
+        xau ? `Tín hiệu ${k} đang thua nhiều (WR ${_wr(s)}%) — Cố vấn tự trừ điểm mỗi khi gặp setup ${k}.`
+             : `Tín hiệu ${k} đang hiệu quả (WR ${_wr(s)}%) — giữ nguyên.`,
+        { kieu: "tin_hieu_huong_" + k.toLowerCase(), side: k.toLowerCase() });
+    }
+    // Coin (n≥4) — quy tắc áp ngược theo coin Cố vấn đang phân tích
+    const mCoin = _slice(ket, (h) => h.coin);
+    for (const [k, s] of mCoin) {
+      if (s.n < 4) continue;
+      const xau = _wr(s) < base;
+      them("Coin", `Tín hiệu ${k}`, s, base,
+        xau ? `${k} đang cho tín hiệu kém (WR ${_wr(s)}%) — Cố vấn tự trừ điểm khi phân tích ${k}.`
+            : `${k} đang cho tín hiệu tốt (WR ${_wr(s)}%) — ưu tiên.`,
+        { kieu: "tin_hieu_coin_" + k, coin: k });
+    }
+    // Nhóm điểm — điểm thấp mà thua → quy tắc trừ điểm trực tiếp
+    const mScore = _slice(ket, (h) => h.ctx.score == null ? null : h.ctx.score >= 70 ? "≥70" : h.ctx.score >= 50 ? "50–69" : "<50");
+    if (mScore.get("<50")) {
+      const s = mScore.get("<50");
+      them("Điểm hợp lưu", "Tín hiệu điểm thấp (<50)", s, base,
+        `Tín hiệu dưới 50 điểm thắng chỉ ${_wr(s)}% — Cố vấn tự trừ điểm setup <50.`,
+        { kieu: "tin_hieu_diem_thap" });
+    }
+    if (mScore.get("≥70")) {
+      const s = mScore.get("≥70");
+      them("Điểm hợp lưu", "Tín hiệu điểm cao (≥70)", s, base,
+        `Tín hiệu ≥70 điểm thắng ${_wr(s)}% — ${_wr(s) >= base ? "tiếp tục chờ điểm cao." : "điểm cao vẫn thua — xem lại trọng số hợp lưu."}`,
+        null);
+    }
+    // Phiên — chỉ bài học (không áp rule vì ctx Cố vấn không có tên phiên)
+    const mPhien = _slice(ket, (h) => h.ctx.phien && h.ctx.phien !== "—" ? h.ctx.phien : null);
+    for (const [k, s] of mPhien)
+      them("Phiên", `Tín hiệu trong phiên ${k}`, s, base,
+        `Phiên ${k}: WR ${_wr(s)}% qua ${s.n} tín hiệu — ${_wr(s) < base ? "cân nhắc né." : "ưu tiên."}`, null);
+    // Nguồn — so sánh trạm vs local
+    const mNguon = _slice(ket, (h) => h.nguon === "tram_247" ? "Trạm 24/7" : "Local");
+    if (mNguon.size >= 2) {
+      const arr = [...mNguon.entries()].sort((a, b) => _wr(a[1]) - _wr(b[1]));
+      const [kW, sW] = arr[0], [kB, sB] = arr[arr.length - 1];
+      them("Nguồn", `Tín hiệu từ ${kW} vs ${kB}`, sW, _wr(sB),
+        `${kW} (WR ${_wr(sW)}%) đang kém hơn ${kB} (WR ${_wr(sB)}%) — kiểm tra lại pipeline thu tín hiệu bên kém.`, null);
+    }
+  }
+  return { stats, lessons: lessons.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff)), rules };
+}
+
 /* ---------- Thống kê 1 lát ---------- */
 function _slice(history, keyFn) {
   const map = new Map();
@@ -94,6 +261,21 @@ function hocTuLichSu() {
   // gộp rule: giữ trạng thái active cũ, thay số liệu mới
   const activeMap = new Map(LEARN.rules.map((r) => [r.kieu, r.active]));
   LEARN.rules = rules.map((r) => ({ ...r, active: activeMap.has(r.kieu) ? activeMap.get(r.kieu) : r.active }));
+
+  /* --- v2.3.0: Kaizen từ tín hiệu hệ thống (trạm 24/7 + local) ---
+   * Mapping toàn bộ tín hiệu đã chấm điểm → sinh quy tắc tin_hieu_*
+   * áp ngược vào Cố vấn qua dieuChinhKienThuc (cùng cơ chế rule Bot). */
+  try {
+    const sig = hocTuTinHieu(layLichSuTinHieu());
+    SIG.stats = sig.stats; SIG.lessons = sig.lessons; SIG.rules = sig.rules;
+    LEARN.tinHieu = { stats: sig.stats, lessons: sig.lessons, rules: sig.rules, updatedAt: Date.now() };
+    for (const r of sig.rules) {
+      const i = LEARN.rules.findIndex((x) => x.kieu === r.kieu);
+      if (i >= 0) LEARN.rules[i] = { ...r, active: LEARN.rules[i].active }; // refresh số liệu, giữ toggle
+      else LEARN.rules.push({ ...r, active: activeMap.has(r.kieu) ? activeMap.get(r.kieu) : r.active });
+    }
+  } catch (e) { /* học tín hiệu lỗi → giữ nguyên rule Bot */ }
+
   LEARN.updatedAt = Date.now();
   luuLearn();
   document.dispatchEvent(new CustomEvent("siro:learn"));
@@ -104,10 +286,16 @@ function hocTuLichSu() {
 function dieuChinhKienThuc(ctx) {
   if (!LEARN.rules.length) return { delta: 0, canhBao: [] };
   let delta = 0; const canhBao = [];
+  const sideN = String(ctx.side || "").toLowerCase();
+  const coinN = String(ctx.coin || "").toUpperCase();
   for (const r of LEARN.rules) {
     if (!r.active) continue;
     let khop = false;
-    switch (r.kieu) {
+    /* v2.3.0: quy tắc Kaizen từ tín hiệu hệ thống */
+    if (r.kieu.indexOf("tin_hieu_huong_") === 0) khop = !!sideN && sideN === r.side;
+    else if (r.kieu.indexOf("tin_hieu_coin_") === 0) khop = !!coinN && coinN === String(r.coin || "").toUpperCase();
+    else switch (r.kieu) {
+      case "tin_hieu_diem_thap": khop = ctx.score != null && ctx.score < 50; break;
       case "nguoc_tin_hieu": khop = ctx.theoTinHieu === false; break;
       case "theo_tin_hieu": khop = ctx.theoTinHieu === true; break;
       case "ngoai_killzone": khop = ctx.killzone === false; break;
@@ -123,6 +311,60 @@ function dieuChinhKienThuc(ctx) {
   return { delta, canhBao };
 }
 
+/* ---------- v2.3.0: thẻ học từ tín hiệu hệ thống ---------- */
+function veHocTinHieu(root) {
+  const st = (SIG && SIG.stats) || { n: 0, ket: 0, hetHan: 0, thang: 0, winRate: 0, avgR: 0, tram: 0, local: 0, tienBo: null };
+  const c = el("div", { class: "card" },
+    el("div", { class: "card-title" }, "📡 Học từ tín hiệu hệ thống — Kaizen thuật toán"),
+    el("p", { class: "muted small" },
+      "Mapping toàn bộ tín hiệu đã chấm điểm từ ", el("b", {}, "📝 Sổ tín hiệu"), " (local) + ",
+      el("b", {}, "🛰️ Trạm quan trắc 24/7"), " — cùng 1 bộ dữ liệu chấm bằng nến 15m thật. ",
+      "Bài học ở đây sinh ", el("b", {}, "quy tắc Kaizen"), " (thẻ ⚙️ bên dưới, nhãn ",
+      el("span", { class: "badge short" }, "Tín hiệu"), "): Cố vấn lệnh tự ± điểm mỗi khi setup mới trùng điều kiện."),
+    el("div", { class: "kv" },
+      el("span", {}, `Tín hiệu đã ngã ngũ: ${st.n} (trạm ${st.tram} + local ${st.local})${st.hetHan ? ` · ${st.hetHan} hết hạn` : ""}`),
+      el("b", { class: st.winRate >= 50 ? "up" : "down" }, `WR ${st.winRate}% · ${st.avgR >= 0 ? "+" : ""}${st.avgR}R`)));
+  if (_tramCapNhat) {
+    const gio = (typeof fmtNgayGio === "function") ? fmtNgayGio(new Date(_tramCapNhat).getTime()) : new Date(_tramCapNhat).toLocaleString("vi-VN");
+    c.appendChild(el("div", { class: "muted small" }, "🛰️ Trạm cập nhật: " + gio));
+  } else {
+    c.appendChild(el("div", { class: "muted small" }, "🛰️ Đang tải tín hiệu trạm 24/7…"));
+  }
+  if (st.n < 3) {
+    c.appendChild(el("p", { class: "muted" },
+      `Cần tối thiểu 3 tín hiệu đã ngã ngũ để rút bài học (hiện có ${st.n}). Trạm 24/7 đang chấm tự động — quay lại sau.`));
+  } else {
+    if (st.tienBo) {
+      const t = st.tienBo;
+      c.appendChild(el("div", { class: "kv" },
+        el("span", {}, `WR ${t.n1} tín hiệu đầu`),
+        el("b", {}, t.dau + "%")),
+        el("div", { class: "kv" },
+          el("span", {}, `WR ${t.n2} tín hiệu sau`),
+          el("b", { class: t.sau >= t.dau ? "up" : "down" }, t.sau + "% " + (t.sau >= t.dau ? "▲ thuật toán tiến bộ" : "▼ cần xem lại"))));
+    }
+    for (const l of (SIG.lessons || [])) {
+      c.appendChild(el("div", { class: "lesson " + (l.tot ? "tot" : "xau") },
+        el("div", { class: "lesson-head" },
+          el("b", {}, (l.tot ? "✅ " : "⚠️ ") + l.nhan),
+          el("span", { class: "badge " + (l.tot ? "long" : "short") }, `WR ${l.winRate}% · ${l.n} tín hiệu · ${l.avgR >= 0 ? "+" : ""}${l.avgR}R`)),
+        el("div", { class: "small muted" }, `[${l.dim}] ${l.khuyenNghi} (lệch ${l.diff >= 0 ? "+" : ""}${l.diff}% so với trung bình)`)));
+    }
+    // Bài học Kaizen do trạm tự rút (gợi ý trước đó → mapping về đây để theo dõi)
+    if (_tramBaiHoc.length) {
+      const cT = el("div", {}, el("div", { class: "card-title small" }, `🧠 Gợi ý Kaizen từ trạm 24/7 (${_tramBaiHoc.length})`));
+      for (const l of _tramBaiHoc.slice(0, 6)) {
+        const mau = l.muc === "tot" ? "up" : l.muc === "xau" ? "down" : "warn";
+        cT.appendChild(el("div", { class: "kv" },
+          el("div", {}, el("b", { class: mau }, l.tieuDe), el("div", { class: "muted small" }, l.chiTiet)),
+          el("div", { class: "muted small", style: "max-width:46%" }, "💡 " + (l.goiY || ""))));
+      }
+      c.appendChild(cT);
+    }
+  }
+  root.appendChild(c);
+}
+
 /* ================= MÀN HÌNH NHẬT KÝ & TỰ HỌC ================= */
 function renderTuHoc(root) {
   root.innerHTML = "";
@@ -130,10 +372,11 @@ function renderTuHoc(root) {
   const st = LEARN.stats || { n: 0, winRate: 0, avgR: 0, tongPnl: 0 };
 
   root.appendChild(el("div", { class: "note-box" },
-    "📓 Màn hình này ", el("b", {}, "tự học sau mỗi lệnh đóng"), ": phân tích lãi/lỗ, rút bài học, sinh quy tắc và ",
+    "📓 Màn hình này ", el("b", {}, "tự học sau mỗi lệnh đóng và mỗi tín hiệu hệ thống ngã ngũ"),
+    ": phân tích lãi/lỗ, rút bài học, sinh quy tắc và ",
     el("b", {}, "áp dụng ngược lại Cố vấn lệnh + Engine"), " để lần sau tốt hơn. Kiến thức lưu ngay trên máy bạn."));
 
-  // Thống kê tổng
+  // Thống kê tổng (Bot)
   root.appendChild(el("div", { class: "stat-row" },
     theStat("Tổng lệnh đã đóng", String(st.n)),
     theStat("Win rate", st.winRate + "%", st.winRate >= 50 ? "up" : "down"),
@@ -146,6 +389,9 @@ function renderTuHoc(root) {
     el("button", { class: "btn", onclick: xuatKienThuc }, "⬇ Xuất kiến thức (JSON)"),
     el("span", { class: "muted small" }, LEARN.updatedAt ? "Cập nhật " + fmtGio(LEARN.updatedAt) : ""));
   root.appendChild(bar);
+
+  /* v2.3.0: thẻ học từ tín hiệu — luôn hiện, kể cả khi Bot chưa có lệnh */
+  veHocTinHieu(root);
 
   if (st.n < 3) {
     root.appendChild(el("div", { class: "card" },
@@ -172,7 +418,8 @@ function renderTuHoc(root) {
   }
 
   // Bài học tự rút
-  const cL = el("div", { class: "card" }, el("div", { class: "card-title" }, `🧠 Kinh nghiệm tự rút ra (${LEARN.lessons.length})`));
+  const cL = el("div", { class: "card" }, el("div", { class: "card-title" }, `🧠 Kinh nghiệm tự rút ra từ Bot (${LEARN.lessons.length})`));
+  if (!LEARN.lessons.length) cL.appendChild(el("p", { class: "muted" }, "Chưa có lát dữ liệu nào lệch đủ mạnh để thành bài học rõ ràng."));
   if (!LEARN.lessons.length) cL.appendChild(el("p", { class: "muted" }, "Chưa có lát dữ liệu nào lệch đủ mạnh để thành bài học rõ ràng."));
   for (const l of LEARN.lessons) {
     cL.appendChild(el("div", { class: "lesson " + (l.tot ? "tot" : "xau") },
@@ -183,16 +430,18 @@ function renderTuHoc(root) {
   }
   root.appendChild(cL);
 
-  // Quy tắc đã học (áp dụng ngược)
+  // Quy tắc đã học (áp dụng ngược) — nhãn nguồn Bot / Tín hiệu
   const cR = el("div", { class: "card" }, el("div", { class: "card-title" }, `⚙️ Quy tắc đã học — tự áp dụng cho Cố vấn & Engine (${LEARN.rules.length})`));
   if (!LEARN.rules.length) cR.appendChild(el("p", { class: "muted" }, "Chưa sinh quy tắc tự động."));
   for (const r of LEARN.rules) {
+    const laTinHieu = r.nguon === "tin_hieu";
     const line = el("label", { class: "rule-line" },
       el("input", { type: "checkbox", ...(r.active ? { checked: "" } : {}), onchange: (e) => { r.active = e.target.checked; luuLearn(); } }),
       el("span", {},
+        el("span", { class: "badge " + (laTinHieu ? "short" : "long") }, laTinHieu ? "Tín hiệu" : "Bot"), " ",
         el("b", {}, r.nhan), " ",
         el("span", { class: "mono " + (r.delta < 0 ? "down" : "up") }, `(${r.delta > 0 ? "+" : ""}${r.delta}đ tối ưu)`),
-        el("div", { class: "small muted" }, `${r.khuyenNghi} — bằng chứng: thắng ${r.winRate}% qua ${r.n} lệnh`)));
+        el("div", { class: "small muted" }, `${r.khuyenNghi} — bằng chứng: thắng ${r.winRate}% qua ${r.n} ${laTinHieu ? "tín hiệu" : "lệnh"}`)));
     cR.appendChild(line);
   }
   root.appendChild(cR);
@@ -200,6 +449,11 @@ function renderTuHoc(root) {
   // Breakdown tables
   veBreakdown(root, closed);
   veNguyenTacGoc(root);
+
+  /* v2.3.0: tải ngầm tín hiệu trạm 24/7 → học lại → vẽ lại (1 lần) */
+  napTinHieuTram().then((moi) => {
+    if (moi && root.isConnected) { hocTuLichSu(); renderTuHoc(root); }
+  });
 }
 
 function veBreakdown(root, closed) {

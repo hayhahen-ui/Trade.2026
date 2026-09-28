@@ -957,7 +957,76 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(() => {
+/* ---------- 18. learn.js — Kaizen từ tín hiệu hệ thống (v2.3.0) ---------- */
+const _p18 = async () => {
+console.log("\n[18] learn.js — Kaizen từ tín hiệu hệ thống");
+{
+  const store = {};
+  const journalRecs = [
+    ...[0, 1, 2, 3].map((i) => ({ id: "L" + i, coin: "BTC", side: "long", trangThai: "thua", tsVao: 1000 + i, diem: 82, giaVao: 84000, sl: 83500, tp: 85000, rr: 2, ketQua: { r: -1 }, phien: "—", bias4h: "bullish" })),
+    { id: "S0", coin: "ETH", side: "short", trangThai: "thang", tsVao: 2000, diem: 83, giaVao: 2690, sl: 2698, tp: 2673, rr: 2, ketQua: { r: 2 }, phien: "New York KZ", bias4h: "bearish-yếu" },
+    { id: "W0", coin: "SOL", side: "long", trangThai: "dang_theo_doi", tsVao: 3000 },
+  ];
+  const tramPayload = {
+    tram: "journal-247", capNhat: "2026-09-28T03:22:41Z", nguon: ["OKX"],
+    tinHieu: [
+      { id: "t1", coin: "DOGE", side: "long", trangThai: "thua", tsVao: 4000, diem: 90, rr: 2, ketQua: { r: -1 }, phien: "—" },
+      { id: "t1", coin: "DOGE", side: "long", trangThai: "thua", tsVao: 4000, diem: 90, rr: 2, ketQua: { r: -1 }, phien: "—" },
+      { id: "t2", coin: "BTC", side: "long", trangThai: "het_han", tsVao: 5000, diem: 60, rr: 2, ketQua: { r: 0.3 } },
+    ],
+    baiHoc: [{ muc: "ghi_nho", tieuDe: "⏱️ Test", chiTiet: "ct", goiY: "gy" }],
+  };
+  const c = makeCtx({
+    lsGet: (k, fb) => (k in store ? store[k] : fb),
+    lsSet: (k, v) => { store[k] = v; },
+    document: { dispatchEvent() {} },
+    CustomEvent: function (n) { this.type = n; },
+    JOURNAL: { all: () => journalRecs },
+  });
+  c.load("assets/js/learn.js");
+  const g = (n) => c.get(n);
+
+  // 18.1 tinHieuSangMuc — thuần
+  const m = g("tinHieuSangMuc")(journalRecs[0], "local");
+  ok(m && m.pnl === -1 && m.rQuy === -1 && m.side === "LONG" && m.ctx.side === "long" && m.nguon === "local",
+    "tinHieuSangMuc: thua → pnl -1, side LONG/long");
+  ok(g("tinHieuSangMuc")(journalRecs[4], "local").pnl === 2, "thắng → pnl = R");
+  ok(g("tinHieuSangMuc")(journalRecs[5], "local") === null, "đang_theo_doi → null (chưa học)");
+
+  // 18.2 napTinHieuTram với fetch giả
+  const fakeFetch = async () => ({ ok: true, json: async () => tramPayload });
+  ok(await g("napTinHieuTram")(fakeFetch) === true, "napTinHieuTram tải được payload trạm");
+  ok(await g("napTinHieuTram")(fakeFetch) === false, "lần 2 dùng cache (không fetch lại)");
+
+  // 18.3 layLichSuTinHieu — gộp local + trạm, khử trùng id trạm
+  const ds = g("layLichSuTinHieu")();
+  ok(ds.length === 7, `gộp local(5) + trạm(2, khử 1 trùng) = 7 (được ${ds.length})`);
+  ok(ds.filter((h) => h.nguon === "tram_247").length === 2, "phân biệt nguồn trạm/local");
+
+  // 18.4 hocTuTinHieu — LONG thua 0/5 → bài học + rule Kaizen trừ điểm
+  const kq = g("hocTuTinHieu")(ds);
+  ok(kq.stats.n === 7 && kq.stats.ket === 6 && kq.stats.hetHan === 1, "stats: 7 tín hiệu, 6 ngã ngũ, 1 hết hạn");
+  const lh = kq.lessons.find((l) => /LONG/.test(l.nhan));
+  ok(!!lh && lh.tot === false && lh.winRate === 0, "bài học: tín hiệu LONG thua 0%");
+  const rule = kq.rules.find((r) => r.kieu === "tin_hieu_huong_long");
+  ok(!!rule && rule.delta < 0, `rule Kaizen tin_hieu_huong_long, delta=${rule && rule.delta}`);
+
+  // 18.5 vòng Kaizen khép kín: rule → dieuChinhKienThuc → Cố vấn
+  g("hocTuLichSu")();
+  const adjLong = g("dieuChinhKienThuc")({ side: "long", coin: "BTC", score: 80, theoTinHieu: true, killzone: false, lev: 2 });
+  ok(adjLong.delta < 0 && adjLong.canhBao.some((x) => /LONG/.test(x)),
+    `Cố vấn gặp setup LONG → trừ điểm (${adjLong.delta}) + cảnh báo 📚`);
+  const adjShort = g("dieuChinhKienThuc")({ side: "short", coin: "ETH", score: 83, theoTinHieu: true, killzone: true, lev: 2 });
+  ok(!adjShort.canhBao.some((x) => /LONG/.test(x)), "setup SHORT không bị phạt oan");
+
+  // 18.6 UI: renderTuHoc tải ngầm trạm + có thẻ học tín hiệu
+  const lsrc = read("assets/js/learn.js");
+  ok(lsrc.indexOf("napTinHieuTram().then") >= 0, "renderTuHoc tải ngầm tín hiệu trạm rồi học lại");
+  ok(lsrc.indexOf("function veHocTinHieu") >= 0, "có thẻ 📡 học từ tín hiệu hệ thống");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });
