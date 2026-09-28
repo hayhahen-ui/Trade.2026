@@ -1,8 +1,11 @@
 /* ============================================================
- * Trade.2026 — Nhật ký tín hiệu & Tự học Kaizen (v2.2.0)
+ * Trade.2026 — Nhật ký tín hiệu & Tự học Kaizen (v2.2.1)
  * Mỗi cảnh báo LONG/SHORT được xác nhận → ghi nhận thời điểm, entry/SL/TP.
  * Dùng nến 15m thật sau đó để chấm điểm đúng/sai → thống kê → rút bài học.
  * Giả định: khớp entry tại giá tín hiệu (ghi rõ trong UI).
+ * v2.2.1: bảng chi tiết thêm cột STOP / KẾT THÚC / ±(chênh lệch giá);
+ *   fix chamDiemLenh nhận cả "giaVao" (record thật) lẫn "entry" (test cũ);
+ *   kết quả chấm điểm lưu thêm giá kết thúc lệnh (giaKT/giaKetThuc).
  * ============================================================ */
 "use strict";
 
@@ -79,7 +82,7 @@ const JOURNAL = {
       const risk = Math.abs(rec.giaVao - rec.sl);
       const rRaw = rec.side === "long" ? (giaCuoi - rec.giaVao) / risk : (rec.giaVao - giaCuoi) / risk;
       rec.trangThai = "het_han";
-      rec.ketQua = { ketQua: "het_han", at: sau[sau.length - 1].openTime, r: +rRaw.toFixed(2), mfeR: dg.mfeR, maeR: dg.maeR, gioDenKQ: this._hanGio };
+      rec.ketQua = { ketQua: "het_han", at: sau[sau.length - 1].openTime, r: +rRaw.toFixed(2), mfeR: dg.mfeR, maeR: dg.maeR, gioDenKQ: this._hanGio, giaKetThuc: giaCuoi };
     }
     rec.daDanhGiaDen = now;
     const ds = this._doc().map(r => r.id === rec.id ? rec : r);
@@ -106,7 +109,9 @@ const JOURNAL = {
  * nen: [{openTime, high, low, close}] tăng dần. SL chạm trước TP trong
  * cùng nến → tính thua (bảo thủ). Trả về {ketQua, at, r, mfeR, maeR}. */
 function chamDiemLenh(nen, lenh) {
-  const { side, entry, sl, tp } = lenh;
+  // v2.2.1: record thật trong JOURNAL lưu "giaVao", test cũ dùng "entry" — nhận cả hai
+  const entry = lenh.entry != null ? +lenh.entry : +lenh.giaVao;
+  const { side, sl, tp } = lenh;
   const isLong = side === "long";
   const risk = Math.abs(entry - sl);
   let mfe = 0, mae = 0;
@@ -119,11 +124,40 @@ function chamDiemLenh(nen, lenh) {
     const chamSL = isLong ? n.low <= sl : n.high >= sl;
     const chamTP = isLong ? n.high >= tp : n.low <= tp;
     if (chamSL && chamTP)
-      return { ketQua: "thua", at: n.openTime, r: -1, mfeR: r2(mfe), maeR: r2(mae), ghiChu: "SL & TP cùng nến — tính thua (bảo thủ)" };
-    if (chamSL) return { ketQua: "thua", at: n.openTime, r: -1, mfeR: r2(mfe), maeR: r2(mae) };
-    if (chamTP) return { ketQua: "thang", at: n.openTime, r: r2(Math.abs(tp - entry) / (risk || 1)), mfeR: r2(mfe), maeR: r2(mae) };
+      return { ketQua: "thua", at: n.openTime, r: -1, mfeR: r2(mfe), maeR: r2(mae), giaKT: sl, ghiChu: "SL & TP cùng nến — tính thua (bảo thủ)" };
+    if (chamSL) return { ketQua: "thua", at: n.openTime, r: -1, mfeR: r2(mfe), maeR: r2(mae), giaKT: sl };
+    if (chamTP) return { ketQua: "thang", at: n.openTime, r: r2(Math.abs(tp - entry) / (risk || 1)), mfeR: r2(mfe), maeR: r2(mae), giaKT: tp };
   }
-  return { ketQua: "dang_theo_doi", at: null, r: null, mfeR: r2(mfe), maeR: r2(mae) };
+  return { ketQua: "dang_theo_doi", at: null, r: null, mfeR: r2(mfe), maeR: r2(mae), giaKT: null };
+}
+
+/* ---------- v2.2.1: giá kết thúc + chênh lệch (cột mới Sổ tín hiệu) ----------
+ * giaKetThuc(rec): thắng → TP, thua → SL, hết hạn → giá cuối đã lưu.
+ * Bản ghi cũ chưa có giaKetThuc/giaKT trong ketQua thì suy từ trạng thái.
+ * chenhLechGia(rec): {gia, pct} có dấu theo hướng lệnh (long: KT−entry,
+ *   short: entry−KT) — dương là lãi, âm là lỗ so với giá vào. */
+function giaKetThuc(rec) {
+  if (!rec) return null;
+  const kq = rec.ketQua || {};
+  const luu = kq.giaKetThuc != null ? +kq.giaKetThuc : (kq.giaKT != null ? +kq.giaKT : NaN);
+  if (luu > 0) return luu;
+  if (rec.trangThai === "thang" && +rec.tp > 0) return +rec.tp;
+  if (rec.trangThai === "thua" && +rec.sl > 0) return +rec.sl;
+  return null;
+}
+function chenhLechGia(rec) {
+  if (!rec) return null;
+  const g = giaKetThuc(rec), vao = +rec.giaVao;
+  if (!(g > 0) || !(vao > 0)) return null;
+  const d = rec.side === "long" ? g - vao : vao - g;
+  return { gia: d, pct: d / vao * 100 };
+}
+/* Chuỗi hiển thị cột ±, vd "+12.5 (+0.01%)" — màu do caller quyết theo dấu */
+function fmtChenhLech(cl) {
+  if (!cl || !isFinite(cl.gia)) return "—";
+  const dau = cl.gia >= 0 ? "+" : "-";
+  const pct = isFinite(cl.pct) ? ` (${dau}${Math.abs(cl.pct).toFixed(2)}%)` : "";
+  return dau + fmtGia(Math.abs(cl.gia)) + pct;
 }
 
 /* ---------- Thuần: thống kê từ danh sách bản ghi ---------- */
@@ -252,7 +286,9 @@ function renderSoTinHieu(root) {
   root.appendChild(el("div", { class: "note-box" },
     "📝 Mỗi tín hiệu ", el("b", {}, "LONG/SHORT được xác nhận"), " tự ghi lại thời điểm, entry/SL/TP vào sổ này. ",
     "Hệ thống dùng ", el("b", {}, "nến 15m thật"), " sau đó để chấm điểm đúng/sai → rút bài học Kaizen. ",
-    el("span", { class: "muted small" }, "Giả định: khớp entry tại giá tín hiệu; SL chạm trước TP trong cùng nến → tính thua (bảo thủ); quá 48h chưa chạm → hết hạn.")));
+    el("span", { class: "muted small" }, "Giả định: khớp entry tại giá tín hiệu; SL chạm trước TP trong cùng nến → tính thua (bảo thủ); quá 48h chưa chạm → hết hạn."),
+    el("br", {}),
+    el("span", { class: "muted small" }, "Cột ", el("b", {}, "Stop"), ": giá SL khuyến nghị · ", el("b", {}, "Kết thúc"), ": giá TP/SL/giá cuối thực tế · ", el("b", {}, "±"), ": chênh lệch kết thúc − vào (", el("span", { class: "up" }, "xanh lãi"), "/", el("span", { class: "down" }, "đỏ lỗ"), ").")));
 
   const bar = el("div", { class: "toolbar" },
     el("button", { class: "btn primary", id: "journal-cham" }, "🔄 Chấm điểm tất cả"),
@@ -301,15 +337,20 @@ function renderSoTinHieu(root) {
         const tbl = el("table", { class: "mini-table" });
         tbl.appendChild(el("tr", {},
           el("th", {}, "Giờ vào"), el("th", {}, "Coin"), el("th", {}, "Hướng"),
-          el("th", {}, "Entry"), el("th", {}, "Điểm"), el("th", {}, "Trạng thái"), el("th", {}, "R")));
+          el("th", {}, "Entry"), el("th", {}, "Stop"), el("th", {}, "Kết thúc"), el("th", {}, "±"),
+          el("th", {}, "Điểm"), el("th", {}, "Trạng thái"), el("th", {}, "R")));
         for (const r of tinHieu.slice(0, 20)) {
           const [nhan, cls] = TRANG_THAI_JOURNAL[r.trangThai] || ["?", ""];
           const kq = r.ketQua;
+          const gkt = giaKetThuc(r), cl = chenhLechGia(r);
           tbl.appendChild(el("tr", {},
             el("td", {}, fmtNgayGio(r.tsVao)),
             el("td", { class: "strong" }, r.coin),
             el("td", { class: r.side === "long" ? "up" : "down" }, r.side === "long" ? "🟢 LONG" : "🔴 SHORT"),
             el("td", {}, fmtGia(r.giaVao)),
+            el("td", { class: "down" }, fmtGia(r.sl)),
+            el("td", {}, gkt != null ? fmtGia(gkt) : "—"),
+            el("td", { class: cl ? (cl.gia >= 0 ? "up" : "down") : "" }, fmtChenhLech(cl)),
             el("td", {}, String(r.diem)),
             el("td", { class: cls }, nhan),
             el("td", { class: kq && kq.r != null ? (kq.r >= 0 ? "up" : "down") : "" },
@@ -371,10 +412,12 @@ function renderSoTinHieu(root) {
       tbl.appendChild(el("tr", {},
         el("th", {}, "Giờ vào"), el("th", {}, "Coin"), el("th", {}, "Hướng"),
         el("th", {}, "Entry"), el("th", {}, "SL"), el("th", {}, "TP1"),
+        el("th", {}, "Kết thúc"), el("th", {}, "±"),
         el("th", {}, "Điểm"), el("th", {}, "Trạng thái"), el("th", {}, "R"), el("th", {}, "Giờ tới KQ")));
       for (const r of ds.slice(0, 100)) {
         const [nhan, cls] = TRANG_THAI_JOURNAL[r.trangThai] || ["?", ""];
         const kq = r.ketQua;
+        const gkt = giaKetThuc(r), cl = chenhLechGia(r);
         tbl.appendChild(el("tr", {},
           el("td", {}, fmtNgayGio(r.tsVao)),
           el("td", { class: "strong" }, r.coin),
@@ -382,6 +425,8 @@ function renderSoTinHieu(root) {
           el("td", {}, fmtGia(r.giaVao)),
           el("td", {}, fmtGia(r.sl)),
           el("td", {}, fmtGia(r.tp)),
+          el("td", {}, gkt != null ? fmtGia(gkt) : "—"),
+          el("td", { class: cl ? (cl.gia >= 0 ? "up" : "down") : "" }, fmtChenhLech(cl)),
           el("td", {}, String(r.diem)),
           el("td", { class: cls }, nhan),
           el("td", { class: kq && kq.r != null ? (kq.r >= 0 ? "up" : "down") : "" },

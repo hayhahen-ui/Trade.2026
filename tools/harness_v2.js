@@ -706,6 +706,7 @@ console.log("\n[14] journal.js — chấm điểm, thống kê, bài học");
     removeItem: (k) => { delete store[k]; },
   };
   const c = makeCtx({ localStorage: lsStub, fetchKlines: async () => [] });
+  c.load("assets/js/utils.js"); // fmtGia thật cho fmtChenhLech
   c.load("assets/js/journal.js");
   const chamDiemLenh = c.get("chamDiemLenh");
   const thongKeJournal = c.get("thongKeJournal");
@@ -728,6 +729,31 @@ console.log("\n[14] journal.js — chấm điểm, thống kê, bài học");
   // 14.5 chưa chạm → tracking + MFE/MAE
   dg = chamDiemLenh([nen(100,103,99,102,1000), nen(102,104,101,103,2000)], { side:"long", entry:100, sl:98, tp:110 });
   ok(dg.ketQua === "dang_theo_doi" && dg.mfeR === 2 && dg.maeR === 0.5, "chưa chạm → tracking, MFE=2R MAE=0.5R");
+  // 14.5b v2.2.1: record thật dùng giaVao thay entry + lưu giá kết thúc
+  dg = chamDiemLenh([nen(100,101,97,99,1000)], { side:"long", giaVao:100, sl:98, tp:105 });
+  ok(dg.ketQua === "thua" && dg.r === -1 && dg.giaKT === 98, "giaVao thay entry: long thua R=-1, giaKT=SL");
+  dg = chamDiemLenh([nen(100,101,94,95,1000)], { side:"short", giaVao:100, sl:102, tp:95 });
+  ok(dg.ketQua === "thang" && dg.r === 2.5 && dg.giaKT === 95, "giaVao: short thắng R=2.5 (không NaN), giaKT=TP");
+  dg = chamDiemLenh([nen(100,103,99,102,1000)], { side:"long", giaVao:100, sl:98, tp:110 });
+  ok(dg.ketQua === "dang_theo_doi" && dg.giaKT === null, "giaVao: chưa chạm → giaKT null");
+  // 14.5c v2.2.1: giaKetThuc / chenhLechGia / fmtChenhLech
+  const giaKetThuc = c.get("giaKetThuc"), chenhLechGia = c.get("chenhLechGia"), fmtChenhLech = c.get("fmtChenhLech");
+  ok(giaKetThuc({ trangThai:"thua", sl:98, tp:105, ketQua:{ ketQua:"thua", giaKT:98 } }) === 98, "giaKetThuc: thua → SL");
+  ok(giaKetThuc({ trangThai:"thang", sl:98, tp:105, ketQua:{ ketQua:"thang", giaKT:105 } }) === 105, "giaKetThuc: thắng → TP");
+  ok(giaKetThuc({ trangThai:"thua", sl:98, tp:105, ketQua:{ ketQua:"thua" } }) === 98, "giaKetThuc: bản ghi cũ (chưa có giaKT) suy từ trạng thái");
+  ok(giaKetThuc({ trangThai:"dang_theo_doi", ketQua:null }) === null, "giaKetThuc: đang theo dõi → null");
+  let cl = chenhLechGia({ side:"long", giaVao:100, trangThai:"thua", sl:98, tp:105, ketQua:{ ketQua:"thua", giaKT:98 } });
+  ok(cl && cl.gia === -2 && Math.abs(cl.pct + 2) < 1e-9, "chenhLechGia: long thua 100→98 = -2 (-2%)");
+  cl = chenhLechGia({ side:"short", giaVao:100, trangThai:"thang", sl:102, tp:95, ketQua:{ ketQua:"thang", giaKT:95 } });
+  ok(cl && cl.gia === 5 && Math.abs(cl.pct - 5) < 1e-9, "chenhLechGia: short thắng 100→95 = +5 (+5%)");
+  ok(chenhLechGia({ side:"long", giaVao:100, trangThai:"dang_theo_doi", ketQua:null }) === null, "chenhLechGia: chưa ngã ngũ → null");
+  const ethWin = { side:"short", giaVao:2690.13, sl:2698.58, tp:2673.22, trangThai:"thang", ketQua:{ ketQua:"thang", r:null, giaKT:2673.22 } };
+  ok(giaKetThuc(ethWin) === 2673.22, "giaKetThuc: record trạm ETH thắng → TP (bản ghi cũ r=null vẫn OK)");
+  const clEth = chenhLechGia(ethWin);
+  ok(clEth && Math.abs(clEth.gia - 16.91) < 0.01 && clEth.pct > 0, "chenhLechGia: ETH short 2690.13→2673.22 lãi ~16.91");
+  ok(fmtChenhLech({ gia:-2, pct:-2 }) === "-2.00 (-2.00%)", "fmtChenhLech: số âm");
+  ok(fmtChenhLech({ gia:16.91, pct:0.6287 }) === "+16.91 (+0.63%)", "fmtChenhLech: số dương");
+  ok(fmtChenhLech(null) === "—", "fmtChenhLech: null → —");
   // 14.6 ghiNhan: chỉ LONG/SHORT có plan
   const kqL = { verdict:"LONG", coin:"ETH", time:Date.now(), score:78, phase:"alert_ready",
     killzone:{ ten:"New York KZ" }, htf:{ bias:"bearish" },
