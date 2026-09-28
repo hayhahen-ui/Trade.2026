@@ -7,7 +7,7 @@ const { execFileSync } = require("child_process");
 
 const ROOT = path.join(__dirname, "..");
 const STAMP = path.join(ROOT, "data", ".journal-247-push.txt");
-const FILES = ["data/journal-247.json", "data/flow-247.json"];
+const FILES = ["data/journal-247.json", "data/flow-247.json", "data/flow-history-12h.json"];
 
 function main() {
   const co = FILES.filter((f) => fs.existsSync(path.join(ROOT, f)));

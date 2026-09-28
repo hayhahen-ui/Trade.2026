@@ -74,6 +74,9 @@
    * ============================================================ */
   const FDB = () => global.FlowDB || null;
   const HIST = { alerts: [], ok: false };
+  /* Lịch sử 12h: backfill từ 01/01/2026 (mỗi ngày 2 khung 00:00/12:00 giờ VN) */
+  const HIST12 = { data: null, meta: null, coin: "BTC", full: false, dangTai: false };
+  const TRAM_HIST_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/flow-history-12h.json";
   /* DS: nguồn duy nhất cho 2 bảng — gộp live + DB + "xem toàn bộ".
    * Live event unshift vào đầu; "xem toàn bộ" nối tiếp vào đuôi. */
   const DS = { whales: [], liqs: [] };
@@ -161,6 +164,62 @@
       db.onAlert((al) => { if (_napLichSu(HIST.alerts, al, 30)) dataMoi = true; });
       dataMoi = true;
     } catch (err) { /* fallback: dùng RAM của DataHub */ }
+  }
+
+  /* ---------- 📚 Lịch sử 12h từ trạm (nhánh data) ---------- */
+  async function napLichSu12h() {
+    if (HIST12.data || HIST12.dangTai) return;
+    HIST12.dangTai = true;
+    try {
+      const r = await fetch(TRAM_HIST_URL + "?v=" + Date.now(), { signal: AbortSignal.timeout(25000) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json();
+      HIST12.data = ((j && j.data) || []).slice().sort((a, b) => b.w - a.w);
+      HIST12.meta = (j && j.meta) || {};
+    } catch (err) { HIST12.data = []; }
+    HIST12.dangTai = false;
+    veLichSu12h();
+  }
+
+  function veLichSu12h() {
+    if (!ui || !ui.tbHist) return;
+    const data = HIST12.data || [];
+    const coins = [...new Set(data.map((r) => r.coin))];
+    if (!coins.includes(HIST12.coin)) HIST12.coin = coins[0] || "BTC";
+    ui.histTabs.innerHTML = "";
+    for (const c of coins.length ? coins : ["BTC"]) {
+      const b = e("button", {
+        class: "dh-btn",
+        style: "margin:0 4px 4px 0" + (c === HIST12.coin ? ";border-color:#f0b90b;color:#f0b90b" : ""),
+      }, c);
+      b.onclick = () => { HIST12.coin = c; HIST12.full = false; veLichSu12h(); };
+      ui.histTabs.append(b);
+    }
+    const list = data.filter((r) => r.coin === HIST12.coin);
+    const hien = HIST12.full ? list : list.slice(0, 60);
+    ui.tbHist.innerHTML = "";
+    const frag = document.createDocumentFragment();
+    if (!hien.length)
+      frag.append(e("tr", {}, e("td", { colspan: "7", class: "dh-dim" },
+        HIST12.dangTai ? "đang tải…" : "chưa có dữ liệu (backfill đang chạy)")));
+    for (const r of hien) {
+      const netW = (r.whaleMua || 0) - (r.whaleBan || 0);
+      const netL = (r.liqLong || 0) - (r.liqShort || 0);
+      frag.append(e("tr", {},
+        e("td", { class: "dh-dim" }, ngayGio(r.w)),
+        e("td", { class: "dh-up" }, "$" + fmtUsd(r.whaleMua || 0)),
+        e("td", { class: "dh-down" }, "$" + fmtUsd(r.whaleBan || 0)),
+        e("td", { class: netW >= 0 ? "dh-up" : "dh-down" },
+          (netW >= 0 ? "+$" : "−$") + fmtUsd(Math.abs(netW))),
+        e("td", { class: "dh-up" }, "$" + fmtUsd(r.liqLong || 0)),
+        e("td", { class: "dh-down" }, "$" + fmtUsd(r.liqShort || 0)),
+        e("td", { class: netL >= 0 ? "dh-up" : "dh-down" },
+          (netL >= 0 ? "+$" : "−$") + fmtUsd(Math.abs(netL)))));
+    }
+    ui.tbHist.append(frag);
+    ui.capHist.textContent = `Hiện ${hien.length} / ${list.length} khung 12h · ${HIST12.coin}` +
+      (HIST12.meta && HIST12.meta.capNhat ? ` · cập nhật ${HIST12.meta.capNhat}` : "");
+    ui.btnFullHist.textContent = HIST12.full ? "🔼 Thu gọn" : `📜 Xem toàn bộ (${list.length} khung)`;
   }
 
   /* ============================================================
@@ -402,6 +461,22 @@
       e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
         thead(["Ngày giờ", "Thị trường", "Kết quả", "Chiều", "Giá", "Giá trị"]), ui.tbPoly)));
     wrap.append(e("div", { class: "dh-grid" }, cardPoly, e("div", { class: "dh-col" }, ui.dist, ui.macro)));
+
+    /* 📚 Lịch sử dòng tiền 12h — backfill từ 01/01/2026, mỗi ngày 2 khung */
+    ui.histTabs = e("div", { style: "margin-bottom:6px" });
+    ui.tbHist = e("tbody", {});
+    ui.capHist = e("p", { class: "dh-dim", style: "margin:6px 2px 0;font-size:11px" }, "đang tải lịch sử…");
+    ui.btnFullHist = e("button", { class: "dh-btn", style: "margin-top:6px" }, "📜 Xem toàn bộ");
+    ui.btnFullHist.onclick = () => { HIST12.full = !HIST12.full; veLichSu12h(); };
+    const cardHist = e("div", { class: "dh-card" },
+      e("h3", {}, "📚 Lịch sử dòng tiền 12h — từ 01/01/2026"),
+      e("p", { class: "dh-dim", style: "font-size:11px;margin:0 0 6px" },
+        "Mỗi ngày 2 khung: 00:00 và 12:00 (giờ VN). Whale/taker: Binance · Thanh lý: CoinEx · Từ 28/09/2026: trạm 24/7 (OKX+Hyperliquid)."),
+      ui.histTabs,
+      e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
+        thead(["Khung", "Whale mua", "Whale bán", "Net whale", "TL Long", "TL Short", "Net TL"]), ui.tbHist)),
+      ui.capHist, ui.btnFullHist);
+    wrap.append(cardHist);
 
     root.append(wrap);
   }
@@ -673,6 +748,7 @@
   async function napNen() {
     try { await mergeTram247(); } catch (err) {}
     try { await napLichSu(); } catch (err) {}
+    napLichSu12h(); // không await — chạy nền, có dữ liệu thì tự vẽ
     dataMoi = true; tickNhe();
     lamMoiCham(); // không await — chạy nền
     tickVua();    // không await — chạy nền

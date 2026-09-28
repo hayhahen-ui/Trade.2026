@@ -829,7 +829,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.3"') >= 0, "APP_VERSION = 2.3.3");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
 }
 };
 
@@ -880,7 +880,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.3"') >= 0, "APP_VERSION = 2.3.3");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
 }
 };
 
@@ -910,7 +910,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.3"') >= 0, "APP_VERSION = 2.3.3");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
 }
 };
 
@@ -953,7 +953,7 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.3"') >= 0, "APP_VERSION = 2.3.3");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
 }
 };
 
@@ -1118,7 +1118,98 @@ console.log("\n[21] datahub-ui — hiện ngày trong bảng + dữ liệu có �
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(() => {
+/* ---------- 22. lịch sử 12h: snapshot trạm + UI (v2.4.0) ---------- */
+const _p22 = async () => {
+console.log("\n[22] lịch sử 12h — snapshot trạm + UI");
+{
+  const uisrc = read("assets/js/datahub-ui.js");
+  // marker UI
+  ok(uisrc.indexOf("TRAM_HIST_URL") >= 0 && uisrc.indexOf("flow-history-12h.json") >= 0, "UI fetch lịch sử 12h từ nhánh data");
+  ok(uisrc.indexOf("napLichSu12h") >= 0 && uisrc.indexOf("veLichSu12h") >= 0, "có napLichSu12h + veLichSu12h");
+  ok(uisrc.indexOf("Lịch sử dòng tiền 12h") >= 0, "thẻ 📚 Lịch sử dòng tiền 12h");
+  ok(/00:00 và 12:00/.test(uisrc), "ghi rõ 2 khung 00:00 và 12:00 giờ VN");
+
+  // snapshot-12h.js end-to-end với store giả
+  const os = require("os");
+  const { execFileSync } = require("child_process");
+  const tmpd = fs.mkdtempSync(path.join(os.tmpdir(), "snap12h-"));
+  const W12H = 12 * 3600 * 1000, OFF7 = 7 * 3600 * 1000;
+  const now = Date.now();
+  const wEnd = Math.floor((now + OFF7) / W12H) * W12H - OFF7;
+  const w = wEnd - W12H;
+  const store = {
+    whales: [
+      { coin: "BTC", usd: 150000, side: "BUY", ts: w + 3600e3 },
+      { coin: "BTC", usd: 200000, side: "SELL", ts: w + 7200e3 },
+      { coin: "ETH", usd: 120000, side: "BUY", ts: w + 3600e3 },
+      { coin: "BTC", usd: 99999, side: "BUY", ts: w - 1000 }, // ngoài cửa sổ → bỏ
+    ],
+    liqs: [
+      { coin: "BTC", usd: 500000, huong: "LONG", ts: w + 3600e3 },
+      { coin: "BTC", usd: 300000, huong: "SHORT", ts: w + 7200e3 },
+    ],
+  };
+  const sp = path.join(tmpd, "store.json"), op = path.join(tmpd, "hist.json");
+  fs.writeFileSync(sp, JSON.stringify(store));
+  const env = { ...process.env, SNAP_STORE: sp, SNAP_OUT: op };
+  execFileSync("node", [path.join(ROOT, "tools/snapshot-12h.js")], { env });
+  const out = JSON.parse(fs.readFileSync(op, "utf8"));
+  ok(out.data.length === 2, `snapshot ghi 2 bản ghi coin (được ${out.data.length})`);
+  const btc = out.data.find((r) => r.coin === "BTC");
+  ok(btc && btc.w === w, "cửa sổ w đúng biên 12h giờ VN");
+  ok(btc.whaleMua === 150000 && btc.whaleBan === 200000, "whale mua/bán đúng");
+  ok(btc.nWhaleMua === 1 && btc.nWhaleBan === 1, "đếm whale đúng");
+  ok(btc.liqLong === 500000 && btc.liqShort === 300000, "thanh lý long/short đúng");
+  ok(btc.takerMua === null && btc.takerBan === null, "trạm không có taker → null (không bịa)");
+  ok(btc.srcW.indexOf("Trạm") >= 0, "ghi rõ nguồn trạm OKX+HL");
+  // chạy lại → không trùng
+  execFileSync("node", [path.join(ROOT, "tools/snapshot-12h.js")], { env });
+  const out2 = JSON.parse(fs.readFileSync(op, "utf8"));
+  ok(out2.data.length === 2, "chạy lại không ghi trùng cửa sổ");
+  fs.rmSync(tmpd, { recursive: true, force: true });
+
+  // veLichSu12h render vào DOM giả
+  const mkEl = (tag) => ({
+    tag, nodeType: 1, className: "", innerHTML: "", textContent: "", style: {},
+    children: [], isConnected: true,
+    setAttribute() {}, addEventListener() {}, appendChild(c) { this.children.push(c); return c; },
+    append(...cs) { this.children.push(...cs); return this; },
+  });
+  const fakeDoc = { createElement: (t) => mkEl(t), createTextNode: (s) => ({ text: s }),
+    createDocumentFragment: () => mkEl("frag") };
+  const c = makeCtx({ document: fakeDoc, window: {} });
+  c.evalIn(`var ui = {}; var HIST12 = { data: null, meta: null, coin: "BTC", full: false, dangTai: false };
+    var TRAM_HIST_URL = "x";
+    ` + extractFunction(uisrc, "e") + extractFunction(uisrc, "_partsVN") + extractFunction(uisrc, "ngayGio") +
+    `const fmtUsd = (v) => { const a = Math.abs(v);
+      if (a >= 1e6) return (v / 1e6).toFixed(2) + "M"; if (a >= 1e3) return (v / 1e3).toFixed(1) + "K"; return v.toFixed(0); };
+    function thead(cols) { const t = document.createElement("thead"); t._cols = cols; return t; }
+    ` + extractFunction(uisrc, "veLichSu12h") + `\n;globalThis.__ve = veLichSu12h;`);
+  c.evalIn(`ui.histTabs = document.createElement("div"); ui.tbHist = document.createElement("tbody");
+    ui.capHist = document.createElement("p"); ui.btnFullHist = document.createElement("button");
+    HIST12.data = [
+      { w: 1000, coin: "BTC", whaleMua: 5000000, whaleBan: 2000000, liqLong: 800000, liqShort: 300000 },
+      { w: 2000, coin: "BTC", whaleMua: 1000000, whaleBan: 4000000, liqLong: 100000, liqShort: 900000 },
+      { w: 3000, coin: "ETH", whaleMua: 700000, whaleBan: 700000, liqLong: 0, liqShort: 0 },
+    ];
+    HIST12.meta = { capNhat: "28/09/2026 12:00" };`);
+  c.get("__ve")();
+  const rows = c.evalIn(`ui.tbHist.children[0].children`);
+  ok(rows.length === 2, `mặc định lọc theo coin BTC → 2 dòng (được ${rows.length})`);
+  const netW1 = c.evalIn(`ui.tbHist.children[0].children[0].children[3].children[0].text`);
+  ok(netW1.indexOf("+$3.00M") >= 0, `net whale dòng 1 = +$3.00M (được "${netW1}")`);
+  const tabs = c.evalIn(`ui.histTabs.children.length`);
+  ok(tabs === 2, `tab coin BTC+ETH (được ${tabs})`);
+  const cap = c.evalIn(`ui.capHist.textContent`);
+  ok(/Hiện 2 \/ 2 khung/.test(cap), `caption "Hiện 2 / 2 khung" (được "${cap}")`);
+  // full + đổi coin
+  c.evalIn(`HIST12.full = true; HIST12.coin = "ETH";`); c.get("__ve")();
+  const rowsE = c.evalIn(`ui.tbHist.children[ui.tbHist.children.length-1].children`);
+  ok(rowsE.length === 1 && c.evalIn(`ui.btnFullHist.textContent`) === "🔼 Thu gọn", "full + coin ETH → 1 dòng, nút Thu gọn");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });
