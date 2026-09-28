@@ -829,7 +829,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.1"') >= 0, "APP_VERSION = 2.3.1");
 }
 };
 
@@ -880,7 +880,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.1"') >= 0, "APP_VERSION = 2.3.1");
 }
 };
 
@@ -905,12 +905,12 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(pf.meta.storeBytes > 0 && /không tự xóa/.test(pf.meta.chinhSach || ""), "flow meta có storeBytes + chính sách không tự xóa");
   const uisrc = read("assets/js/datahub-ui.js");
   ok(uisrc.indexOf("navigator.storage.estimate") >= 0, "panel dùng storage.estimate đo IndexedDB");
-  ok(uisrc.indexOf("doDungLuong") >= 0 && uisrc.indexOf("veDungLuong") >= 0, "có đo + vẽ panel dung lượng");
+  ok(uisrc.indexOf("doDungLuong") >= 0 && uisrc.indexOf("capNhatDungLuong") >= 0, "có đo + vẽ panel dung lượng");
   ok(uisrc.indexOf("method: \"HEAD\"") >= 0, "đo file journal server bằng HEAD (không tải)");
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.1"') >= 0, "APP_VERSION = 2.3.1");
 }
 };
 
@@ -953,11 +953,11 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.1"') >= 0, "APP_VERSION = 2.3.1");
 }
 };
 
-/* ---------- 18. learn.js — Kaizen từ tín hiệu hệ thống (v2.3.0) ---------- */
+/* ---------- 18. learn.js — Kaizen từ tín hiệu hệ thống (v2.3.1) ---------- */
 const _p18 = async () => {
 console.log("\n[18] learn.js — Kaizen từ tín hiệu hệ thống");
 {
@@ -1026,7 +1026,46 @@ console.log("\n[18] learn.js — Kaizen từ tín hiệu hệ thống");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(() => {
+/* ---------- 19. datahub-ui — chống giật lag: ghi ngầm + vẽ tăng dần (v2.3.1) ---------- */
+const _p19 = async () => {
+console.log("\n[19] datahub-ui — chống giật lag (ghi ngầm + vẽ tăng dần)");
+{
+  const uisrc = read("assets/js/datahub-ui.js");
+  // ghi ngầm: event live không đụng DOM, không trigger vẽ lại
+  ok(uisrc.indexOf("markDirty") === -1, "bỏ markDirty — event không trigger vẽ lại");
+  ok(!/DH\.on\("whale", \(t\) => \{[^}]*renderDongTien/.test(uisrc), "handler whale chỉ ghi dữ liệu, không gọi render");
+  // 3 vòng tick thay cho re-render toàn trang
+  ok(uisrc.indexOf("setInterval(tickNhe, 2000)") >= 0, "tick nhẹ 2s (vá bảng RAM)");
+  ok(uisrc.indexOf("setInterval(tickVua, 12000)") >= 0, "tick vừa 12s (KPI/coin-flow từ FlowDB)");
+  ok(uisrc.indexOf("setInterval(lamMoiCham, 60000)") >= 0, "tick chậm 60s (chip DB/dung lượng/trạm)");
+  ok(uisrc.indexOf("CFG.ui.rerenderMs") === -1, "không còn re-render toàn trang mỗi 700ms");
+  ok(uisrc.indexOf("document.hidden") >= 0, "tick bỏ qua khi tab ẩn");
+  // khung vẽ trước, dữ liệu sau → không trắng trang
+  const iKhung = uisrc.indexOf("veKhung();"), iNen = uisrc.indexOf("napNen();");
+  ok(iKhung >= 0 && iNen > iKhung, "vẽ khung trước, nạp dữ liệu nền sau");
+  // vá tăng dần
+  ok(uisrc.indexOf("function vaTbody") >= 0 && uisrc.indexOf("tbody._k") >= 0, "vá tbody theo key dòng đầu (có mới mới vẽ)");
+  ok(uisrc.indexOf("createDocumentFragment") >= 0, "dùng DocumentFragment khi vá bảng");
+  // fetch timeout + cache TTL cho dữ liệu đắt
+  ok(uisrc.indexOf("AbortController") >= 0, "fetch có timeout chống treo");
+  ok(uisrc.indexOf("TTL_VUA") >= 0 && uisrc.indexOf("TTL_CHAM") >= 0, "cache TTL cho stats/dung lượng (tick nhẹ không đọc IDB)");
+  // _napLichSu: khử trùng O(1), bounded
+  const c = makeCtx({});
+  c.evalIn(`const thayKey = new Set();
+    const _keyEv = (t) => [t.ts, t.coin, t.usd, t.san, t.side || t.huong].join("|");
+    ` + extractFunction(uisrc, "_napLichSu"));
+  const nap = c.get("_napLichSu");
+  const dst = [];
+  const mk = (i) => ({ ts: 1000 + i, coin: "BTC", usd: 100000 + i, san: "OKX", side: "BUY" });
+  for (let i = 0; i < 350; i++) nap(dst, mk(i), 300);
+  ok(dst.length === 300, "HIST giữ tối đa 300 (cắt đuôi)");
+  ok(dst[0].ts === 1349 && dst[299].ts === 1050, "thứ tự mới-nhất-trước được giữ");
+  ok(nap(dst, mk(349), 300) === false, "trùng key dòng đang hiển thị → từ chối");
+  ok(c.evalIn("thayKey.size") === 300, "Set khử trùng bounded theo DST");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });
