@@ -481,6 +481,25 @@ const _p9 = (async () => {
 
   // 9.8 giới hạn alerts ≤ maxKeep
   ok(after.alerts <= 100, "alerts không vượt maxKeep");
+
+  // 9.9 mergeTram: bung master data trạm vào DB + khử trùng lần 2
+  const payloadTram = {
+    tram: "flow-247", capNhat: new Date(T0).toISOString(), nguon: ["OKX", "Hyperliquid"],
+    whales: [
+      { id: "okx-1", coin: "BNB", side: "SELL", usd: 259952, san: "OKX", ts: T0 - 5000, price: 700, qty: 371 },
+      { id: "hl-1", coin: "BTC", side: "BUY", usd: 420500, san: "Hyperliquid", ts: T0 - 4000, price: 83449, qty: 5.039 },
+    ],
+    liqs: [{ id: "okxl-1", coin: "BTC", huong: "LONG", usd: 18456, san: "OKX", ts: T0 - 3000, price: 83400 }],
+  };
+  const m1 = await FDB.mergeTram(payloadTram);
+  ok(m1.whales === 2 && m1.liqs === 1, "mergeTram lần 1: bung 2 whales + 1 liq vào DB");
+  const wSauMerge = await FDB.recentWhales({ limit: 10 });
+  ok(wSauMerge.some(x => x.id === "okx-1" && x.san === "OKX") && wSauMerge.some(x => x.id === "hl-1"),
+    "lệnh trạm OKX/Hyperliquid đọc được từ DB (bung ngược ra web)");
+  const m2 = await FDB.mergeTram(payloadTram);
+  ok(m2.whales === 0 && m2.liqs === 0, "mergeTram lần 2: khử trùng — không ghi trùng");
+  const lSauMerge = await FDB.recentLiqs({ limit: 10 });
+  ok(lSauMerge.some(x => x.id === "okxl-1" && x.huong === "LONG"), "liq trạm đọc được từ DB");
 })();
 
 /* ---------- 10. derivatives.js — funding/OI/liq/stablecoin/vol ---------- */
@@ -852,6 +871,12 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const uisrc = read("assets/js/datahub-ui.js");
   ok(uisrc.indexOf("data/flow-247.json") >= 0 && uisrc.indexOf("mergeTram247") >= 0,
     "Dòng tiền tải + merge dữ liệu trạm");
+  // 16.4b v2.2.2: bung trạm TRƯỚC khi nạp lịch sử lên bảng (fix bảng trống lần đầu mở web)
+  const iMerge = uisrc.indexOf("await mergeTram247();");
+  const iNap = uisrc.indexOf("await napLichSu();");
+  ok(iMerge >= 0 && iNap > iMerge, "renderDongTien: merge trạm trước, nạp lịch sử sau");
+  ok(/đã bung .* sự kiện vào DB/.test(uisrc), "chip DB hiện số sự kiện trạm đã bung (nhìn thấy được)");
+  ok(uisrc.indexOf("MERGE_TRAM_CACH") >= 0, "merge trạm có throttle chống fetch dồn dập");
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");

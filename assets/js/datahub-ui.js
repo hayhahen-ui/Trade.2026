@@ -53,23 +53,30 @@
   const TRAM_FLOW_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/flow-247.json";
   const TRAM_JOURNAL_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json";
   let tramInfo = null;
+  let lanMergeTram = 0;
+  const MERGE_TRAM_CACH = 5 * 60e3; // merge tối đa 5'/lần — đủ tươi, nhẹ mạng
   async function mergeTram247() {
     const db = FDB();
     if (!db) return null;
+    // vừa merge rồi → trả cache, tránh fetch lại mỗi lần re-render
+    if (tramInfo && Date.now() - lanMergeTram < MERGE_TRAM_CACH) return tramInfo;
     try {
       const r = await fetch(TRAM_FLOW_URL + "?t=" + Date.now());
-      if (!r.ok) return null;
+      if (!r.ok) return tramInfo;
       const txt = await r.text();
       const d = JSON.parse(txt);
-      if (!d || d.tram !== "flow-247") return null;
+      if (!d || d.tram !== "flow-247") return tramInfo;
       await db.init();
       const kq = await db.mergeTram(d);
+      lanMergeTram = Date.now();
       tramInfo = {
-        them: kq.whales + kq.liqs, capNhat: kq.capNhat, nguon: kq.nguon, bytes: txt.length,
+        them: kq.whales + kq.liqs,
+        tong: (Array.isArray(d.whales) ? d.whales.length : 0) + (Array.isArray(d.liqs) ? d.liqs.length : 0),
+        capNhat: kq.capNhat, nguon: kq.nguon, bytes: txt.length,
         hetBoNho: !!(d.meta && d.meta.hetBoNho), lyDo: d.meta && d.meta.lyDo,
       };
       return tramInfo;
-    } catch (err) { return null; }
+    } catch (err) { return tramInfo; }
   }
 
   /* ---------- Dung lượng: cảnh báo chiếm dụng ----------
@@ -251,7 +258,9 @@
       e("h3", {}, `🐋 Lệnh lớn real-time — ngưỡng $${fmtUsd(CFG.whale.minUsd)}`),
       e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
         e("thead", {}, e("tr", {}, ["Giờ", "Coin", "Chiều", "Giá", "KL", "Giá trị", "Sàn"].map((h) => e("th", {}, h)))),
-        e("tbody", {}, rows.length ? rows : e("tr", {}, e("td", { colspan: "7", class: "dh-dim" }, "đang chờ dữ liệu…"))))));
+        e("tbody", {}, rows.length ? rows : e("tr", {}, e("td", { colspan: "7", class: "dh-dim" }, "đang chờ dữ liệu…")))),
+      e("p", { class: "dh-dim", style: "margin:6px 2px 0;font-size:11px" },
+        `Hiện ${rows.length} mới nhất · đã bung master data trạm 24/7 vào bảng${tramInfo ? ` (+${fmtNum(tramInfo.them, 0)} mới)` : ""}.`)));
   }
 
   function veLiqTable() {
@@ -266,7 +275,9 @@
     return e("div", { class: "dh-card" }, e("h3", {}, "💥 Thanh lý"),
       e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
         e("thead", {}, e("tr", {}, ["Giờ", "Coin", "Vị thế", "Giá", "Giá trị", "Sàn"].map((h) => e("th", {}, h)))),
-        e("tbody", {}, rows.length ? rows : e("tr", {}, e("td", { colspan: "6", class: "dh-dim" }, "chưa có…"))))));
+        e("tbody", {}, rows.length ? rows : e("tr", {}, e("td", { colspan: "6", class: "dh-dim" }, "chưa có…")))),
+      e("p", { class: "dh-dim", style: "margin:6px 2px 0;font-size:11px" },
+        `Hiện ${rows.length} mới nhất · đã bung master data trạm 24/7 vào bảng.`)));
   }
 
   function vePoly() {
@@ -338,7 +349,7 @@
     if (tramInfo) {
       const cn = tramInfo.capNhat ? new Date(tramInfo.capNhat) : null;
       const gio = cn ? cn.toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", timeZone: "Asia/Ho_Chi_Minh" }) : "—";
-      tram = ` · 🛰️ Trạm 24/7: +${fmtNum(tramInfo.them, 0)} sự kiện từ ${(tramInfo.nguon || []).join("+")} (cập nhật ${gio})`;
+      tram = ` · 🛰️ Trạm 24/7: đã bung ${fmtNum(tramInfo.tong || 0, 0)} sự kiện vào DB (+${fmtNum(tramInfo.them, 0)} mới) · nguồn ${(tramInfo.nguon || []).join("+")} · cập nhật ${gio}`;
     }
     return e("p", { class: "dh-dbchip" },
       `💾 Database: ${fmtNum(tong, 0)} sự kiện đã lưu (7 ngày)${tram} · thu thập liên tục — mở màn hình là có sẵn master data.`);
@@ -348,8 +359,8 @@
     root = container;
     root.innerHTML = "";
     if (!DH.isRunning()) DH.start();
-    await napLichSu();
-    await mergeTram247(); // trạm 24/7 trước, để stats tính trên master data đầy đủ
+    await mergeTram247(); // bung master data trạm 24/7 vào DB TRƯỚC…
+    await napLichSu();    // …rồi mới nạp lịch sử lên bảng (đã gồm dữ liệu trạm)
     const dl = await doDungLuong();
     const kho = await layTrangThaiKho();
     const st = await layStats();
