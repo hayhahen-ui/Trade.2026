@@ -56,7 +56,14 @@
    * GHI NGẦM — chỉ chạm dữ liệu, không đụng DOM
    * ============================================================ */
   const FDB = () => global.FlowDB || null;
-  const HIST = { whales: [], liqs: [], alerts: [], ok: false };
+  const HIST = { alerts: [], ok: false };
+  /* DS: nguồn duy nhất cho 2 bảng — gộp live + DB + "xem toàn bộ".
+   * Live event unshift vào đầu; "xem toàn bộ" nối tiếp vào đuôi. */
+  const DS = { whales: [], liqs: [] };
+  const DS_MAX = 5000;
+  const MAC_DINH = { whales: 35, liqs: 20 };
+  const hienThi = { whales: MAC_DINH.whales, liqs: MAC_DINH.liqs }; // số dòng đang hiển thị
+  const daTaiFull = { whales: false, liqs: false };
 
   const _keyEv = (t) => [t.ts, t.coin, t.usd, t.san, t.side || t.huong].join("|");
   const thayKey = new Set(); // khử trùng O(1) thay vì some() O(n)
@@ -69,13 +76,22 @@
     if (dst.length > max) thayKey.delete(_keyEv(dst.pop()));
     return true;
   }
+  /* Nối sự kiện cũ vào đuôi (dùng khi "xem toàn bộ" tải dần từ DB) */
+  function _themCuoi(dst, item) {
+    if (!item || dst.length >= DS_MAX) return false;
+    const k = _keyEv(item);
+    if (thayKey.has(k)) return false;
+    thayKey.add(k);
+    dst.push(item);
+    return true;
+  }
 
   let dataMoi = false; // cờ: có dữ liệu mới chờ vẽ nhẹ
   function dangKyGhiNgam() {
     if (dangKyGhiNgam._xong) return;
     dangKyGhiNgam._xong = true;
-    DH.on("whale", (t) => { if (_napLichSu(HIST.whales, t, 300)) dataMoi = true; });
-    DH.on("liq",   (l) => { if (_napLichSu(HIST.liqs, l, 200)) dataMoi = true; });
+    DH.on("whale", (t) => { if (_napLichSu(DS.whales, t, DS_MAX)) dataMoi = true; });
+    DH.on("liq",   (l) => { if (_napLichSu(DS.liqs, l, DS_MAX)) dataMoi = true; });
     DH.on("poly", () => { dataMoi = true; });
     DH.on("stats", () => { dataMoi = true; });
     DH.on("source", () => { dataMoi = true; });
@@ -121,8 +137,8 @@
         db.recentLiqs({ limit: 80 }),
         db.alerts({ limit: 12 }),
       ]);
-      for (const t of w.reverse()) _napLichSu(HIST.whales, t, 300);
-      for (const t of l.reverse()) _napLichSu(HIST.liqs, t, 200);
+      for (const t of w.reverse()) _napLichSu(DS.whales, t, DS_MAX);
+      for (const t of l.reverse()) _napLichSu(DS.liqs, t, DS_MAX);
       for (const t of a.reverse()) _napLichSu(HIST.alerts, t, 30);
       HIST.ok = true;
       db.onAlert((al) => { if (_napLichSu(HIST.alerts, al, 30)) dataMoi = true; });
@@ -242,17 +258,49 @@
       e("td", { class: "dh-strong" }, "$" + fmtUsd(p.usd)));
   }
 
-  /* Vá tbody: chỉ vẽ lại khi dòng đầu đổi key (có dữ liệu mới) */
+  /* Vá tbody tăng dần:
+   *  - có dòng mới ở đầu → chỉ prepend bấy nhiêu dòng (không dựng lại);
+   *  - user bấm "xem thêm"/"thu gọn" → thêm/bớt dòng ở đuôi cho khớp hienThi;
+   *  - chỉ vẽ lại toàn bộ khi không nhận ra key cũ (hiếm). */
+  function dongBoSoDong(tbody, list, veDong, maxRows) {
+    const mucTieu = Math.min(maxRows, list.length);
+    while (tbody.rows.length < mucTieu) {
+      const it = list[tbody.rows.length];
+      try { tbody.append(veDong(it)); } catch (err) { break; }
+    }
+    while (tbody.rows.length > mucTieu) tbody.deleteRow(-1);
+  }
   function vaTbody(tbody, list, veDong, maxRows, dongTrong) {
-    const keyMoi = list.length ? _keyEv(list[0]) : "";
-    if (tbody._k === keyMoi) return;
+    if (!list.length) {
+      if (tbody._k !== "") {
+        tbody._k = "";
+        tbody.innerHTML = "";
+        if (dongTrong) tbody.append(dongTrong);
+      }
+      return;
+    }
+    const keyMoi = _keyEv(list[0]);
+    if (tbody._k === keyMoi) { dongBoSoDong(tbody, list, veDong, maxRows); return; }
+    // đếm dòng mới ở đầu so với key cũ
+    let moi = 0;
+    if (tbody._k) {
+      const gioiHan = Math.min(list.length, 200);
+      while (moi < gioiHan && _keyEv(list[moi]) !== tbody._k) moi++;
+      if (moi >= gioiHan && _keyEv(list[moi] || {}) !== tbody._k) moi = -1;
+    }
+    if (!tbody._k || moi === -1 || !tbody.rows.length) {
+      tbody.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      const rows = list.slice(0, maxRows);
+      for (const it of rows) { try { frag.append(veDong(it)); } catch (err) {} }
+      tbody.append(frag);
+    } else {
+      const frag = document.createDocumentFragment();
+      for (let i = moi - 1; i >= 0; i--) { try { frag.append(veDong(list[i])); } catch (err) {} }
+      tbody.prepend(frag);
+      dongBoSoDong(tbody, list, veDong, maxRows);
+    }
     tbody._k = keyMoi;
-    tbody.innerHTML = "";
-    const frag = document.createDocumentFragment();
-    const rows = list.slice(0, maxRows);
-    if (!rows.length && dongTrong) frag.append(dongTrong);
-    for (const it of rows) { try { frag.append(veDong(it)); } catch (err) {} }
-    tbody.append(frag);
   }
 
   function thead(cols) {
@@ -310,18 +358,20 @@
     /* bảng lệnh lớn + thanh lý */
     ui.tbWhale = e("tbody", {});
     ui.capWhale = e("p", { class: "dh-dim", style: "margin:6px 2px 0;font-size:11px" }, "đang tải…");
+    ui.btnFullWhale = e("button", { class: "dh-btn", style: "margin-top:6px", onclick: () => batTatFull("whales") }, "📜 Xem toàn bộ");
     ui.tbLiq = e("tbody", {});
     ui.capLiq = e("p", { class: "dh-dim", style: "margin:6px 2px 0;font-size:11px" }, "đang tải…");
+    ui.btnFullLiq = e("button", { class: "dh-btn", style: "margin-top:6px", onclick: () => batTatFull("liqs") }, "📜 Xem toàn bộ");
     ui.tbCoin = e("tbody", {});
     const cardWhale = e("div", { class: "dh-card" },
       e("h3", {}, `🐋 Lệnh lớn real-time — ngưỡng $${fmtUsd(CFG.whale.minUsd)}`),
       e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
         thead(["Giờ", "Coin", "Chiều", "Giá", "KL", "Giá trị", "Sàn"]), ui.tbWhale)),
-      ui.capWhale);
+      ui.capWhale, ui.btnFullWhale);
     const cardLiq = e("div", { class: "dh-card" }, e("h3", {}, "💥 Thanh lý"),
       e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
         thead(["Giờ", "Coin", "Vị thế", "Giá", "Giá trị", "Sàn"]), ui.tbLiq)),
-      ui.capLiq);
+      ui.capLiq, ui.btnFullLiq);
     const cardCoin = e("div", { class: "dh-card" }, e("h3", {}, "🧭 Dòng tiền theo coin (điểm −100…+100 cho engine)"),
       e("table", { class: "dh-table" },
         thead(["Coin", "Khối lượng", "Net", "Lệnh", "Điểm"]), ui.tbCoin));
@@ -440,20 +490,74 @@
 
   function capNhatBang() {
     if (!ui) return;
-    const whales = (HIST.ok && HIST.whales.length ? HIST.whales : DH.whales(CFG.ui.rows)).slice(0, CFG.ui.rows);
-    vaTbody(ui.tbWhale, whales, dongWhale, CFG.ui.rows,
+    const whales = DS.whales.length ? DS.whales : DH.whales(CFG.ui.rows);
+    vaTbody(ui.tbWhale, whales, dongWhale, hienThi.whales,
       e("tr", {}, e("td", { colspan: "7", class: "dh-dim" }, "đang chờ dữ liệu…")));
-    const liqs = (HIST.ok && HIST.liqs.length ? HIST.liqs : DH.liqs(20)).slice(0, 20);
-    vaTbody(ui.tbLiq, liqs, dongLiq, 20,
+    const liqs = DS.liqs.length ? DS.liqs : DH.liqs(20);
+    vaTbody(ui.tbLiq, liqs, dongLiq, hienThi.liqs,
       e("tr", {}, e("td", { colspan: "6", class: "dh-dim" }, "chưa có…")));
     let polys = [];
     try { polys = DH.polys(15); } catch (err) {}
     vaTbody(ui.tbPoly, polys, dongPoly, 15,
       e("tr", {}, e("td", { colspan: "6", class: "dh-dim" }, "đang chờ…")));
     if (ui.capWhale) ui.capWhale.textContent =
-      `Hiện ${Math.min(whales.length, CFG.ui.rows)} mới nhất · đã bung master data trạm 24/7 vào bảng${tramInfo ? ` (+${fmtNum(tramInfo.them, 0)} mới)` : ""}.`;
+      `Hiện ${fmtNum(Math.min(whales.length, hienThi.whales), 0)} / ${fmtNum(DS.whales.length, 0)} sự kiện · đã bung master data trạm 24/7 vào bảng.`;
     if (ui.capLiq) ui.capLiq.textContent =
-      `Hiện ${Math.min(liqs.length, 20)} mới nhất · đã bung master data trạm 24/7 vào bảng.`;
+      `Hiện ${fmtNum(Math.min(liqs.length, hienThi.liqs), 0)} / ${fmtNum(DS.liqs.length, 0)} sự kiện · đã bung master data trạm 24/7 vào bảng.`;
+  }
+
+  /* ---------- Xem toàn bộ master data đã lưu ----------
+   * Tải dần từ IndexedDB theo con trỏ ts (500/chunk, nhường UI giữa
+   * các chunk), nối vào đuôi DS — bảng hiện dần, không giật. */
+  function capNhatNutFull() {
+    if (!ui) return;
+    const n = cache.db;
+    nutFull(ui.btnFullWhale, "whales", n ? n.whales : null, "lệnh lớn");
+    nutFull(ui.btnFullLiq, "liqs", n ? n.liqs : null, "thanh lý");
+  }
+  function nutFull(btn, loai, tong, ten) {
+    if (!btn) return;
+    if (taiToanBo._dang === loai) { btn.disabled = true; btn.textContent = `⏳ Đang tải… (${fmtNum(DS[loai].length, 0)})`; return; }
+    btn.disabled = false;
+    btn.textContent = hienThi[loai] > MAC_DINH[loai] ? "🔼 Thu gọn"
+      : `📜 Xem toàn bộ${tong != null ? ` (${fmtNum(tong, 0)} ${ten})` : ""}`;
+  }
+  async function batTatFull(loai) {
+    if (taiToanBo._dang) return;
+    if (daTaiFull[loai]) {
+      // đã có full trong RAM — chỉ mở rộng / thu gọn hiển thị
+      hienThi[loai] = hienThi[loai] > MAC_DINH[loai] ? MAC_DINH[loai] : DS[loai].length;
+      capNhatNutFull(); dataMoi = true; tickNhe();
+      return;
+    }
+    taiToanBo(loai);
+  }
+  async function taiToanBo(loai) {
+    const db = FDB();
+    if (!db || taiToanBo._dang) return;
+    taiToanBo._dang = loai;
+    capNhatNutFull();
+    try {
+      await db.init();
+      const dst = DS[loai];
+      const fn = loai === "whales" ? "recentWhales" : "recentLiqs";
+      for (let vong = 0; vong < 40; vong++) {
+        const cuNhat = dst.length ? dst[dst.length - 1].ts : Date.now();
+        let chunk = [];
+        try { chunk = await db[fn]({ limit: 500, to: cuNhat }); } catch (err) { break; }
+        if (!chunk.length) break;
+        for (const it of chunk) _themCuoi(dst, it);
+        hienThi[loai] = dst.length;
+        nutFull(loai === "whales" ? ui.btnFullWhale : ui.btnFullLiq, loai, null, "");
+        dataMoi = true; tickNhe();
+        if (chunk.length < 500) break;
+        await new Promise((r) => setTimeout(r, 0)); // nhường UI giữa các chunk
+      }
+      daTaiFull[loai] = true;
+    } finally {
+      taiToanBo._dang = null;
+      capNhatNutFull(); dataMoi = true; tickNhe();
+    }
   }
 
   function capNhatCoinFlow(st) {
@@ -538,7 +642,7 @@
       await Promise.all([demDB(true), doDungLuong(true), layTrangThaiKho(true)]);
     } catch (err) {}
     if (!manHinhMo()) return;
-    try { capNhatChipDb(); capNhatDungLuong(); capNhatMacro(); dataMoi = true; tickNhe(); } catch (err) {}
+    try { capNhatChipDb(); capNhatDungLuong(); capNhatMacro(); capNhatNutFull(); dataMoi = true; tickNhe(); } catch (err) {}
   }
 
   function khoiDongTimer() {

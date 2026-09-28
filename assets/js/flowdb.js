@@ -339,7 +339,7 @@
     /* ---------- đọc ---------- */
     recentWhales: function (o) {
       o = o || {};
-      return this._be.query("whales", { index: "ts", from: o.since, limit: o.limit || 100, desc: true })
+      return this._be.query("whales", { index: "ts", from: o.since, to: o.to, limit: o.limit || 100, desc: true })
         .then(function (r) {
           return o.coin ? r.filter(function (x) { return x.coin === String(o.coin).toUpperCase(); }) : r;
         });
@@ -347,7 +347,7 @@
 
     recentLiqs: function (o) {
       o = o || {};
-      return this._be.query("liqs", { index: "ts", from: o.since, limit: o.limit || 100, desc: true })
+      return this._be.query("liqs", { index: "ts", from: o.since, to: o.to, limit: o.limit || 100, desc: true })
         .then(function (r) {
           return o.coin ? r.filter(function (x) { return x.coin === String(o.coin).toUpperCase(); }) : r;
         });

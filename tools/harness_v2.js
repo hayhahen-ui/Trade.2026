@@ -829,7 +829,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.1"') >= 0, "APP_VERSION = 2.3.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.2"') >= 0, "APP_VERSION = 2.3.2");
 }
 };
 
@@ -880,7 +880,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.1"') >= 0, "APP_VERSION = 2.3.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.2"') >= 0, "APP_VERSION = 2.3.2");
 }
 };
 
@@ -910,7 +910,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.1"') >= 0, "APP_VERSION = 2.3.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.2"') >= 0, "APP_VERSION = 2.3.2");
 }
 };
 
@@ -953,11 +953,11 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.1"') >= 0, "APP_VERSION = 2.3.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.2"') >= 0, "APP_VERSION = 2.3.2");
 }
 };
 
-/* ---------- 18. learn.js — Kaizen từ tín hiệu hệ thống (v2.3.1) ---------- */
+/* ---------- 18. learn.js — Kaizen từ tín hiệu hệ thống (v2.3.2) ---------- */
 const _p18 = async () => {
 console.log("\n[18] learn.js — Kaizen từ tín hiệu hệ thống");
 {
@@ -1026,7 +1026,7 @@ console.log("\n[18] learn.js — Kaizen từ tín hiệu hệ thống");
 }
 };
 
-/* ---------- 19. datahub-ui — chống giật lag: ghi ngầm + vẽ tăng dần (v2.3.1) ---------- */
+/* ---------- 19. datahub-ui — chống giật lag: ghi ngầm + vẽ tăng dần (v2.3.2) ---------- */
 const _p19 = async () => {
 console.log("\n[19] datahub-ui — chống giật lag (ghi ngầm + vẽ tăng dần)");
 {
@@ -1065,7 +1065,37 @@ console.log("\n[19] datahub-ui — chống giật lag (ghi ngầm + vẽ tăng d
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(() => {
+/* ---------- 20. datahub-ui — "Xem toàn bộ" master data đã lưu (v2.3.2) ---------- */
+const _p20 = async () => {
+console.log("\n[20] datahub-ui — xem toàn bộ master data (phân trang, không giật)");
+{
+  const uisrc = read("assets/js/datahub-ui.js");
+  const fsrc = read("assets/js/flowdb.js");
+  // FlowDB hỗ trợ con trỏ `to` để tải dần trang cũ hơn
+  ok(/recentWhales: function[\s\S]{0,200}to: o\.to/.test(fsrc), "FlowDB.recentWhales nhận con trỏ to");
+  ok(/recentLiqs: function[\s\S]{0,200}to: o\.to/.test(fsrc), "FlowDB.recentLiqs nhận con trỏ to");
+  // UI: nút + tải dần theo chunk
+  ok(uisrc.indexOf("Xem toàn bộ") >= 0 && uisrc.indexOf("batTatFull") >= 0, "có nút 📜 Xem toàn bộ / Thu gọn");
+  ok(uisrc.indexOf("taiToanBo") >= 0 && uisrc.indexOf("limit: 500") >= 0, "tải dần 500/chunk từ IndexedDB");
+  ok(uisrc.indexOf("_themCuoi") >= 0, "nối sự kiện cũ vào đuôi danh sách");
+  ok(uisrc.indexOf("dongBoSoDong") >= 0, "đồng bộ số dòng hiển thị khi mở rộng/thu gọn");
+  ok(/Hiện .*\/ .*sự kiện · đã bung master data/.test(uisrc), "caption hiện X / tổng Y sự kiện");
+  // _themCuoi: nối đuôi + khử trùng
+  const c = makeCtx({});
+  c.evalIn(`const thayKey = new Set(); const DS_MAX = 5000;
+    const _keyEv = (t) => [t.ts, t.coin, t.usd, t.san, t.side || t.huong].join("|");
+    ` + extractFunction(uisrc, "_themCuoi"));
+  const themCuoi = c.get("_themCuoi");
+  const dst = [{ ts: 3000, coin: "BTC", usd: 1, san: "OKX", side: "BUY" }];
+  c.evalIn("thayKey.add('3000|BTC|1|OKX|BUY')");
+  ok(themCuoi(dst, { ts: 2000, coin: "ETH", usd: 2, san: "OKX", side: "BUY" }) === true, "_themCuoi nối vào đuôi");
+  ok(dst.length === 2 && dst[1].ts === 2000, "thứ tự cũ dần về đuôi được giữ");
+  ok(themCuoi(dst, { ts: 2000, coin: "ETH", usd: 2, san: "OKX", side: "BUY" }) === false, "trùng key → từ chối");
+  ok(dst.length === 2, "không ghi đè khi trùng");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });
