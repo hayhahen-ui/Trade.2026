@@ -40,7 +40,24 @@
     return v.toFixed(0);
   };
   const fmtNum = (v, d) => Number(v).toLocaleString("vi-VN", { maximumFractionDigits: d == null ? 2 : d });
-  const gio = (ts) => new Date(ts).toLocaleTimeString("vi-VN", { hour12: false, timeZone: "Asia/Ho_Chi_Minh" });
+  /* Ngày + giờ VN — dữ liệu ghi có đủ ts, phải hiện cả ngày để không nhầm lẫn.
+   * Dùng formatToParts để ra đúng DD/MM HH:MM:SS trên mọi trình duyệt/Node. */
+  function _partsVN(ts) {
+    return new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+    }).formatToParts(ts).reduce((o, x) => (o[x.type] = x.value, o), {});
+  }
+  function ngayGio(ts) {
+    const p = _partsVN(ts);
+    return `${p.day}/${p.month} ${p.hour}:${p.minute}:${p.second}`;
+  }
+  const gio = ngayGio; // giữ tên cũ cho các chỗ đang dùng
+  const khoangNgay = (list) => {
+    if (!list || !list.length) return "";
+    const f = (ts) => { const p = _partsVN(ts); return `${p.day}/${p.month}`; };
+    return ` · từ ${f(list[list.length - 1].ts)} → ${f(list[0].ts)}`;
+  };
 
   /* ---------- fetch có timeout (chống treo → trắng trang) ---------- */
   async function fetchTimeout(url, ms, opts) {
@@ -366,11 +383,11 @@
     const cardWhale = e("div", { class: "dh-card" },
       e("h3", {}, `🐋 Lệnh lớn real-time — ngưỡng $${fmtUsd(CFG.whale.minUsd)}`),
       e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
-        thead(["Giờ", "Coin", "Chiều", "Giá", "KL", "Giá trị", "Sàn"]), ui.tbWhale)),
+        thead(["Ngày giờ", "Coin", "Chiều", "Giá", "KL", "Giá trị", "Sàn"]), ui.tbWhale)),
       ui.capWhale, ui.btnFullWhale);
     const cardLiq = e("div", { class: "dh-card" }, e("h3", {}, "💥 Thanh lý"),
       e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
-        thead(["Giờ", "Coin", "Vị thế", "Giá", "Giá trị", "Sàn"]), ui.tbLiq)),
+        thead(["Ngày giờ", "Coin", "Vị thế", "Giá", "Giá trị", "Sàn"]), ui.tbLiq)),
       ui.capLiq, ui.btnFullLiq);
     const cardCoin = e("div", { class: "dh-card" }, e("h3", {}, "🧭 Dòng tiền theo coin (điểm −100…+100 cho engine)"),
       e("table", { class: "dh-table" },
@@ -383,7 +400,7 @@
     ui.macro = e("div", {});
     const cardPoly = e("div", { class: "dh-card" }, e("h3", {}, "🎲 Polymarket — dòng lệnh dự đoán"),
       e("div", { class: "dh-scroll" }, e("table", { class: "dh-table" },
-        thead(["Giờ", "Thị trường", "Kết quả", "Chiều", "Giá", "Giá trị"]), ui.tbPoly)));
+        thead(["Ngày giờ", "Thị trường", "Kết quả", "Chiều", "Giá", "Giá trị"]), ui.tbPoly)));
     wrap.append(e("div", { class: "dh-grid" }, cardPoly, e("div", { class: "dh-col" }, ui.dist, ui.macro)));
 
     root.append(wrap);
@@ -501,9 +518,9 @@
     vaTbody(ui.tbPoly, polys, dongPoly, 15,
       e("tr", {}, e("td", { colspan: "6", class: "dh-dim" }, "đang chờ…")));
     if (ui.capWhale) ui.capWhale.textContent =
-      `Hiện ${fmtNum(Math.min(whales.length, hienThi.whales), 0)} / ${fmtNum(DS.whales.length, 0)} sự kiện · đã bung master data trạm 24/7 vào bảng.`;
+      `Hiện ${fmtNum(Math.min(whales.length, hienThi.whales), 0)} / ${fmtNum(DS.whales.length, 0)} sự kiện${khoangNgay(DS.whales)} · đã bung master data trạm 24/7 vào bảng.`;
     if (ui.capLiq) ui.capLiq.textContent =
-      `Hiện ${fmtNum(Math.min(liqs.length, hienThi.liqs), 0)} / ${fmtNum(DS.liqs.length, 0)} sự kiện · đã bung master data trạm 24/7 vào bảng.`;
+      `Hiện ${fmtNum(Math.min(liqs.length, hienThi.liqs), 0)} / ${fmtNum(DS.liqs.length, 0)} sự kiện${khoangNgay(DS.liqs)} · đã bung master data trạm 24/7 vào bảng.`;
   }
 
   /* ---------- Xem toàn bộ master data đã lưu ----------

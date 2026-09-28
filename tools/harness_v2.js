@@ -829,7 +829,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.2"') >= 0, "APP_VERSION = 2.3.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.3"') >= 0, "APP_VERSION = 2.3.3");
 }
 };
 
@@ -880,7 +880,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.2"') >= 0, "APP_VERSION = 2.3.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.3"') >= 0, "APP_VERSION = 2.3.3");
 }
 };
 
@@ -910,7 +910,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.2"') >= 0, "APP_VERSION = 2.3.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.3"') >= 0, "APP_VERSION = 2.3.3");
 }
 };
 
@@ -953,11 +953,11 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.2"') >= 0, "APP_VERSION = 2.3.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.3"') >= 0, "APP_VERSION = 2.3.3");
 }
 };
 
-/* ---------- 18. learn.js — Kaizen từ tín hiệu hệ thống (v2.3.2) ---------- */
+/* ---------- 18. learn.js — Kaizen từ tín hiệu hệ thống (v2.3.3) ---------- */
 const _p18 = async () => {
 console.log("\n[18] learn.js — Kaizen từ tín hiệu hệ thống");
 {
@@ -1026,7 +1026,7 @@ console.log("\n[18] learn.js — Kaizen từ tín hiệu hệ thống");
 }
 };
 
-/* ---------- 19. datahub-ui — chống giật lag: ghi ngầm + vẽ tăng dần (v2.3.2) ---------- */
+/* ---------- 19. datahub-ui — chống giật lag: ghi ngầm + vẽ tăng dần (v2.3.3) ---------- */
 const _p19 = async () => {
 console.log("\n[19] datahub-ui — chống giật lag (ghi ngầm + vẽ tăng dần)");
 {
@@ -1065,7 +1065,7 @@ console.log("\n[19] datahub-ui — chống giật lag (ghi ngầm + vẽ tăng d
 }
 };
 
-/* ---------- 20. datahub-ui — "Xem toàn bộ" master data đã lưu (v2.3.2) ---------- */
+/* ---------- 20. datahub-ui — "Xem toàn bộ" master data đã lưu (v2.3.3) ---------- */
 const _p20 = async () => {
 console.log("\n[20] datahub-ui — xem toàn bộ master data (phân trang, không giật)");
 {
@@ -1079,7 +1079,7 @@ console.log("\n[20] datahub-ui — xem toàn bộ master data (phân trang, khô
   ok(uisrc.indexOf("taiToanBo") >= 0 && uisrc.indexOf("limit: 500") >= 0, "tải dần 500/chunk từ IndexedDB");
   ok(uisrc.indexOf("_themCuoi") >= 0, "nối sự kiện cũ vào đuôi danh sách");
   ok(uisrc.indexOf("dongBoSoDong") >= 0, "đồng bộ số dòng hiển thị khi mở rộng/thu gọn");
-  ok(/Hiện .*\/ .*sự kiện · đã bung master data/.test(uisrc), "caption hiện X / tổng Y sự kiện");
+  ok(/Hiện .*\/ .*sự kiện.*đã bung master data/.test(uisrc), "caption hiện X / tổng Y sự kiện");
   // _themCuoi: nối đuôi + khử trùng
   const c = makeCtx({});
   c.evalIn(`const thayKey = new Set(); const DS_MAX = 5000;
@@ -1095,7 +1095,30 @@ console.log("\n[20] datahub-ui — xem toàn bộ master data (phân trang, khô
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(() => {
+/* ---------- 21. datahub-ui — cột ngày + kiểm tra ts dữ liệu (v2.3.3) ---------- */
+const _p21 = async () => {
+console.log("\n[21] datahub-ui — hiện ngày trong bảng + dữ liệu có đủ ts");
+{
+  const uisrc = read("assets/js/datahub-ui.js");
+  // tiêu đề cột có ngày
+  ok((uisrc.match(/"Ngày giờ"/g) || []).length >= 3, "3 bảng (lệnh lớn/thanh lý/poly) có cột Ngày giờ");
+  ok(uisrc.indexOf("khoangNgay") >= 0, "caption hiện khoảng ngày từ→đến của master data");
+  // ngayGio: ngày + giờ VN
+  const c = makeCtx({});
+  c.evalIn(extractFunction(uisrc, "_partsVN") + extractFunction(uisrc, "ngayGio"));
+  const f = c.get("ngayGio");
+  const out = f(1790528400000); // 28/09/2026 00:00:00 +07 (đã verify bằng date)
+  ok(out === "28/09 00:00:00", "ngayGio trả đúng DD/MM HH:MM:SS theo giờ VN (nhận: " + out + ")");
+  // dữ liệu trạm: 100% bản ghi có ts số
+  const pf = JSON.parse(read("data/flow-247.json"));
+  for (const k of ["whales", "liqs"]) {
+    const thieu = pf[k].filter((x) => typeof x.ts !== "number");
+    ok(pf[k].length > 0 && thieu.length === 0, `payload trạm: ${pf[k].length} ${k}, 100% có ts`);
+  }
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });
