@@ -829,7 +829,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.5.0"') >= 0, "APP_VERSION = 2.4.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
 }
 };
 
@@ -880,7 +880,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.5.0"') >= 0, "APP_VERSION = 2.4.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
 }
 };
 
@@ -910,7 +910,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.5.0"') >= 0, "APP_VERSION = 2.4.1");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
 }
 };
 
@@ -953,7 +953,7 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.5.0"') >= 0, "APP_VERSION = 2.5.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.3.0"') >= 0, "APP_VERSION = 2.3.0");
 }
 };
 
