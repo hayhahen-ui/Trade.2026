@@ -542,6 +542,57 @@
     return Math.max(-100, Math.min(100, Math.round(flow + liq)));
   }
 
+  /* ---------- Lịch sử dòng tiền 12h (master data từ 01/01/2026) ----------
+   * Nạp flow-history-12h.json (nhánh `data` GitHub) 1 lần, cache trong RAM.
+   * flowScore12h(coin, soKhung): tổng hợp N khung 12h gần nhất của coin thành
+   * điểm −100..+100 để engine tín hiệu dùng:
+   *   - Net whale (whaleMua−whaleBan)/tổng × 50
+   *   - Taker imbalance (takerMua−takerBan)/tổng × 30 (null → bỏ qua)
+   *   - Thanh lý: liqLong nhiều (long bị quét) = lực bán đã xả ⇒ +điểm nhẹ × 20
+   * Trả về { score, soKhung, tuNgay, denNgay, chiTiet } hoặc null nếu chưa nạp được. */
+  const HIST12_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/flow-history-12h.json";
+  const hist12 = { data: null, dangTai: false, loi: null };
+  async function taiLichSu12h() {
+    if (hist12.data || hist12.dangTai) return hist12.data;
+    hist12.dangTai = true;
+    try {
+      const r = await fetch(HIST12_URL + "?v=" + Date.now(), { signal: AbortSignal.timeout(25000) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json();
+      hist12.data = ((j && j.data) || []).slice().sort((a, b) => b.w - a.w);
+    } catch (e) { hist12.loi = String(e && e.message || e); hist12.data = []; }
+    hist12.dangTai = false;
+    return hist12.data;
+  }
+  // bản đồng bộ cho engine đã nạp sẵn (trả null nếu chưa có dữ liệu)
+  function flowScore12h(coin, soKhung) {
+    coin = up(coin); soKhung = Math.max(1, Math.min(20, soKhung || 5));
+    const data = hist12.data;
+    if (!data || !data.length) return null;
+    const list = data.filter((r) => up(r.coin) === coin).slice(0, soKhung);
+    if (!list.length) return null;
+    let wMua = 0, wBan = 0, tMua = 0, tBan = 0, tCo = 0, lL = 0, lS = 0;
+    for (const r of list) {
+      wMua += r.whaleMua || 0; wBan += r.whaleBan || 0;
+      if (r.takerMua != null && r.takerBan != null) { tMua += r.takerMua; tBan += r.takerBan; tCo++; }
+      lL += r.liqLong || 0; lS += r.liqShort || 0;
+    }
+    const wTot = wMua + wBan, tTot = tMua + tBan, lTot = lL + lS;
+    const dWhale = wTot > 0 ? ((wMua - wBan) / wTot) * 50 : 0;
+    const dTaker = tTot > 0 ? ((tMua - tBan) / tTot) * 30 : 0;
+    const dLiq = lTot > 0 ? ((lL - lS) / lTot) * 20 : 0;
+    const score = Math.max(-100, Math.min(100, Math.round(dWhale + dTaker + dLiq)));
+    return {
+      score, soKhung: list.length,
+      tuNgay: list[list.length - 1].w, denNgay: list[0].w,
+      chiTiet: {
+        whaleMua: Math.round(wMua), whaleBan: Math.round(wBan),
+        takerMua: tCo ? Math.round(tMua) : null, takerBan: tCo ? Math.round(tBan) : null,
+        liqLong: Math.round(lL), liqShort: Math.round(lS),
+      },
+    };
+  }
+
   /* ---------------- Vòng đời ---------------- */
   let running = false, statTimer = null;
 
@@ -570,6 +621,7 @@
   global.DataHub = {
     VERSION: "1.0.0",
     config: CFG, on, off, start, stop, setFilter, flowScore,
+    taiLichSu12h, flowScore12h,
     stats: () => store.stats || buildStats(),
     prices: () => store.prices,
     sources: () => Object.values(store.sources),

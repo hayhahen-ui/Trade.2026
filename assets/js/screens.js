@@ -760,6 +760,13 @@ function veTheTinHieu(kq) {
       el("b", { class: cls }, `${dt.score > 0 ? "+" : ""}${dt.score} · ${dt.huong}${dt.dongThuan ? " ✓" : dt.nguoc ? " ⚠ngược" : ""}`)));
     if (dt.thanhLy15p?.tong > 1e6) card.appendChild(el("div", { class: "kv" }, el("span", {}, "💥 Thanh lý 15ph"),
       el("b", { class: "mono" }, `${fmtUsd(dt.thanhLy15p.tong)} (L ${fmtUsd(dt.thanhLy15p.long)}/S ${fmtUsd(dt.thanhLy15p.short)})`)));
+    if (dt.lichSu12h) {
+      const ls = dt.lichSu12h;
+      const lsCls = ls.score >= 15 ? "up" : ls.score <= -15 ? "down" : "muted";
+      const lsHuong = ls.score >= 15 ? "mua" : ls.score <= -15 ? "bán" : "trung lập";
+      card.appendChild(el("div", { class: "kv" }, el("span", {}, "📚 Dòng tiền 12h ×" + ls.soKhung),
+        el("b", { class: lsCls }, `${ls.score > 0 ? "+" : ""}${ls.score} · ${lsHuong}${dt.lsDongThuan ? " ✓" : dt.lsNguoc ? " ⚠ngược" : ""}`)));
+    }
   }
   if (kq.heatmap?.namCham && kq.heatmap.namCham.huong !== "can_bang") {
     const nc = kq.heatmap.namCham;

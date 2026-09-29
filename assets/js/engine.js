@@ -222,7 +222,9 @@ async function phanTichCoin(coin) {
 
   /* ---------- Dòng tiền (DataHub + FlowDB master data) — mapping vào phân tích ----------
    * Ưu tiên MASTER DATA: FlowDB gồm dữ liệu live của tab + trạm 24/7 (OKX/Hyperliquid
-   * thu liên tục trên server kể cả khi tắt máy). Fallback về điểm live RAM nếu chưa đủ. */
+   * thu liên tục trên server kể cả khi tắt máy). Fallback về điểm live RAM nếu chưa đủ.
+   * Từ v2.4.2: cộng thêm lịch sử 12h (Binance whale/taker + CoinEx thanh lý từ 01/01/2026)
+   * để mỗi lượt quét tín hiệu đều tổng hợp dòng tiền toàn bộ năm. */
   let dongTien = null;
   try {
     if (window.DataHub && DataHub.isRunning()) {
@@ -238,6 +240,14 @@ async function phanTichCoin(coin) {
           }
         }
       } catch (e2) {}
+      // Lịch sử 12h: nạp 1 lần rồi cache (không chặn nếu đang tải)
+      let ls12h = null;
+      try {
+        if (typeof DataHub.taiLichSu12h === "function") {
+          DataHub.taiLichSu12h(); // kích hoạt nạp nền, không await
+          if (typeof DataHub.flowScore12h === "function") ls12h = DataHub.flowScore12h(coin, 5);
+        }
+      } catch (e3) {}
       const st = DataHub.stats();
       const cs = st?.coinStats?.[coin] || null;
       const tl = window.DataHubBridge ? DataHubBridge.thanhLyGanDay(coin, 15) : null;
@@ -248,9 +258,17 @@ async function phanTichCoin(coin) {
         lenhLon: cs ? { count: cs.count, buy: cs.buy, sell: cs.sell, net: cs.buy - cs.sell } : null,
         thanhLy15p: tl,
         giaDataHub: dhGia,
+        lichSu12h: ls12h,
         dongThuan: side ? ((side === "long" && fs >= 15) || (side === "short" && fs <= -15)) : null,
         nguoc: side ? ((side === "long" && fs <= -15) || (side === "short" && fs >= 15)) : null,
       };
+      // Lịch sử 12h đồng thuận/ngược hướng → cộng/trừ thêm vào nhận định
+      if (ls12h && side) {
+        const lsDong = (side === "long" && ls12h.score >= 15) || (side === "short" && ls12h.score <= -15);
+        const lsNguoc = (side === "long" && ls12h.score <= -15) || (side === "short" && ls12h.score >= 15);
+        dongTien.lsDongThuan = lsDong; dongTien.lsNguoc = lsNguoc;
+        if (lsNguoc) canhBao.push(`🌊 Lịch sử 12h (${ls12h.soKhung} khung) NGƯỢC hướng (điểm ${ls12h.score > 0 ? "+" : ""}${ls12h.score}) — dòng tiền năm 2026 đang đi chiều khác`);
+      }
       if (dongTien.nguoc) canhBao.push(`🌊 Dòng tiền ${nguonDiem === "master" ? "master data" : "real-time"} NGƯỢC hướng (điểm ${fs > 0 ? "+" : ""}${fs}${cs ? `, lệnh lớn mua ${fmtUsd(cs.buy)} / bán ${fmtUsd(cs.sell)}` : ""})`);
       if (tl && tl.tong > 20e6) canhBao.push(`💥 Thanh lý mạnh 15 phút qua ${fmtUsd(tl.tong)} (long ${fmtUsd(tl.long)} / short ${fmtUsd(tl.short)}) — đang quét thanh khoản, chờ ổn định`);
       if (dhGia && gia && Math.abs(dhGia - gia) / gia > 0.004) canhBao.push(`Giá lệch giữa các sàn ${fmtPct((dhGia - gia) / gia * 100)} — kiểm tra lại trước khi vào`);
@@ -286,10 +304,14 @@ async function phanTichCoin(coin) {
     }
   }
 
-  /* Dòng tiền đồng thuận/ngược → tinh chỉnh điểm hợp lưu (±5) TRƯỚC khi chấm verdict */
+  /* Dòng tiền đồng thuận/ngược → tinh chỉnh điểm hợp lưu (±5) TRƯỚC khi chấm verdict
+   * Lịch sử 12h (toàn bộ 2026): đồng thuận +3, ngược −3 — đảm bảo mỗi lượt quét
+   * đều tổng hợp dòng tiền năm 2026, không chỉ real-time. */
   if (dongTien) {
     if (dongTien.dongThuan) score = clamp(score + 5, 0, 100);
     else if (dongTien.nguoc) score = clamp(score - 5, 0, 100);
+    if (dongTien.lsDongThuan) score = clamp(score + 3, 0, 100);
+    else if (dongTien.lsNguoc) score = clamp(score - 3, 0, 100);
   }
 
   /* ---------- Phái sinh: funding / OI / thanh lý / volatility (v2.1.0) ----------
