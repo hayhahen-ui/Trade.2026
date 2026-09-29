@@ -1272,7 +1272,52 @@ console.log("\n[22] lịch sử 12h — snapshot trạm + UI");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(() => {
+/* ---------- 24. mục tiêu 1 tín hiệu/ngày — tín hiệu giấy (v2.5.0) ---------- */
+const _p24 = async () => {
+console.log("\n[24] mục tiêu 1 tín hiệu/ngày — tín hiệu giấy không hạ chuẩn");
+{
+  const js = read("assets/js/journal.js");
+  const cl = read("tools/collector-247.js");
+  ok(js.indexOf("ghiNhanGiay") >= 0, "JOURNAL có ghiNhanGiay");
+  ok(js.indexOf('loai: "giay"') >= 0, "tín hiệu giấy đánh dấu loai='giay'");
+  ok(js.indexOf("demTheoNgay") >= 0, "JOURNAL có demTheoNgay");
+  ok(cl.indexOf("mucTieuNgay") >= 0, "collector ghi mucTieuNgay vào payload");
+  ok(cl.indexOf("bestSetup") >= 0 || cl.indexOf("BEST_K") >= 0, "collector theo dõi setup tốt nhất ngày");
+  ok(/không hạ chuẩn|Chuẩn vào lệnh KHÔNG đổi/i.test(cl), "ghi rõ chuẩn vào lệnh không đổi");
+
+  // unit: ghiNhanGiay chấp nhận verdict <70, loại khỏi thống kê thật
+  const c = makeCtx({ window: {}, document: {}, localStorage: (() => { const m = {}; return {
+    getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; })() });
+  c.evalIn(`var window = globalThis; var localStorage = globalThis.localStorage;`);
+  c.load("assets/js/journal.js");
+  const J = c.get("JOURNAL");
+  // tín hiệu thật LONG 85đ
+  const kqThat = { coin: "BTC", verdict: "LONG", score: 85, phase: "alert_ready", time: Date.now(),
+    plan: { entry: 84000, sl: 83000, tp1: 86000, rr1: 2 }, htf: { bias: "tang" }, killzone: { ten: "London" }, checklist: [] };
+  const r1 = J.ghiNhan(kqThat);
+  ok(r1 && r1.loai === "that", "ghiNhan thật → loai='that'");
+  // tín hiệu giấy PREPARE 55đ (không đủ chuẩn thật nhưng vẫn ghi được dạng giấy)
+  const kqGiay = { coin: "ETH", verdict: "PREPARE", side: "long", score: 55, phase: "cho_xac_nhan", time: Date.now(),
+    plan: { entry: 2700, sl: 2650, tp1: 2800, rr1: 2 }, htf: { bias: "tang" }, killzone: {}, checklist: [] };
+  const r2 = J.ghiNhanGiay(kqGiay, "2026-09-29");
+  ok(r2 && r2.loai === "giay", "ghiNhanGiay chấp nhận verdict PREPARE điểm <70");
+  ok(r2 && r2.ngay === "2026-09-29", "tín hiệu giấy gắn ngày");
+  // mỗi ngày tối đa 1 giấy
+  const r3 = J.ghiNhanGiay(kqGiay, "2026-09-29");
+  ok(r3 === null, "mỗi ngày tối đa 1 tín hiệu giấy");
+  // thống kê thật loại giấy
+  const st = c.get("thongKeJournal")(J.all());
+  ok(st.tong === 1 && st.giay.tong === 1, `thống kê thật loại giấy (thật=${st.tong}, giấy=${st.giay.tong})`);
+  // demTheoNgay
+  const dem = J.demTheoNgay(J.all());
+  const keys = Object.keys(dem);
+  ok(keys.length >= 1 && dem[keys[0]] === 1, `demTheoNgay chỉ đếm thật (được ${JSON.stringify(dem)})`);
+  const demGiay = J.demTheoNgay(J.all(), "giay");
+  ok(Object.values(demGiay).reduce((a, b) => a + b, 0) === 1, "demTheoNgay(loai='giay') đếm riêng giấy");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

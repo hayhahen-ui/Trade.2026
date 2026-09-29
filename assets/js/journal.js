@@ -45,7 +45,7 @@ const JOURNAL = {
       if (trung) return null;
       const rec = {
         id: `${coin}-${side}-${now}`,
-        coin, side,
+        coin, side, loai: "that", // that = tín hiệu thật (đủ chuẩn vào lệnh)
         tsVao: kq.time || now,
         giaVao: p.entry, sl: p.sl, tp: p.tp1,
         rr: p.rr1 || +(Math.abs(p.tp1 - p.entry) / Math.abs(p.entry - p.sl)).toFixed(2),
@@ -61,6 +61,61 @@ const JOURNAL = {
       if (!this._luu(ds)) return null; // đầy bộ nhớ → không ghi, báo null
       return rec;
     } catch (e) { return null; }
+  },
+
+  /* v2.5.0 — Mục tiêu 1 tín hiệu/ngày (không hạ chuẩn vào lệnh):
+   * Ghi nhận "tín hiệu giấy" = setup tốt nhất trong ngày khi không có tín hiệu thật.
+   * - Chấp nhận mọi verdict có plan hợp lệ (kể cả PREPARE/WAIT_CONFIRM điểm <70).
+   * - loai:"giay" → LOẠI KHỎI thống kê win-rate/expectancy thật, NHƯNG vẫn được
+   *   chấm điểm bằng nến thật để vòng Kaizen luôn có dữ liệu học mỗi ngày.
+   * - Mỗi ngày tối đa 1 tín hiệu giấy. */
+  ghiNhanGiay(kq, ngayStr) {
+    try {
+      if (!kq) return null;
+      const p = kq.plan;
+      if (!p || !(p.entry > 0) || !(p.sl > 0) || !(p.tp1 > 0)) return null;
+      const verdict = kq.verdict;
+      const side = verdict === "LONG" ? "long" : verdict === "SHORT" ? "short"
+        : (kq.side === "long" || kq.side === "short") ? kq.side : null;
+      if (!side) return null;
+      const coin = String(kq.coin || "").toUpperCase();
+      const now = Date.now();
+      const ds = this._doc();
+      // mỗi ngày tối đa 1 tín hiệu giấy
+      if (ngayStr && ds.some(r => r.loai === "giay" && r.ngay === ngayStr)) return null;
+      const rec = {
+        id: `GIAY-${coin}-${side}-${now}`,
+        coin, side, loai: "giay", ngay: ngayStr || null,
+        verdictGoc: verdict,
+        tsVao: kq.time || now,
+        giaVao: p.entry, sl: p.sl, tp: p.tp1,
+        rr: p.rr1 || +(Math.abs(p.tp1 - p.entry) / Math.abs(p.entry - p.sl)).toFixed(2),
+        diem: kq.score, phase: kq.phase,
+        phien: kq.killzone?.ten || kq.killzone?.id || "—",
+        bias4h: kq.htf?.bias || "—",
+        checklist: (kq.checklist || []).filter(c => c.dat).map(c => c.id),
+        lyDo: "Setup tốt nhất trong ngày — không đủ chuẩn vào lệnh thật, ghi nhận để Kaizen học",
+        trangThai: "dang_theo_doi",
+        ketQua: null,
+        daDanhGiaDen: 0,
+      };
+      ds.push(rec);
+      if (!this._luu(ds)) return null;
+      return rec;
+    } catch (e) { return null; }
+  },
+
+  /* Đếm tín hiệu thật theo ngày (giờ VN) — phục vụ mục tiêu 1 tín hiệu/ngày */
+  demTheoNgay(ds, loai) {
+    const dem = {};
+    for (const r of ds || this._doc()) {
+      if (loai && r.loai !== loai) continue;
+      if (!loai && r.loai === "giay") continue; // mặc định chỉ đếm thật
+      const d = new Date(r.tsVao);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      dem[key] = (dem[key] || 0) + 1;
+    }
+    return dem;
   },
 
   /* Chấm điểm 1 bản ghi bằng nến 15m thật. Trả về bản ghi đã cập nhật. */
@@ -161,7 +216,17 @@ function fmtChenhLech(cl) {
 }
 
 /* ---------- Thuần: thống kê từ danh sách bản ghi ---------- */
-function thongKeJournal(ds) {
+function thongKeJournal(ds, opts = {}) {
+  // v2.5.0: mặc định LOẠI tín hiệu giấy khỏi thống kê thật (không làm méo win-rate);
+  // opts.gomGiay=true → tính riêng cho mục Kaizen.
+  const that = (ds || []).filter(r => r.loai !== "giay");
+  const giay = (ds || []).filter(r => r.loai === "giay");
+  const st = _thongKeCore(that);
+  st.giay = _thongKeCore(giay);
+  st.giay.tong = giay.length;
+  return st;
+}
+function _thongKeCore(ds) {
   const xong = ds.filter(r => r.trangThai === "thang" || r.trangThai === "thua");
   const thang = ds.filter(r => r.trangThai === "thang");
   const thua = ds.filter(r => r.trangThai === "thua");
@@ -361,6 +426,31 @@ function renderSoTinHieu(root) {
         cT.appendChild(el("p", { class: "muted" }, "Trạm chưa ghi nhận tín hiệu LONG/SHORT nào."));
       }
       cTram.appendChild(cT);
+      // v2.5.0: tín hiệu giấy (mục tiêu 1 tín hiệu/ngày) — tách khỏi thống kê thật
+      const giay = tinHieu.filter(r => r.loai === "giay");
+      if (giay.length) {
+        const cG = el("div", {}, el("div", { class: "card-title" }, `📝 Tín hiệu giấy — mục tiêu 1/ngày (${giay.length})`),
+          el("p", { class: "muted small" }, "Setup tốt nhất trong ngày khi không đủ chuẩn vào lệnh thật. Không tính vào win-rate thật, nhưng vẫn chấm điểm để Kaizen học mỗi ngày."));
+        const tblG = el("table", { class: "mini-table" });
+        tblG.appendChild(el("tr", {},
+          el("th", {}, "Ngày"), el("th", {}, "Coin"), el("th", {}, "Hướng"),
+          el("th", {}, "Entry"), el("th", {}, "Điểm"), el("th", {}, "Trạng thái"), el("th", {}, "R")));
+        for (const r of giay.slice(0, 10)) {
+          const [nhan, cls] = TRANG_THAI_JOURNAL[r.trangThai] || ["?", ""];
+          const kq = r.ketQua;
+          tblG.appendChild(el("tr", {},
+            el("td", {}, r.ngay || fmtNgayGio(r.tsVao)),
+            el("td", { class: "strong" }, r.coin),
+            el("td", { class: r.side === "long" ? "up" : "down" }, r.side === "long" ? "🟢 LONG" : "🔴 SHORT"),
+            el("td", {}, fmtGia(r.giaVao)),
+            el("td", {}, String(r.diem)),
+            el("td", { class: cls }, nhan),
+            el("td", { class: kq && kq.r != null ? (kq.r >= 0 ? "up" : "down") : "" },
+              kq && kq.r != null ? (kq.r >= 0 ? "+" : "") + kq.r + "R" : "—")));
+        }
+        cG.appendChild(tblG);
+        cTram.appendChild(cG);
+      }
     } catch (e) {
       cTram.innerHTML = "";
       cTram.appendChild(el("div", { class: "card-title" }, "🛰️ Trạm quan trắc 24/7"));

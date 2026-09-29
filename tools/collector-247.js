@@ -94,6 +94,18 @@ async function main() {
   const thongKeJournal = get("thongKeJournal");
   const rutBaiHocKaizen = get("rutBaiHocKaizen");
 
+  /* v2.5.0 — Mục tiêu 1 tín hiệu/ngày (giờ VN, Asia/Saigon).
+   * Chuẩn vào lệnh KHÔNG đổi: chỉ LONG/SHORT ≥70 mới là tín hiệu thật.
+   * Cuối ngày nếu 0 tín hiệu thật → ghi "tín hiệu giấy" từ setup tốt nhất trong ngày
+   * để vòng Kaizen luôn có dữ liệu học. */
+  const gioVN = new Date(Date.now() + 7 * 3600e3);
+  const ngayStr = `${gioVN.getUTCFullYear()}-${String(gioVN.getUTCMonth() + 1).padStart(2, "0")}-${String(gioVN.getUTCDate()).padStart(2, "0")}`;
+  const gioVN_h = gioVN.getUTCHours() + gioVN.getUTCMinutes() / 60;
+  const BEST_K = "trade2026_best_setup_ngay";
+  let bestSetup = null;
+  try { bestSetup = JSON.parse(sandbox.localStorage.getItem(BEST_K) || "null"); } catch {}
+  if (!bestSetup || bestSetup.ngay !== ngayStr) bestSetup = { ngay: ngayStr, diem: -1, kq: null };
+
   const tomTat = [];
   for (const coin of COINS) {
     try {
@@ -101,10 +113,35 @@ async function main() {
       tomTat.push(`${coin}:${kq.verdict || "?"}${kq.score}`);
       const rec = JOURNAL.ghiNhan(kq);
       if (rec) console.log(`  📝 mới: ${coin} ${rec.side} @${rec.giaVao} điểm ${rec.diem}`);
+      // theo dõi setup tốt nhất trong ngày (có plan hợp lệ)
+      const p = kq.plan;
+      if (p && p.entry > 0 && p.sl > 0 && p.tp1 > 0 && (kq.score || 0) > (bestSetup.diem || -1)) {
+        bestSetup = { ngay: ngayStr, diem: kq.score, coin, verdict: kq.verdict, side: kq.side,
+          kq: { coin: kq.coin, verdict: kq.verdict, side: kq.side, score: kq.score, phase: kq.phase,
+            time: kq.time, plan: { entry: p.entry, sl: p.sl, tp1: p.tp1, rr1: p.rr1 },
+            htf: kq.htf, killzone: kq.killzone, checklist: kq.checklist } };
+        try { sandbox.localStorage.setItem(BEST_K, JSON.stringify(bestSetup)); } catch {}
+      }
     } catch (e) {
       tomTat.push(`${coin}:LỖI`);
       console.log(`  ⚠ ${coin}: ${String(e.message || e).slice(0, 120)}`);
     }
+  }
+
+  // Cuối ngày (23:45–23:59 giờ VN): kiểm tra mục tiêu 1 tín hiệu/ngày
+  let giayMoi = null, chanDoan = null;
+  if (gioVN_h >= 23.75) {
+    const dsNow = JOURNAL.all();
+    const demThat = JOURNAL.demTheoNgay(dsNow); // chỉ đếm thật
+    const soThat = demThat[ngayStr] || 0;
+    if (soThat === 0 && bestSetup.kq) {
+      giayMoi = JOURNAL.ghiNhanGiay(bestSetup.kq, ngayStr);
+      if (giayMoi) console.log(`  📝 tín hiệu GIẤY (mục tiêu 1/ngày): ${giayMoi.coin} ${giayMoi.side} điểm ${giayMoi.diem}`);
+    }
+    // chẩn đoán: vì sao không có tín hiệu thật
+    chanDoan = { ngay: ngayStr, tinHieuThat: soThat, tinHieuGiay: giayMoi ? 1 : 0,
+      setupTotNhat: bestSetup.kq ? { coin: bestSetup.coin, diem: bestSetup.diem, verdict: bestSetup.verdict } : null };
+    console.log(`  📊 mục tiêu ngày ${ngayStr}: ${soThat} thật${giayMoi ? " + 1 giấy" : ""}`);
   }
 
   const cham = await JOURNAL.chamDiemTatCa();
@@ -118,11 +155,13 @@ async function main() {
     vongQuet: tomTat,
     thongKe: st,
     baiHoc,
+    mucTieuNgay: chanDoan, // v2.5.0: giám sát 1 tín hiệu/ngày
     tinHieu: ds.slice(-120).reverse().map((r) => ({
       id: r.id, coin: r.coin, side: r.side, tsVao: r.tsVao,
       giaVao: r.giaVao, sl: r.sl, tp: r.tp, rr: r.rr, diem: r.diem,
       phien: r.phien, bias4h: r.bias4h, trangThai: r.trangThai,
       ketQua: r.ketQua, daDanhGiaDen: r.daDanhGiaDen,
+      loai: r.loai || "that", ngay: r.ngay || null, // v2.5.0: phân biệt giấy/thật
     })),
   };
   fs.mkdirSync(DATA_DIR, { recursive: true });
