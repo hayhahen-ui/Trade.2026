@@ -76,6 +76,32 @@ async function layTatCaCoinBinance() {
   return null; // tải thất bại → UI dùng watchlist cố định
 }
 
+/* ---------- Dropdown coin dùng chung (v2.11.0) ----------
+ * Nạp: watchlist ghim ⭐ đầu danh sách + toàn bộ coin Binance.
+ * UI tự thêm ô tìm kiếm riêng để lọc option (option.hidden). */
+async function napDropdownCoinBinance(sel, coinHienTai) {
+  sel.innerHTML = "";
+  const tam = document.createElement("option");
+  tam.textContent = "⏳ Đang tải toàn bộ coin Binance…";
+  sel.appendChild(tam);
+  const all = await layTatCaCoinBinance().catch(() => null);
+  if (!document.body.contains(sel)) return; // user đã chuyển màn hình
+  sel.innerHTML = "";
+  const pin = [...(SETTINGS.watchlist || []), ...(SETTINGS.watchlistPhu || [])];
+  const daThem = new Set();
+  const them = (c, nhan) => {
+    if (!c || daThem.has(c)) return;
+    daThem.add(c);
+    const o = document.createElement("option");
+    o.value = c; o.textContent = nhan;
+    if (c === coinHienTai) o.selected = true;
+    sel.appendChild(o);
+  };
+  for (const c of pin) them(c, `⭐ ${c}/USDT`);
+  for (const c of (all || [])) them(c, `${c}/USDT`);
+  if (coinHienTai && !daThem.has(coinHienTai)) them(coinHienTai, `${coinHienTai}/USDT`);
+}
+
 /* ---------- Sổ lệnh spot (cho radar cá mập) ---------- */
 async function fetchDepth(coin, limit = 50) {
   for (const base of ENDPOINTS.binanceRest) {

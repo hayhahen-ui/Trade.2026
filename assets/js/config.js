@@ -103,11 +103,13 @@ function loadSettings() {
     return {
       watchlist: Array.isArray(s.watchlist) && s.watchlist.length ? s.watchlist : [...WATCHLIST_CORE],
       watchlistPhu: Array.isArray(s.watchlistPhu) ? s.watchlistPhu : [...WATCHLIST_PHU],
+      // v2.11.0: coin user chọn để hiện trên màn hình Tín hiệu (mặc định = watchlist)
+      tinHieuCoins: Array.isArray(s.tinHieuCoins) && s.tinHieuCoins.length ? [...new Set(s.tinHieuCoins)].slice(0, 12) : [...WATCHLIST_CORE],
       risk: { ...RISK_DEFAULTS, ...(s.risk || {}) },
       refreshTinHieuSec: s.refreshTinHieuSec || 180,
       theme: s.theme || "dark",
     };
-  } catch { return { watchlist: [...WATCHLIST_CORE], watchlistPhu: [...WATCHLIST_PHU], risk: { ...RISK_DEFAULTS }, refreshTinHieuSec: 180, theme: "dark" }; }
+  } catch { return { watchlist: [...WATCHLIST_CORE], watchlistPhu: [...WATCHLIST_PHU], tinHieuCoins: [...WATCHLIST_CORE], risk: { ...RISK_DEFAULTS }, refreshTinHieuSec: 180, theme: "dark" }; }
 }
 function saveSettings(s) { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch {} }
 

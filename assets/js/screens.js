@@ -321,25 +321,9 @@ let CHART_COIN = "BTC", CHART_TF = "15";
  * Chọn coin bất kỳ → quetCoin chạy full engine (cấu trúc, POI/OB, nến, dòng tiền,
  * phái sinh, killzone) và gom cảnh báo theo đúng kiến thức/quy luật hệ thống. */
 async function napDanhSachCoinBieuDo(sel) {
-  const pin = [...(SETTINGS.watchlist || []), ...(SETTINGS.watchlistPhu || [])];
-  const ve = (coins) => {
-    sel.innerHTML = "";
-    const daThem = new Set();
-    const them = (c, nhan) => {
-      if (!c || daThem.has(c)) return;
-      daThem.add(c);
-      sel.appendChild(el("option", { value: c, ...(c === CHART_COIN ? { selected: "" } : {}) }, nhan));
-    };
-    for (const c of pin) them(c, `⭐ ${c}/USDT`);
-    for (const c of (coins || [])) them(c, `${c}/USDT`);
-    if (!daThem.has(CHART_COIN)) them(CHART_COIN, `${CHART_COIN}/USDT`);
-    capNhatGhiChuCoinNgoai(sel);
-  };
-  sel.innerHTML = "";
-  sel.appendChild(el("option", {}, "⏳ Đang tải toàn bộ coin Binance…"));
-  const all = await layTatCaCoinBinance().catch(() => null);
-  if (!document.body.contains(sel)) return; // user đã chuyển màn hình
-  ve(all);
+  await napDropdownCoinBinance(sel, CHART_COIN);
+  if (!document.body.contains(sel)) return;
+  capNhatGhiChuCoinNgoai(sel);
 }
 
 /* Ghi chú trung thực khi coin nằm ngoài watchlist trạm 24/7 */
@@ -786,22 +770,62 @@ function veCanvasSMC(kq) {
 }
 
 /* ================= TÍN HIỆU ================= */
+/* v2.11.0: danh sách coin hiện trên màn hình Tín hiệu — user tự chọn, lưu localStorage */
+function danhSachCoinTinHieu() {
+  const ds = Array.isArray(SETTINGS.tinHieuCoins) && SETTINGS.tinHieuCoins.length ? SETTINGS.tinHieuCoins : [...SETTINGS.watchlist];
+  return [...new Set(ds)].slice(0, 12);
+}
+function xoaCoinTinHieu(coin) {
+  let ds = danhSachCoinTinHieu().filter(c => c !== coin);
+  if (!ds.length) ds = [...SETTINGS.watchlist];
+  SETTINGS.tinHieuCoins = ds;
+  saveSettings(SETTINGS);
+  if (SCREEN_HIENTAI === "tinhieu") renderTinHieu($("#screen-root"));
+}
+
 function renderTinHieu(root) {
   root.innerHTML = "";
+  const ds = danhSachCoinTinHieu();
   const bar = el("div", { class: "toolbar" },
-    el("span", { class: "muted" }, `Quét ${SETTINGS.watchlist.length} coin · làm mới mỗi ${Math.round(SETTINGS.refreshTinHieuSec / 60)} phút · điểm ≥ ${VERDICT.ALERT} = tín hiệu vào lệnh`),
+    el("span", { class: "muted" }, `Quét ${ds.length} coin · làm mới mỗi ${Math.round(SETTINGS.refreshTinHieuSec / 60)} phút · điểm ≥ ${VERDICT.ALERT} = tín hiệu vào lệnh`),
     el("button", { class: "btn", onclick: () => quetTatCa(true) }, "🔄 Quét lại tất cả"),
   );
+  // v2.11.0: thêm coin bất kỳ từ Binance vào danh sách theo dõi
+  const inpTim = el("input", {
+    class: "input", placeholder: "🔍 Tìm coin…", style: "width:120px",
+    oninput: () => { const q = inpTim.value.trim().toUpperCase(); for (const o of selThem.options) o.hidden = !!(q && !o.text.toUpperCase().includes(q)); },
+  });
+  const selThem = el("select", { class: "input" });
+  napDropdownCoinBinance(selThem, "");
+  const btnThem = el("button", {
+    class: "btn primary", title: "Thêm coin vào danh sách tín hiệu (tối đa 12)",
+    onclick: () => {
+      const c = selThem.value;
+      if (!c) return;
+      const cur = danhSachCoinTinHieu();
+      if (cur.includes(c)) return;
+      if (cur.length >= 12) { alert("Tối đa 12 coin để tránh quá tải API."); return; }
+      SETTINGS.tinHieuCoins = [...cur, c];
+      saveSettings(SETTINGS);
+      renderTinHieu(root);
+      quetCoin(c, true);
+    },
+  }, "＋ Thêm coin");
+  bar.appendChild(el("span", { class: "muted small" }, "Thêm coin:"));
+  bar.appendChild(inpTim);
+  bar.appendChild(selThem);
+  bar.appendChild(btnThem);
   root.appendChild(bar);
   const grid = el("div", { class: "signal-grid", id: "signal-grid" });
-  for (const coin of SETTINGS.watchlist) {
+  for (const coin of ds) {
     grid.appendChild(el("div", { class: "card signal-card", id: `sc-${coin}` },
       el("div", { class: "card-title" }, `${coin}/USDT`), el("p", { class: "muted" }, "Đang phân tích…")));
   }
   root.appendChild(grid);
-  for (const coin of SETTINGS.watchlist) {
+  for (const coin of ds) {
     const kq = SIGNAL_CACHE.get(coin);
     if (kq) veTheTinHieu(kq);
+    else quetCoin(coin, true); // coin mới thêm → phân tích on-demand
   }
 }
 
@@ -815,7 +839,9 @@ function veTheTinHieu(kq) {
     el("div", {},
       el("span", { class: "coin-name" }, `${kq.coin}/USDT`),
       el("span", { class: "mono muted", style: "margin-left:8px" }, fmtGia(PRICE_HUB?.gia(kq.coin) ?? kq.gia))),
-    el("span", { class: `badge big ${biasClass(kq.verdict)}` }, verdictLabel(kq.verdict)),
+    el("div", { style: "display:flex;gap:6px;align-items:center" },
+      el("span", { class: `badge big ${biasClass(kq.verdict)}` }, verdictLabel(kq.verdict)),
+      el("button", { class: "btn small", title: "Bỏ coin này khỏi danh sách tín hiệu", onclick: () => xoaCoinTinHieu(kq.coin) }, "✕")),
   ));
 
   // Thanh điểm

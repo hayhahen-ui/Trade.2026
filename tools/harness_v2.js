@@ -1643,7 +1643,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.10\.0/.test(idx), "index.html đã lên v2.10.0");
+  ok(/Trade\.2026 v2\.11\.0/.test(idx), "index.html đã lên v2.11.0");
 }
 
 const _p30 = async () => {
@@ -1704,10 +1704,51 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.10\.0/.test(idx), "index.html đã lên v2.10.0");
+  ok(/Trade\.2026 v2\.11\.0/.test(idx), "index.html đã lên v2.11.0");
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(() => {
+const _p31 = async () => {
+console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
+{
+  // 1. config: tinHieuCoins mặc định = watchlist, migrate bản cũ, dedupe + cap 12
+  const CORE = ["BTC", "ETH", "SOL", "BNB", "DOGE", "DYDX"];
+  const taiCfg = (saved) => {
+    const c = makeCtx({ localStorage: { getItem: () => saved, setItem() {} } });
+    c.load("assets/js/config.js");
+    return c.get("SETTINGS");
+  };
+  let s = taiCfg(null);
+  ok(JSON.stringify(s.tinHieuCoins) === JSON.stringify(CORE), "mặc định tinHieuCoins = watchlist");
+  s = taiCfg(JSON.stringify({ watchlist: ["BTC"], tinHieuCoins: ["BTC", "XRP", "BTC"] }));
+  ok(JSON.stringify(s.tinHieuCoins) === JSON.stringify(["BTC", "XRP"]), "giữ lựa chọn cũ, khử trùng");
+  s = taiCfg(JSON.stringify({ tinHieuCoins: Array.from({ length: 20 }, (_, i) => "C" + i) }));
+  ok(s.tinHieuCoins.length === 12, "cap tối đa 12 coin");
+
+  // 2. danhSachCoinTinHieu + xoaCoinTinHieu (hàm thật, store giả)
+  const scr = read("assets/js/screens.js");
+  const st2 = { saved: null };
+  const c2 = makeCtx({
+    SETTINGS: { watchlist: ["BTC", "ETH"], watchlistPhu: [], tinHieuCoins: ["BTC", "XRP", "XRP"] },
+    saveSettings(x) { st2.saved = x.tinHieuCoins; },
+    SCREEN_HIENTAI: "khac", renderTinHieu() { throw new Error("không được render"); }, $: () => null,
+  });
+  c2.evalIn(extractFunction(scr, "danhSachCoinTinHieu"));
+  c2.evalIn(extractFunction(scr, "xoaCoinTinHieu"));
+  ok(JSON.stringify(c2.evalIn("danhSachCoinTinHieu()")) === JSON.stringify(["BTC", "XRP"]), "danhSachCoinTinHieu khử trùng");
+  c2.evalIn("xoaCoinTinHieu('XRP')");
+  ok(JSON.stringify(st2.saved) === JSON.stringify(["BTC"]), "xóa coin lưu settings");
+  c2.evalIn("xoaCoinTinHieu('BTC')");
+  ok(JSON.stringify(st2.saved) === JSON.stringify(["BTC", "ETH"]), "xóa hết → về watchlist");
+
+  // 3. UI wiring
+  ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
+  ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
+  ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
+  ok(/Trade\.2026 v2\.11\.0/.test(read("index.html")), "index.html đã lên v2.11.0");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

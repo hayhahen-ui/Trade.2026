@@ -235,8 +235,14 @@ function renderRagAuto(root, params = {}) {
 
   const bar = el("div", { class: "toolbar" });
   const sel = el("select", { class: "input", onchange: (e) => { RAG.coinDangChon = e.target.value; renderRagAuto(root); } });
-  for (const c of SETTINGS.watchlist) sel.appendChild(el("option", { value: c, ...(c === RAG.coinDangChon ? { selected: "" } : {}) }, `${c}/USDT`));
+  // v2.11.0: chọn BẤT KỲ coin nào trên Binance — pipeline chạy full agent cho coin đó
+  const inpTim = el("input", {
+    class: "input", placeholder: "🔍 Tìm coin…", style: "width:130px",
+    oninput: () => { const q = inpTim.value.trim().toUpperCase(); for (const o of sel.options) o.hidden = !!(q && !o.text.toUpperCase().includes(q)); },
+  });
+  napDropdownCoinBinance(sel, RAG.coinDangChon);
   bar.appendChild(el("label", { class: "muted small" }, "Coin: "));
+  bar.appendChild(inpTim);
   bar.appendChild(sel);
   bar.appendChild(el("button", {
     class: "btn primary", onclick: (e) => {
@@ -249,6 +255,10 @@ function renderRagAuto(root, params = {}) {
     "Trọng số: " + Object.entries(RAG_WEIGHTS).map(([k, v]) => `${k.toUpperCase()} ${Math.round(v * 100)}%`).join(" · ")
     + ` (+🧲 heatmap ±${Math.round(RAG_HEATMAP_ADJ * 100)}%)`));
   root.appendChild(bar);
+  if (![...SETTINGS.watchlist, ...(SETTINGS.watchlistPhu || [])].includes(RAG.coinDangChon)) {
+    root.appendChild(el("div", { class: "muted tiny", style: "margin:-4px 0 8px" },
+      `ℹ️ ${RAG.coinDangChon} ngoài watchlist trạm 24/7 — một số agent (Whale Flow, dòng tiền DataHub) có thể thiếu dữ liệu, pipeline vẫn chạy đầy đủ các lớp còn lại.`));
+  }
 
   root.appendChild(el("div", { id: "rag-flow" }));
   root.appendChild(el("div", { id: "rag-ketluan" }));

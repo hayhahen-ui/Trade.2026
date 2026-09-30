@@ -62,7 +62,8 @@ async function quetTatCa(force = false) {
   DANG_QUET = true;
   try {
     // quét tuần tự có giãn cách nhẹ để tránh rate-limit
-    for (const coin of SETTINGS.watchlist) {
+    // v2.11.0: quét cả coin user thêm trên màn hình Tín hiệu (ngoài watchlist trạm)
+    for (const coin of new Set([...SETTINGS.watchlist, ...danhSachCoinTinHieu()])) {
       await quetCoin(coin);
       await new Promise(r => setTimeout(r, 350));
     }
