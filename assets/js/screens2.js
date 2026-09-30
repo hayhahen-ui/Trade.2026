@@ -466,6 +466,21 @@ function renderKienThuc(root) {
   }
   root.appendChild(g1);
 
+  // Kiến thức nâng cao từ tài liệu mới (v2.6.0 → v2.8.0)
+  if (KIEN_THUC.khoaHocMoi && KIEN_THUC.khoaHocMoi.length) {
+    const gMoi = el("div", { class: "card" }, el("div", { class: "card-title" }, "📖 Kiến thức nâng cao (từ tài liệu mới)"));
+    const grid = el("div", { class: "knowledge-grid" });
+    for (const k of KIEN_THUC.khoaHocMoi) {
+      grid.appendChild(el("div", { class: "card" },
+        el("div", { class: "card-title small" }, `${k.emoji} ${k.ten}`),
+        el("div", { class: "muted tiny" }, k.nguon),
+        el("ul", {}, ...k.noiDung.map(x => el("li", { class: "small" }, x))),
+        el("div", { class: "in-app small" }, "⚙️ Trong app: " + k.trongApp)));
+    }
+    gMoi.appendChild(grid);
+    root.appendChild(gMoi);
+  }
+
   // Cộng hưởng
   const c2 = el("div", { class: "card" }, el("div", { class: "card-title" }, "🔗 Sự bổ sung hoàn hảo giữa các nguồn"));
   for (const x of KIEN_THUC.congHuong) c2.appendChild(el("div", { class: "impact-row" }, el("b", {}, x.cap), el("div", { class: "muted small" }, x.y)));
@@ -503,6 +518,88 @@ function renderKienThuc(root) {
   // Mindmap
   const c4 = el("div", { class: "card" }, el("div", { class: "card-title" }, "🧭 Sơ đồ tư duy hệ thống hóa"),
     el("pre", { class: "mindmap" }, KIEN_THUC.mindmapText));
+  root.appendChild(c4);
+}
+
+/* ================= HƯỚNG DẪN VẬN HÀNH (v2.9.0) =================
+ * Trang dành cho người dùng mới: biết cách đọc, xem tín hiệu, trade kỷ luật. */
+function renderHuongDan(root) {
+  root.innerHTML = "";
+  root.appendChild(el("div", { class: "note-box" },
+    "🧭 Chào mừng! Trang này dạy bạn vận hành Trade.2026 trong 10 phút: hệ thống làm gì, đọc tín hiệu ở đâu, vào lệnh thế nào cho kỷ luật. App không tự trade — mọi quyết định vào lệnh là của bạn."));
+
+  // 1. Hệ thống làm gì
+  const c1 = el("div", { class: "card" }, el("div", { class: "card-title" }, "🖥️ Hệ thống làm gì — hiểu trong 2 phút"));
+  const g1 = el("div", { class: "knowledge-grid" });
+  const muc = [
+    ["🛰️ Trạm 24/7", "Máy chủ quét 6 coin (BTC, ETH, SOL, BNB, DOGE, DYDX) liên tục, thu thập giá + dòng tiền cá mập + thanh lý làm master data."],
+    ["🎯 Engine chấm điểm", "Mỗi setup được chấm tối đa 100đ qua checklist 6 tiêu chí: cấu trúc, POI, trigger, dòng tiền, phái sinh, killzone."],
+    ["📡 Tín hiệu thật ≥ 70đ", "Chỉ khi đủ 70đ mới báo LONG/SHORT. Dưới 70đ = PREPARE (chuẩn bị, chưa vào). Mục tiêu: 1 tín hiệu thật/ngày."],
+    ["📝 Tín hiệu giấy", "Cuối ngày, setup tốt nhất chưa đủ chuẩn được ghi 'giấy' để học — KHÔNG vào tiền thật, chỉ để Kaizen rút bài học."],
+    ["📲 Báo qua WhatsApp", "Tín hiệu thật mới và sự cố hệ thống được báo ngay qua WhatsApp. Ổn định thì hệ thống im lặng."],
+    ["📓 Tự học Kaizen", "Mọi tín hiệu được theo dõi đến TP/SL tự động; hệ thống tự rút bài học từ lệnh thắng/thua — bạn chỉ việc đọc."],
+  ];
+  for (const [t, m] of muc) g1.appendChild(el("div", { class: "card" }, el("b", { class: "small" }, t), el("div", { class: "muted small" }, m)));
+  c1.appendChild(g1);
+  root.appendChild(c1);
+
+  // 2. Đọc Tổng quan + thẻ tín hiệu
+  const g2 = el("div", { class: "knowledge-grid" });
+  const cTq = el("div", { class: "card" }, el("div", { class: "card-title" }, "📊 Đọc màn hình Tổng quan"));
+  cTq.appendChild(el("ul", {},
+    el("li", { class: "small" }, "🛰️ Sức khỏe nguồn dữ liệu: xanh = realtime, vàng = chậm >10s, đỏ = mất kết nối >30s. Đỏ thì đừng tin giá trên màn hình."),
+    el("li", { class: "small" }, "Giá trong watchlist bị mờ + gạch ngang = dữ liệu cũ, không dùng để quyết định."),
+    el("li", { class: "small" }, "Bản đồ thanh lý (🔥): vùng vàng/đỏ là nơi tập trung stop loss — giá thường bị hút về đó trước khi đi tiếp."),
+    el("li", { class: "small" }, "Radar Cá Mập (🐋): dòng tiền whale + funding + top trader — xem phe nào đang đặt cược lớn.")));
+  g2.appendChild(cTq);
+  const cTh = el("div", { class: "card" }, el("div", { class: "card-title" }, "🎯 Đọc thẻ tín hiệu (màn hình Tín hiệu)"));
+  cTh.appendChild(el("ul", {},
+    el("li", { class: "small" }, "Điểm + verdict: ví dụ 'LONG 82đ' — trên 70 mới là tín hiệu thật."),
+    el("li", { class: "small" }, "🏯 Cấu trúc: xu hướng 4H/1H/15m. Thấy chữ 'NGƯỢC' là lệnh đang chống xu hướng lớn — cân nhắc kỹ."),
+    el("li", { class: "small" }, "🧱 OB: chất lượng vùng vào lệnh (KHỎE/TRUNG BÌNH/YẾU). YẾU = vùng dỏm, đã bị test nhiều."),
+    el("li", { class: "small" }, "🕯️ Nến: mẫu nến xác nhận + vị trí (POI/S-R/giữa range). 'CHỐNG LỆNH' = nến đang phản đối hướng vào."),
+    el("li", { class: "small" }, "Entry / SL / TP + RR: kế hoạch có sẵn. RR < 1:2 thì bỏ qua dù điểm cao."),
+    el("li", { class: "small" }, "⚠️ Cảnh báo: đọc hết trước khi vào — đó là những gì engine thấy 'không ổn'.")));
+  g2.appendChild(cTh);
+  root.appendChild(g2);
+
+  // 3. Luồng vào lệnh
+  const c3 = el("div", { class: "card" }, el("div", { class: "card-title" }, "📡 Luồng tín hiệu → vào lệnh (4 bước)"));
+  const steps = el("div", { class: "step-cards" });
+  const buoc = [
+    ["Nhận tin", "WhatsApp báo '📡 TÍN HIỆU MỚI' — mở app vào màn hình Tín hiệu."],
+    ["Đọc thẻ", "Đọc điểm, cấu trúc, OB, nến, cảnh báo. Không hiểu dòng nào → bấm vào xem chi tiết hoặc hỏi AI Hỏi đáp."],
+    ["Đối chiếu kỷ luật", "Chạy checklist 10 điều bên dưới. Chỉ cần 1 điều KHÔNG đạt → bỏ qua, không tiếc."],
+    ["Vào lệnh tay", "Đặt lệnh trên sàn theo đúng Entry/SL/TP của thẻ. Xong thì quên đi — để xác suất làm việc."],
+  ];
+  for (const [i, b] of buoc.entries()) steps.appendChild(el("div", { class: "step-card" }, el("div", { class: "step-num" }, String(i + 1)), el("b", {}, b[0]), el("p", { class: "small" }, b[1])));
+  c3.appendChild(steps);
+  root.appendChild(c3);
+
+  // 4. Nhật ký + 5. Kỷ luật
+  const g3 = el("div", { class: "knowledge-grid" });
+  const cNk = el("div", { class: "card" }, el("div", { class: "card-title" }, "📓 Nhật ký & Tự học"));
+  cNk.appendChild(el("ul", {},
+    el("li", { class: "small" }, "Sổ tín hiệu: mọi tín hiệu thật/giấy được lưu + tự theo dõi đến TP/SL — bạn không cần ghi tay."),
+    el("li", { class: "small" }, "Mục Kaizen: hệ thống tự tổng kết bài học (ví dụ '4 lệnh LONG thua đều ngược cấu trúc 4H') — đọc mỗi tuần."),
+    el("li", { class: "small" }, "Tín hiệu giấy KHÔNG trộn vào win-rate thật — chỉ dùng để học, không dùng để khoe.")));
+  g3.appendChild(cNk);
+  const cKl = el("div", { class: "card" }, el("div", { class: "card-title" }, "🧠 Checklist kỷ luật — 10 điều trước khi vào lệnh"));
+  const ds = ["Tín hiệu thật (≥70đ), không phải giấy/PREPARE", "Hiểu rõ mình đang LONG hay SHORT vì lý do gì", "Cấu trúc 4H không ngược hướng lệnh", "Đã đọc hết cảnh báo ⚠️ trên thẻ", "RR ≥ 1:2 (thua 1, thắng ít nhất 2)", "Rủi ro ≤ 1–2% tài khoản cho lệnh này", "Đang trong killzone (19h–22h VN) hoặc phiên có thanh khoản", "Không vào vì FOMO / vừa thua muốn gỡ", "SL đã đặt trước khi nghĩ đến lợi nhuận", "Chấp nhận mất toàn bộ số risk này mà vẫn ngủ ngon"];
+  cKl.appendChild(el("ul", {}, ...ds.map((x, i) => el("li", { class: "small" }, `${i + 1}. ${x}`))));
+  g3.appendChild(cKl);
+  root.appendChild(g3);
+
+  // 6. FAQ
+  const c4 = el("div", { class: "card" }, el("div", { class: "card-title" }, "❓ Câu hỏi thường gặp"));
+  const faq = [
+    ["Cả ngày không thấy tín hiệu?", "Bình thường. Hệ thống chỉ báo khi đủ 70đ — mục tiêu là 1 tín hiệu CHẤT LƯỢNG/ngày, không phải nhiều tín hiệu. Không có setup = không làm gì."],
+    ["Tín hiệu giấy là gì?", "Setup tốt nhất trong ngày nhưng chưa đủ chuẩn vào tiền thật. Hệ thống ghi lại để học, bạn không vào lệnh. Nhãn '📝 TÍN HIỆU GIẤY'."],
+    ["Điểm cao có chắc thắng không?", "Không. 82–90đ vẫn thua khi bias khung lớn sai (bài học thực tế của hệ thống). Điểm cao = xác suất tốt hơn, không phải chắc chắn."],
+    ["Thấy tín hiệu trên app nhưng không có WhatsApp?", "Kiểm tra thẻ tín hiệu: có thể đó là tín hiệu GIẤY hoặc PREPARE — chỉ tín hiệu thật mới gửi WhatsApp. Nếu là thật mà không nhận được, báo ngay cho admin."],
+    ["Nên bắt đầu từ đâu?", "Đọc trang Kiến thức trước, xem tín hiệu giấy 1–2 tuần để hiểu cách hệ thống chấm điểm, rồi mới vào tiền nhỏ (risk 0.5–1%)."],
+  ];
+  for (const [h, b] of faq) c4.appendChild(el("div", { class: "impact-row" }, el("b", { class: "small" }, h), el("div", { class: "muted small" }, b)));
   root.appendChild(c4);
 }
 

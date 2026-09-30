@@ -45,6 +45,85 @@ const KIEN_THUC = {
     { cap: "Hệ thống kỹ thuật ↔ Tâm lý & Vị thế cuộc sống", y: "Hệ thống tốt đến đâu mà dùng tiền vay, áp lực phải thắng thì vẫn thua (chuyện anh A/anh B). Hệ thống chỉ là công cụ — tâm lý và quản lý vốn 1–2% mới là người điều khiển." },
   ],
 
+  /* v2.6.0 → v2.8.0: kiến thức từ tài liệu mới (infographic 18 phút, Order Block, đọc nến).
+   * Mỗi mục có "trongApp" để cột tự động hóa hiển thị đúng như các chủ đề cốt lõi. */
+  khoaHocMoi: [
+    {
+      ten: "Cấu trúc thị trường 18 phút",
+      emoji: "🏯",
+      nguon: "v2.6.0 — tài liệu '18 phút đổi góc nhìn'",
+      noiDung: [
+        "TĂNG = chuỗi đỉnh cao dần + đáy cao dần (HH + HL) → chỉ tìm LONG tại đáy cao dần (HL).",
+        "GIẢM = chuỗi đỉnh thấp dần + đáy thấp dần (LH + LL) → chỉ tìm SHORT tại đỉnh thấp dần (LH).",
+        "ĐI NGANG = không có chuỗi rõ → đứng ngoài, chờ phá vỡ biên.",
+        "Quy trình 18 phút: nhìn 4H lấy xu hướng lớn → 1H xác nhận cấu trúc → 15m tìm điểm vào.",
+        "ĐỪNG BAO GIỜ giao dịch ngược cấu trúc khung 4H — đó là lý do 4 lệnh LONG thua liên tiếp của hệ thống.",
+      ],
+      trongApp: "Engine đánh giá cấu trúc 3 khung (4H/1H/15m): ngược cấu trúc 4H −12đ, CHoCH 1H ngược −8đ, đồng pha 3 khung +5đ. Hiện trên thẻ tín hiệu dòng '🏯 Cấu trúc'.",
+    },
+    {
+      ten: "Chất lượng Order Block",
+      emoji: "🧱",
+      nguon: "v2.7.0 — tài liệu Order Block",
+      noiDung: [
+        "4 yếu tố OB chất lượng: momentum mạnh (impulse ≥ 1.35 ATR) · gắn với BOS/CHoCH (≤ 12 nến) · có sweep thanh khoản hoặc EQH/EQL · đúng xu hướng khung lớn.",
+        "4 kiểu OB nên NÉ: trong vùng tích lũy · thiếu thanh khoản phía trước · ngược xu hướng 4H · bị giá test quá 3 lần.",
+        "OB bị test càng nhiều càng yếu — lần chạm thứ 4 trở đi coi như đã hết lệnh.",
+        "Xếp loại: KHỎE ≥ 70đ · TRUNG BÌNH 40–69đ · YẾU < 40đ.",
+      ],
+      trongApp: "Engine tự chấm chất lượng OB khi POI là Order Block: OB YẾU −10đ, OB KHỎE +5đ. Hiện '🧱 OB: KHỎE 85đ' trên thẻ tín hiệu.",
+    },
+    {
+      ten: "Bối cảnh nến — đọc nến đúng cách",
+      emoji: "🕯️",
+      nguon: "v2.8.0 — tài liệu đọc nến",
+      noiDung: [
+        "'Nến là tín hiệu, vị trí là độ cậy' — một cây nến không có ý nghĩa nếu không biết nó xuất hiện ở đâu.",
+        "3 vị trí quan trọng quyết định giá trị nến: vùng hỗ trợ/kháng cự · vùng cung–cầu (supply/demand) · Order Block.",
+        "Nến đẹp GIỮA RANGE = nhiễu, do dự, dễ là trap — không bao giờ vào lệnh vì một mẫu nến lơ lửng.",
+        "5 điều trước khi tin một mẫu nến: vị trí trong cấu trúc · phản ứng tại key level · volume xác nhận (≥ 1.3× TB) · cường độ (thân lớn vs thân nhỏ) · bối cảnh đa khung.",
+        "Doji / Inside bar đơn độc KHÔNG phải tín hiệu buy/sell — chỉ là 'tạm dừng', phải chờ nến xác nhận.",
+      ],
+      trongApp: "Engine đọc mẫu nến (pin bar, nhấn chìm, doji, inside bar) trên khung 15m: nến MẠNH +5đ, nến CHỐNG LỆNH −8đ. Hiện '🕯️ Nến' trên thẻ tín hiệu.",
+    },
+    {
+      ten: "Breakout thật vs Breakout giả",
+      emoji: "💥",
+      nguon: "v2.8.0 — tài liệu đọc nến",
+      noiDung: [
+        "Breakout THẬT: nến thân lớn (momentum mạnh) + ĐÓNG CỬA bên ngoài vùng kháng cự + volume TĂNG — dòng tiền lớn tham gia.",
+        "Breakout GIẢ (bull/bear trap): râu nến dài từ chối giá + đóng cửa QUAY LẠI trong vùng + volume thấp — bẫy FOMO.",
+        "Không đuổi theo breakout giả; breakout thật thì chờ retest vùng phá vỡ rồi mới vào.",
+        "Breakout tại vùng quan trọng có độ tin cậy cao hơn breakout giữa range.",
+      ],
+      trongApp: "Engine tự phân loại breakout tại key level 15m: breakout giả cùng hướng lệnh −20đ + cảnh báo 'không đuổi theo'; breakout ngược hướng lệnh với lực mạnh −15đ.",
+    },
+    {
+      ten: "Nến quét thanh khoản (Liquidity Grab)",
+      emoji: "🧹",
+      nguon: "v2.8.0 — tài liệu đọc nến",
+      noiDung: [
+        "Dấu hiệu: râu nến rất dài quét qua vùng hỗ trợ/kháng cự, nhưng thân nến ĐÓNG LẠI trong vùng giá cũ — tổ chức lớn đang 'đi chợ' stop loss của trader nhỏ lẻ.",
+        "Vì sao trader bị stop loss trước khi giá chạy: tổ chức cần thanh khoản lớn để khớp lệnh, họ đẩy giá quét qua vùng đặt SL rồi mới chạy theo hướng thật.",
+        "Sai lầm: giao dịch mù quáng chỉ vì thấy râu dài — phải chờ XÁC NHẬN đảo chiều (CHoCH/BOS nhỏ, pin bar, nhấn chìm) sau cú quét.",
+        "Bối cảnh ưu tiên: xu hướng chính rõ ràng · gần vùng hỗ trợ/kháng cự mạnh · phiên Âu–Mỹ (thanh khoản cao).",
+      ],
+      trongApp: "Engine phát hiện sweep tự động (wick xuyên swing + close quay lại) — tín hiệu chỉ kích hoạt SAU cú sweep. Nến xác nhận sau sweep được chấm ở module bối cảnh nến.",
+    },
+    {
+      ten: "Quản lý lệnh bằng nến (sắp có)",
+      emoji: "🛡️",
+      nguon: "tài liệu đọc nến — chưa tự động hóa",
+      noiDung: [
+        "Dời stop loss theo nến (trailing): khi xu hướng tiếp diễn, dời SL về dưới đáy nến tăng trước đó — vừa bảo vệ lợi nhuận vừa để lệnh chạy.",
+        "Thoát lệnh sớm: xuất hiện nến đảo chiều mạnh (ví dụ Shooting Star thân nhỏ râu dài) tại kháng cự + volume tăng đột biến → thoát lệnh mua ngay.",
+        "Chốt lời từng phần: khi nến thân nhỏ dần / râu dài xuất hiện trước mục tiêu — lực mua đang suy yếu, chốt một phần thay vì chờ đảo chiều.",
+        "Nguyên tắc chung: vào lệnh theo kế hoạch, quản lý lệnh theo nến — 'biết tiến biết lùi mới là cao thủ'.",
+      ],
+      trongApp: "Chưa tự động hóa — paper bot hiện chỉ dời SL về hòa vốn khi +1R. Đang cân nhắc cho phiên bản tới.",
+    },
+  ],
+
   quyTrinh5Buoc: [
     { buoc: "CHỜ ĐỢI", en: "Wait", mota: "Đợi giá về vùng quan trọng (Key Level / OB) trên khung H4/D1. Không có setup = không làm gì.", may: "phase: wait_sweep — theo dõi tự động" },
     { buoc: "QUAN SÁT", en: "Watch", mota: "Tại vùng đó, tìm cú QUÉT THANH KHOẢN — giá chọc thủng hỗ trợ rồi rút chân nhanh (Spring/Stop Hunt). Dấu hiệu Big Boy tham gia.", may: "engine phát hiện sweep wick-close tự động" },

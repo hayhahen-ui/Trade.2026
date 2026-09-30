@@ -1619,6 +1619,33 @@ console.log("\n[28] v2.8.0 — bối cảnh nến (nến là tín hiệu, vị t
   ok(/bỏ dòng này nếu nen null/.test(hookDef.prompt), "template bỏ qua dòng nến với tín hiệu cũ");
 }
 
+console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn");
+{
+  // 1. knowledge.js — 6 chủ đề mới có đủ trường
+  const c = makeCtx({});
+  c.load("assets/js/knowledge.js");
+  const KT = c.get("KIEN_THUC");
+  ok(Array.isArray(KT.khoaHocMoi) && KT.khoaHocMoi.length >= 6, `khoaHocMoi có ${KT.khoaHocMoi.length} chủ đề`);
+  ok(KT.khoaHocMoi.every(k => k.ten && k.noiDung.length && k.trongApp), "mỗi chủ đề có tên + nội dung + 'Trong app'");
+  const ten = KT.khoaHocMoi.map(k => k.ten).join("|");
+  ok(/18 phút/.test(ten) && /Order Block/.test(ten) && /Bối cảnh nến/.test(ten) && /Breakout/.test(ten) && /quét thanh khoản/.test(ten),
+    "đủ 5 nguồn tài liệu mới (cấu trúc 18p, OB, nến, breakout, liquidity grab)");
+
+  // 2. screens2.js — trang Kiến thức render mục mới + có trang Hướng dẫn
+  const scr = read("assets/js/screens2.js");
+  ok(/Kiến thức nâng cao \(từ tài liệu mới\)/.test(scr), "renderKienThuc vẽ mục 'Kiến thức nâng cao'");
+  ok(/function renderHuongDan\(root\)/.test(scr), "có hàm renderHuongDan");
+  ok(/Checklist kỷ luật — 10 điều trước khi vào lệnh/.test(scr), "trang Hướng dẫn có checklist kỷ luật");
+  ok(/Câu hỏi thường gặp/.test(scr) && /Tín hiệu giấy là gì/.test(scr), "trang Hướng dẫn có FAQ");
+  ok(/Luồng tín hiệu → vào lệnh/.test(scr) && /Đọc thẻ tín hiệu/.test(scr), "trang Hướng dẫn dạy đọc tín hiệu");
+
+  // 3. app.js — nav có mục Hướng dẫn
+  const app = read("assets/js/app.js");
+  ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
+  const idx = read("index.html");
+  ok(/Trade\.2026 v2\.9\.0/.test(idx), "index.html đã lên v2.9.0");
+}
+
 _p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

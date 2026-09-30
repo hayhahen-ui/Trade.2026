@@ -16,6 +16,7 @@ const SCREENS = {
   lichkinhte:{ ten: "Lịch kinh tế",  emoji: "📅", render: renderLich },
   hoidap:     { ten: "AI Hỏi đáp",      emoji: "💬", render: renderHoiDap },
   kienthuc:  { ten: "Kiến thức",     emoji: "📚", render: renderKienThuc },
+  huongdan:  { ten: "Hướng dẫn",     emoji: "🧭", render: renderHuongDan },
 };
 let SCREEN_HIENTAI = "tongquan";
 
