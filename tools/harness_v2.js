@@ -1525,6 +1525,100 @@ console.log("\n[27] v2.7.0 — chất lượng Order Block (4 kiểu OB nên né
   ok(/bỏ dòng này nếu ob null/.test(hookDef.prompt), "template bỏ qua dòng OB với tín hiệu cũ");
 }
 
+console.log("\n[28] v2.8.0 — bối cảnh nến (nến là tín hiệu, vị trí là độ cậy)");
+{
+  // 1. danhGiaNen — unit với nến giả
+  const c = makeCtx({ clamp: (v, a, b) => Math.min(b, Math.max(a, v)) });
+  c.load("assets/js/ta.js"); c.load("assets/js/smc.js");
+  const danhGiaNen = c.get("danhGiaNen");
+  const mkC = (o, h, l, cl, v = 100) => ({ open: o, high: h, low: l, close: cl, volume: v });
+  const nenNen = (arr) => { const base = []; for (let i = 0; i < 20; i++) base.push(mkC(100, 102, 98, 100, 100)); return [...base, ...arr, mkC(101, 102, 100, 101, 100)]; };
+  const ctxL = (poiZone) => ({ side: "long", poi: { zone: poiZone }, ttHTF: { trangThai: "TĂNG", huong: "long" }, atr: 5, khoa: [] });
+
+  // A. Pin bar tăng tại POI + volume xác nhận → MẠNH
+  const pinTang = danhGiaNen(nenNen([mkC(100, 101.5, 90, 101, 150)]), ctxL([95, 102]));
+  ok(pinTang.mau.includes("Pin bar tăng"), "nhận diện Pin bar tăng");
+  ok(pinTang.viTri === "POI", "xác định vị trí tại POI");
+  ok(pinTang.volXacNhan === true, "volume x1.5 TB được xác nhận");
+  ok(pinTang.xepLoai === "MẠNH" && pinTang.diem >= 70, `pin đúng chỗ + đúng hướng + volume → MẠNH (${pinTang.diem}đ)`);
+
+  // B. Nhấn chìm tăng nhưng giữa range → cảnh báo sai chỗ, không cộng điểm
+  const engulf = danhGiaNen(nenNen([mkC(105, 106, 99, 100, 100), mkC(99, 108, 98, 107, 100)]), ctxL([200, 210]));
+  ok(engulf.mau.includes("Nhấn chìm tăng"), "nhận diện Nhấn chìm tăng");
+  ok(engulf.viTri === "giữa range" && engulf.canhBao.some(x => /SAI CHỖ/.test(x)), "nến đẹp giữa range → cảnh báo trap");
+  ok(engulf.diem === 50, "nến sai chỗ không cộng điểm (trung tính)");
+
+  // C. Pin bar giảm tại POI ngược hướng LONG + volume yếu → CHỐNG LỆNH
+  const pinGiam = danhGiaNen(nenNen([mkC(101, 111, 100.5, 100, 50)]), ctxL([95, 102]));
+  ok(pinGiam.mau.includes("Pin bar giảm"), "nhận diện Pin bar giảm");
+  ok(pinGiam.xepLoai === "CHỐNG LỆNH" && pinGiam.canhBao.some(x => /CHỐNG lại hướng LONG/.test(x)), `nến chống lệnh tại POI → CHỐNG LỆNH (${pinGiam.diem}đ)`);
+
+  // D. Doji đơn độc → "tạm dừng", không phải tín hiệu
+  const doji = danhGiaNen(nenNen([mkC(100, 105, 95, 100.2, 100)]), ctxL([200, 210]));
+  ok(doji.mau.includes("Doji") && doji.chiTiet.some(x => /tạm dừng/.test(x)), "doji = tạm dừng, không phải buy/sell");
+
+  // E. Breakout THẬT cùng hướng (thân lớn + đóng ngoài vùng + volume tăng)
+  const brkThat = danhGiaNen(nenNen([mkC(106, 108, 104, 107, 100), mkC(108, 115, 107, 114, 160)]),
+    { ...ctxL([200, 210]), khoa: [{ gia: 110 }] });
+  ok(brkThat.chiTiet.some(x => /Breakout THẬT/.test(x)), "breakout thật được ghi nhận");
+
+  // F. Breakout GIẢ cùng hướng (râu dài từ chối + volume thấp) → trừ 20
+  const brkGia = danhGiaNen(nenNen([mkC(106, 108, 104, 107, 100), mkC(108, 120, 107, 112, 60)]),
+    { ...ctxL([200, 210]), khoa: [{ gia: 110 }] });
+  ok(brkGia.canhBao.some(x => /Breakout GIẢ/.test(x)) && brkGia.diem <= 30, `breakout giả → cảnh báo trap + trừ điểm (${brkGia.diem}đ)`);
+
+  // G. Inside bar nhận diện được
+  const inside = danhGiaNen(nenNen([mkC(100, 110, 90, 105, 100), mkC(102, 108, 92, 104, 100)]), ctxL([200, 210]));
+  ok(inside.mau.includes("Inside bar"), "nhận diện Inside bar");
+
+  // H. Không đủ nến → null (trung tính)
+  ok(danhGiaNen([mkC(1, 2, 0.5, 1.5, 10)], ctxL([95, 102])) === null, "thiếu nến → null, không chấm bừa");
+
+  // 2. engine.js — gọi đánh giá nến + điều chỉnh điểm + ketQua
+  const eng = read("assets/js/engine.js");
+  ok(/danhGiaNen\(c15/.test(eng), "engine gọi danhGiaNen trên nến 15m");
+  ok(/xepLoai === "MẠNH"\) score = clamp\(score \+ 5/.test(eng), "nến MẠNH → cộng 5 điểm");
+  ok(/xepLoai === "CHỐNG LỆNH"\) score = clamp\(score - 8/.test(eng), "nến CHỐNG LỆNH → trừ 8 điểm");
+  ok(/chatLuongOB, chatLuongNen,/.test(eng), "ketQua mang field chatLuongNen");
+
+  // 3. journal.js — ghiNhan lưu nen + Kaizen bài học nến xấu
+  const c2 = makeCtx({ window: {}, document: {}, localStorage: (() => { const m = {}; return {
+    getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; })() });
+  c2.evalIn(`var window = globalThis; var localStorage = globalThis.localStorage;`);
+  c2.load("assets/js/journal.js");
+  const J = c2.get("JOURNAL");
+  const kq = { coin: "BTC", verdict: "LONG", score: 85, phase: "alert_ready", time: Date.now(),
+    plan: { entry: 84000, sl: 83000, tp1: 86000, rr1: 2 }, htf: { bias: "tang" }, killzone: { ten: "London" }, checklist: [],
+    chatLuongNen: { diem: 15, xepLoai: "CHỐNG LỆNH", mau: ["Pin bar giảm"], viTri: "tại POI", volRatio: 0.5, volXacNhan: false, chiTiet: [], canhBao: [] } };
+  const r = J.ghiNhan(kq);
+  ok(r && r.nen && r.nen.xepLoai === "CHỐNG LỆNH" && r.nen.mau === "Pin bar giảm", "ghiNhan lưu nen (xếp loại + mẫu chính)");
+  const rutBaiHocKaizen = c2.get("rutBaiHocKaizen");
+  const thongKeJournal = c2.get("thongKeJournal");
+  const mkRec = (xl, tt) => ({
+    id: `t-${Math.random()}`, coin: "BTC", side: "long", loai: "that", tsVao: Date.now(),
+    giaVao: 100, sl: 99, tp: 102, rr: 2, diem: 80, phien: "X", bias4h: "bullish",
+    trangThai: tt, ketQua: tt === "thang" || tt === "thua" ? { ketQua: tt, r: tt === "thang" ? 2 : -1, gioDenKQ: 0.5 } : null,
+    nen: { diem: 15, xepLoai: xl, mau: "Pin bar giảm", viTri: "tại POI" },
+  });
+  const ds = [mkRec("CHỐNG LỆNH", "thua"), mkRec("YẾU", "thua"), mkRec("CHỐNG LỆNH", "thang")];
+  const bh = rutBaiHocKaizen(thongKeJournal(ds), ds);
+  ok(bh.some(b => /nến xấu/.test(b.tieuDe)), "Kaizen sinh bài học khi ≥3 lệnh nến xấu");
+  const bh2 = rutBaiHocKaizen(thongKeJournal([mkRec("CHỐNG LỆNH", "thua"), mkRec("YẾU", "thua")]), [mkRec("CHỐNG LỆNH", "thua"), mkRec("YẾU", "thua")]);
+  ok(!bh2.some(b => /nến xấu/.test(b.tieuDe)), "dưới 3 lệnh nến xấu → không sinh bài học");
+
+  // 4. screens.js — dòng 🕯️ trên thẻ tín hiệu + panel SMC
+  const scr = read("assets/js/screens.js");
+  ok(/🕯️ Bối cảnh nến/.test(scr), "panel SMC có dòng 🕯️ Bối cảnh nến");
+  ok(/\$\{cn\.xepLoai\} \$\{cn\.diem\}đ/.test(scr), "thẻ tín hiệu hiện xếp loại + điểm nến");
+
+  // 5. hook WhatsApp — pick nen + template tin nhắn
+  const hookSh = fs.readFileSync("/home/hatch/hooks/scripts/trade2026-signal-whatsapp.sh", "utf8");
+  ok(/nen: s\.nen \|\| null/.test(hookSh), "hook pick thêm nen");
+  const hookDef = JSON.parse(fs.readFileSync("/home/hatch/hooks/definitions/trade2026-signal-whatsapp.json", "utf8"));
+  ok(/🕯️ Nến/.test(hookDef.prompt), "template WhatsApp có dòng 🕯️ Nến");
+  ok(/bỏ dòng này nếu nen null/.test(hookDef.prompt), "template bỏ qua dòng nến với tín hiệu cũ");
+}
+
 _p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

@@ -425,6 +425,16 @@ function vePanelSMC(kq) {
     panel.appendChild(el("div", { class: "kv" }, el("span", {}, "🧱 Chất lượng OB"),
       el("b", { class: cls, title: cb0 }, `${qb.xepLoai} · ${qb.diem}đ · chạm ${qb.soLanCham} lần · strength ${qb.strength}`)));
   }
+  // v2.8.0: bối cảnh nến (kiến thức "đọc nến")
+  if (kq.chatLuongNen) {
+    const cn = kq.chatLuongNen;
+    const cls = cn.xepLoai === "MẠNH" ? "up" : (cn.xepLoai === "CHỐNG LỆNH" || cn.xepLoai === "YẾU") ? "down" : "";
+    const nd = cn.mau.length ? cn.mau.join(" + ") : "không có mẫu rõ";
+    const tt0 = cn.canhBao[0] || cn.chiTiet[0] || "";
+    panel.appendChild(el("div", { class: "kv" }, el("span", {}, "🕯️ Bối cảnh nến"),
+      el("b", { class: cls, title: tt0 }, `${cn.xepLoai} · ${cn.diem}đ · ${nd} (${cn.viTri})`)));
+    if (cn.volXacNhan) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "📊 Volume nến"), el("span", { class: "up small" }, `x${cn.volRatio} TB — có xác nhận`)));
+  }
   if (kq.htf.ema200) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "EMA200 4H"), el("b", { class: "mono" }, fmtGia(kq.htf.ema200))));
   if (kq.mtf.range) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Dải giá 1H"), el("b", {}, `${kq.mtf.range.vung.toUpperCase()} (${kq.mtf.range.viTriPct}%)`)));
   if (kq.mtf.poc) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "POC volume 1H"), el("b", { class: "mono" }, fmtGia(kq.mtf.poc))));
@@ -782,6 +792,13 @@ function veTheTinHieu(kq) {
     const qb = kq.chatLuongOB;
     const cls = qb.xepLoai === "YẾU" ? "down" : qb.xepLoai === "KHỎE" ? "up" : "";
     card.appendChild(el("div", { class: "kv" }, el("span", {}, "🧱 OB"), el("b", { class: cls }, `${qb.xepLoai} ${qb.diem}đ`)));
+  }
+  // v2.8.0: bối cảnh nến (kiến thức "đọc nến" — nến là tín hiệu, vị trí là độ cậy)
+  if (kq.chatLuongNen) {
+    const cn = kq.chatLuongNen;
+    const cls = cn.xepLoai === "MẠNH" ? "up" : (cn.xepLoai === "CHỐNG LỆNH" || cn.xepLoai === "YẾU") ? "down" : "";
+    card.appendChild(el("div", { class: "kv" }, el("span", {}, "🕯️ Nến"),
+      el("b", { class: cls, title: (cn.canhBao[0] || cn.chiTiet[0] || "") }, `${cn.xepLoai} ${cn.diem}đ · ${cn.mau[0] || "không mẫu"} (${cn.viTri})`)));
   }
   if (kq.dongTien) {
     const dt = kq.dongTien;

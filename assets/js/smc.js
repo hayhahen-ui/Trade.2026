@@ -347,3 +347,123 @@ function danhGiaChatLuongOB(ob, ctx) {
   const xepLoai = diem >= 70 ? "KHỎE" : diem >= 40 ? "TRUNG BÌNH" : "YẾU";
   return { diem, xepLoai, chiTiet, canhBao, soLanCham, strength: st };
 }
+
+/* ---------- Bối cảnh nến (v2.8.0 — kiến thức "đọc nến") ----------
+ * Doctrine: "Nến là tín hiệu, vị trí là độ cậy."
+ *  - Mẫu nến chỉ có giá trị khi xuất hiện ĐÚNG CHỖ (vùng quan trọng: POI / S-R / swing).
+ *    Nến đẹp giữa range = nhiễu, dễ là trap → cảnh báo, không cộng điểm.
+ *  - Đúng hướng xu hướng + volume xác nhận (≥1.3× TB) + thân nến đủ lực (≥1.2 ATR).
+ *  - Breakout THẬT: thân lớn + đóng cửa ngoài vùng + volume tăng.
+ *    Breakout GIẢ: râu dài từ chối giá + đóng cửa quay lại trong vùng + volume thấp.
+ *  - Doji / Inside bar đơn độc KHÔNG phải tín hiệu buy/sell — chỉ là "tạm dừng", chờ nến xác nhận.
+ *  - Nến quét thanh khoản (râu dài quét S/R + đóng cửa quay lại): engine đã có sweepDungPhia;
+ *    ở đây chỉ chấm các mẫu XÁC NHẬN sau sweep để tránh double-count.
+ * Chỉ dùng nến ĐÃ ĐÓNG (bỏ nến cuối đang hình thành) — chống repaint. */
+function thongSoNen(c) {
+  const body = Math.abs(c.close - c.open);
+  const range = (c.high - c.low) || 1e-9;
+  const tang = c.close >= c.open;
+  return {
+    body, range, tang,
+    rauTren: c.high - Math.max(c.open, c.close),
+    rauDuoi: Math.min(c.open, c.close) - c.low,
+    dongGanDinh: (c.high - c.close) / range <= 0.25,
+    dongGanDay: (c.close - c.low) / range <= 0.25,
+  };
+}
+
+function nhanDienMauNen(dong) { // dong: nến đã đóng, mới nhất ở cuối
+  const mau = [];
+  const n = dong.length;
+  if (n < 2) return mau;
+  const c = dong[n - 1], p = dong[n - 2];
+  const s = thongSoNen(c), sp = thongSoNen(p);
+  // Pin bar (búa / sao băng): râu dài ≥2× thân, thân nhỏ ở 1 đầu
+  if (s.rauDuoi >= 2 * s.body && s.rauTren <= s.body && s.rauDuoi >= 0.55 * s.range)
+    mau.push({ ten: "Pin bar tăng", huong: "tang" });
+  if (s.rauTren >= 2 * s.body && s.rauDuoi <= s.body && s.rauTren >= 0.55 * s.range)
+    mau.push({ ten: "Pin bar giảm", huong: "giam" });
+  // Nhấn chìm: thân nến sau bao trùm thân nến trước, ngược màu
+  if (!sp.tang && s.tang && c.open <= p.close && c.close >= p.open && s.body >= sp.body)
+    mau.push({ ten: "Nhấn chìm tăng", huong: "tang" });
+  if (sp.tang && !s.tang && c.open >= p.close && c.close <= p.open && s.body >= sp.body)
+    mau.push({ ten: "Nhấn chìm giảm", huong: "giam" });
+  // Doji: thân ≤10% range → lưỡng lự, không phải tín hiệu đơn độc
+  if (s.body <= 0.1 * s.range) mau.push({ ten: "Doji", huong: "luong_lu" });
+  // Inside bar: nằm gọn trong nến mẹ → nén, chờ phá vỡ
+  if (c.high <= p.high && c.low >= p.low) mau.push({ ten: "Inside bar", huong: "luong_lu" });
+  return mau;
+}
+
+function danhGiaNen(candles, ctx) {
+  const chiTiet = [], canhBao = [];
+  const n = candles.length;
+  if (n < 22 || !ctx.side) return null; // không đủ dữ liệu → trung tính
+  const dong = candles.slice(0, n - 1); // bỏ nến đang hình thành
+  const atr = ctx.atr || 1e-9;
+  const mau = nhanDienMauNen(dong.slice(-3));
+  const c = dong[dong.length - 1], p = dong[dong.length - 2];
+  const s = thongSoNen(c);
+  const side = ctx.side;
+
+  // --- Vị trí: đúng chỗ (POI / S-R / swing) hay giữa range ---
+  const zone = ctx.poi && ctx.poi.zone ? [Math.min(...ctx.poi.zone), Math.max(...ctx.poi.zone)] : null;
+  const tol = atr * 0.5;
+  const chamPOI = zone && c.low <= zone[1] + tol && c.high >= zone[0] - tol;
+  const khoa = (ctx.khoa || []).map(k => (k && k.gia != null ? k.gia : k)).filter(g => typeof g === "number");
+  const chamKhoa = khoa.some(g => Math.abs(c.low - g) <= tol || Math.abs(c.high - g) <= tol || (c.low <= g && c.high >= g));
+  const dungCho = chamPOI || chamKhoa;
+  const viTri = chamPOI ? "POI" : chamKhoa ? "vùng S/R" : "giữa range";
+
+  // --- Volume xác nhận ---
+  const vols = dong.slice(-21, -1).map(k => k.volume || 0).filter(v => v > 0);
+  const volTB = vols.length >= 10 ? vols.reduce((a, b) => a + b, 0) / vols.length : 0;
+  const volRatio = volTB > 0 && c.volume > 0 ? c.volume / volTB : 1;
+  const volXacNhan = volRatio >= 1.3, volYeu = volRatio < 0.7;
+
+  // --- Lực nến ---
+  const lucManh = s.body >= 1.2 * atr && (s.dongGanDinh || s.dongGanDay);
+
+  let diem = 50;
+  const cungHuong = m => (side === "long" && m.huong === "tang") || (side === "short" && m.huong === "giam");
+  const nguocHuong = m => (side === "long" && m.huong === "giam") || (side === "short" && m.huong === "tang");
+  const mauChinh = mau.filter(m => m.huong !== "luong_lu");
+
+  if (!mau.length) {
+    chiTiet.push("Không có mẫu nến rõ ràng — trung tính, chờ giá về đúng chỗ");
+  } else if (!mauChinh.length) {
+    chiTiet.push(`${mau.map(m => m.ten).join(" + ")} — chỉ là "tạm dừng", KHÔNG phải tín hiệu buy/sell; chờ nến xác nhận`);
+    if (!dungCho) canhBao.push("Nến lưỡng lự giữa range — không có giá trị giao dịch");
+  } else {
+    for (const m of mauChinh) {
+      if (cungHuong(m) && dungCho) { diem += 25; chiTiet.push(`${m.ten} ĐÚNG CHỖ (${viTri}) + đúng hướng — xác nhận mạnh`); }
+      else if (cungHuong(m)) { canhBao.push(`${m.ten} đẹp nhưng SAI CHỖ (giữa range) — dễ là trap, không vội vào lệnh`); }
+      else if (nguocHuong(m) && dungCho) { diem -= 30; canhBao.push(`${m.ten} tại ${viTri} đang CHỐNG lại hướng ${side.toUpperCase()} — phe đối lập phản kháng mạnh`); }
+      else if (nguocHuong(m)) { diem -= 10; canhBao.push(`${m.ten} ngược hướng lệnh (giữa range)`); }
+    }
+  }
+
+  if (volXacNhan) { diem += 10; chiTiet.push(`Volume xác nhận (x${volRatio.toFixed(1)} TB) — dòng tiền đứng sau`); }
+  else if (volYeu) { diem -= 5; canhBao.push(`Volume yếu (x${volRatio.toFixed(1)} TB) — thiếu dòng tiền ủng hộ`); }
+  if (lucManh && dungCho && mauChinh.some(cungHuong)) { diem += 10; chiTiet.push("Thân nến lớn (≥1.2 ATR), đóng cửa dứt khoát — lực mạnh"); }
+
+  // --- Breakout thật / giả tại key level ---
+  for (const g of khoa) {
+    const phaLen = p.close <= g && c.close > g + tol * 0.5;
+    const phaXuong = p.close >= g && c.close < g - tol * 0.5;
+    if (!phaLen && !phaXuong) continue;
+    const huongPha = phaLen ? "tang" : "giam";
+    const cungHuongLenh = (side === "long" && huongPha === "tang") || (side === "short" && huongPha === "giam");
+    const that = s.body >= 1.0 * atr && volRatio >= 1.2;                    // thân lớn + volume tăng
+    const gia = (s.rauTren >= 2 * s.body || s.rauDuoi >= 2 * s.body) || volRatio < 0.8; // râu dài từ chối / volume thấp
+    if (that && cungHuongLenh) { diem += 10; chiTiet.push("Breakout THẬT: thân lớn + đóng cửa ngoài vùng + volume tăng"); }
+    else if (gia && cungHuongLenh) { diem -= 20; canhBao.push("Breakout GIẢ (bull/bear trap): râu dài từ chối giá + đóng cửa quay lại — không đuổi theo"); }
+    else if (that && !cungHuongLenh) { diem -= 15; canhBao.push("Giá đang breakout NGƯỢC hướng lệnh với lực mạnh — cân nhắc đứng ngoài"); }
+    else if (gia && !cungHuongLenh) { diem += 5; chiTiet.push("Phe ngược thử phá nhưng bị từ chối (breakout giả ngược hướng) — phe ta đang thắng thế"); }
+    break; // chỉ chấm key level gần nhất bị phá
+  }
+
+  diem = clamp(diem, 0, 100);
+  const xepLoai = diem >= 70 ? "MẠNH" : diem >= 45 ? "TRUNG BÌNH" : diem >= 20 ? "YẾU" : "CHỐNG LỆNH";
+  return { diem, xepLoai, mau: mau.map(m => m.ten), viTri, volRatio: +volRatio.toFixed(2), volXacNhan, chiTiet, canhBao };
+}

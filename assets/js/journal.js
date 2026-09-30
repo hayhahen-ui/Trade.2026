@@ -55,6 +55,7 @@ const JOURNAL = {
         // v2.6.0: cấu trúc thị trường 18-phút (TĂNG/GIẢM/ĐI NGANG 4H|1H + cờ ngược cấu trúc/CHoCH) — để Kaizen đối chiếu
         cauTruc: kq.cauTruc ? { htf: kq.cauTruc.htf, mtf: kq.cauTruc.mtf, nguoc: !!kq.cauTruc.nguocCauTruc, choch: !!kq.cauTruc.chochNguoc } : null,
         ob: kq.chatLuongOB ? { diem: kq.chatLuongOB.diem, xepLoai: kq.chatLuongOB.xepLoai, cham: kq.chatLuongOB.soLanCham } : null,
+        nen: kq.chatLuongNen ? { diem: kq.chatLuongNen.diem, xepLoai: kq.chatLuongNen.xepLoai, mau: (kq.chatLuongNen.mau[0] || null), viTri: kq.chatLuongNen.viTri } : null,
         checklist: (kq.checklist || []).filter(c => c.dat).map(c => c.id),
         trangThai: "dang_theo_doi",
         ketQua: null,
@@ -99,6 +100,7 @@ const JOURNAL = {
         // v2.6.0: cấu trúc thị trường 18-phút — để Kaizen đối chiếu giấy vs thật
         cauTruc: kq.cauTruc ? { htf: kq.cauTruc.htf, mtf: kq.cauTruc.mtf, nguoc: !!kq.cauTruc.nguocCauTruc, choch: !!kq.cauTruc.chochNguoc } : null,
         ob: kq.chatLuongOB ? { diem: kq.chatLuongOB.diem, xepLoai: kq.chatLuongOB.xepLoai, cham: kq.chatLuongOB.soLanCham } : null,
+        nen: kq.chatLuongNen ? { diem: kq.chatLuongNen.diem, xepLoai: kq.chatLuongNen.xepLoai, mau: (kq.chatLuongNen.mau[0] || null), viTri: kq.chatLuongNen.viTri } : null,
         checklist: (kq.checklist || []).filter(c => c.dat).map(c => c.id),
         lyDo: "Setup tốt nhất trong ngày — không đủ chuẩn vào lệnh thật, ghi nhận để Kaizen học",
         trangThai: "dang_theo_doi",
@@ -382,6 +384,19 @@ function rutBaiHocKaizen(st, ds) {
       tieuDe: `🧱 ${obYeu.length} lệnh vào OB YẾU (dỏm)`,
       chiTiet: `${thuaYeu}/${obYeu.length} lệnh OB YẾU đã thua — OB nằm giữa vùng nhiễu, ngược xu hướng 4H, thiếu thanh khoản hoặc đã bị test quá nhiều lần.`,
       goiY: "Ưu tiên OB KHỎE: momentum mạnh + gắn BOS/CHoCH + có sweep thanh khoản + đúng xu hướng 4H. Engine từ v2.7.0 tự trừ 10đ khi OB YẾU.",
+    });
+  }
+  // 11. Bối cảnh nến — "nến là tín hiệu, vị trí là độ cậy" (v2.8.0)
+  //     Nến chống lại hướng lệnh tại vùng quan trọng, hoặc nến đẹp nhưng sai chỗ
+  //     (giữa range), là dấu hiệu vào lệnh non / FOMO theo mẫu nến.
+  const nenXau = dsThat.filter(r => r.nen && (r.nen.xepLoai === "CHỐNG LỆNH" || r.nen.xepLoai === "YẾU"));
+  if (nenXau.length >= 3) {
+    const thuaNen = nenXau.filter(r => r.trangThai === "thua").length;
+    bh.push({
+      muc: thuaNen * 2 >= nenXau.length ? "xau" : "warn",
+      tieuDe: `🕯️ ${nenXau.length} lệnh có nến xấu (chống lệnh / sai chỗ)`,
+      chiTiet: `${thuaNen}/${nenXau.length} đã thua — mẫu nến chỉ có giá trị khi ĐÚNG CHỖ (vùng quan trọng) + đúng hướng + có volume; nến đẹp giữa range là trap.`,
+      goiY: "Từ v2.8.0 engine tự trừ 8đ khi nến LTF chống lại hướng lệnh. Khi thấy cảnh báo nến, chờ nến xác nhận đúng chỗ thay vì vào ngay.",
     });
   }
   if (!bh.length)
