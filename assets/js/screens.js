@@ -317,6 +317,43 @@ function capNhatSucKhoeNguon() {
 /* ================= BIỂU ĐỒ ================= */
 let CHART_COIN = "BTC", CHART_TF = "15";
 
+/* v2.10.0 — nạp toàn bộ coin Binance vào dropdown Biểu đồ; watchlist ghim ⭐ đầu danh sách.
+ * Chọn coin bất kỳ → quetCoin chạy full engine (cấu trúc, POI/OB, nến, dòng tiền,
+ * phái sinh, killzone) và gom cảnh báo theo đúng kiến thức/quy luật hệ thống. */
+async function napDanhSachCoinBieuDo(sel) {
+  const pin = [...(SETTINGS.watchlist || []), ...(SETTINGS.watchlistPhu || [])];
+  const ve = (coins) => {
+    sel.innerHTML = "";
+    const daThem = new Set();
+    const them = (c, nhan) => {
+      if (!c || daThem.has(c)) return;
+      daThem.add(c);
+      sel.appendChild(el("option", { value: c, ...(c === CHART_COIN ? { selected: "" } : {}) }, nhan));
+    };
+    for (const c of pin) them(c, `⭐ ${c}/USDT`);
+    for (const c of (coins || [])) them(c, `${c}/USDT`);
+    if (!daThem.has(CHART_COIN)) them(CHART_COIN, `${CHART_COIN}/USDT`);
+    capNhatGhiChuCoinNgoai(sel);
+  };
+  sel.innerHTML = "";
+  sel.appendChild(el("option", {}, "⏳ Đang tải toàn bộ coin Binance…"));
+  const all = await layTatCaCoinBinance().catch(() => null);
+  if (!document.body.contains(sel)) return; // user đã chuyển màn hình
+  ve(all);
+}
+
+/* Ghi chú trung thực khi coin nằm ngoài watchlist trạm 24/7 */
+function capNhatGhiChuCoinNgoai(sel) {
+  const old = document.getElementById("coin-ngoai-note");
+  if (old) old.remove();
+  const trongTram = [...(SETTINGS.watchlist || []), ...(SETTINGS.watchlistPhu || [])].includes(CHART_COIN);
+  if (!trongTram) {
+    const note = el("div", { id: "coin-ngoai-note", class: "muted tiny", style: "margin:4px 0" },
+      `ℹ️ ${CHART_COIN} ngoài watchlist trạm 24/7 — funding/OI/dòng tiền đa sàn có thể thiếu; phân tích nến, SMC, cấu trúc vẫn đầy đủ theo đúng luật hệ thống.`);
+    sel.parentElement && sel.parentElement.after(note);
+  }
+}
+
 function renderBieuDo(root, params = {}) {
   if (params.coin) CHART_COIN = params.coin;
   root.innerHTML = "";
@@ -324,10 +361,18 @@ function renderBieuDo(root, params = {}) {
   // Bộ chọn
   const chon = el("div", { class: "toolbar" });
   const selCoin = el("select", { class: "input", onchange: (e) => { CHART_COIN = e.target.value; renderBieuDo(root); } });
-  for (const c of [...SETTINGS.watchlist, ...SETTINGS.watchlistPhu]) selCoin.appendChild(el("option", { value: c, ...(c === CHART_COIN ? { selected: "" } : {}) }, `${c}/USDT`));
+  const inpTimCoin = el("input", {
+    class: "input", placeholder: "🔍 Tìm coin…", style: "width:130px",
+    oninput: () => {
+      const q = inpTimCoin.value.trim().toUpperCase();
+      for (const o of selCoin.options) o.hidden = !!(q && !o.text.toUpperCase().includes(q));
+    },
+  });
+  napDanhSachCoinBieuDo(selCoin);
   const selTf = el("select", { class: "input", onchange: (e) => { CHART_TF = e.target.value; renderBieuDo(root); } });
   for (const t of TV_INTERVALS) selTf.appendChild(el("option", { value: t.tv, ...(t.tv === CHART_TF ? { selected: "" } : {}) }, t.ten));
   chon.appendChild(el("label", { class: "muted small" }, "Coin: "));
+  chon.appendChild(inpTimCoin);
   chon.appendChild(selCoin);
   chon.appendChild(el("label", { class: "muted small" }, "Khung: "));
   chon.appendChild(selTf);

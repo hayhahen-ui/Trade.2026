@@ -1643,10 +1643,71 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.9\.0/.test(idx), "index.html đã lên v2.9.0");
+  ok(/Trade\.2026 v2\.10\.0/.test(idx), "index.html đã lên v2.10.0");
 }
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(() => {
+const _p30 = async () => {
+console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu đồ");
+  // 1. layTatCaCoinBinance: lọc đúng universe spot USDT, loại token đòn bẩy
+  let goi = 0;
+  const store = { _m: {}, getItem(k) { return this._m[k] ?? null; }, setItem(k, v) { this._m[k] = String(v); } };
+  const c = makeCtx({
+    ENDPOINTS: { binanceRest: ["https://fake"] },
+    localStorage: store,
+    fetchJson: async () => {
+      goi++;
+      return { symbols: [
+        { symbol: "BTCUSDT", status: "TRADING", baseAsset: "BTC", quoteAsset: "USDT" },
+        { symbol: "ETHUSDT", status: "TRADING", baseAsset: "ETH", quoteAsset: "USDT" },
+        { symbol: "BTCUPUSDT", status: "TRADING", baseAsset: "BTCUP", quoteAsset: "USDT" },
+        { symbol: "ETHDOWNUSDT", status: "TRADING", baseAsset: "ETHDOWN", quoteAsset: "USDT" },
+        { symbol: "BNBEUR", status: "TRADING", baseAsset: "BNB", quoteAsset: "EUR" },
+        { symbol: "XRPUSDT", status: "BREAK", baseAsset: "XRP", quoteAsset: "USDT" },
+        ...Array.from({ length: 60 }, (_, i) => ({ symbol: `T${i}USDT`, status: "TRADING", baseAsset: `T${i}`, quoteAsset: "USDT" })),
+      ]};
+    },
+  });
+  c.load("assets/js/exchanges.js");
+  const coins = await c.get("layTatCaCoinBinance")();
+  ok(coins.includes("BTC") && coins.includes("ETH"), "lấy được coin spot USDT");
+  ok(!coins.includes("BTCUP") && !coins.includes("ETHDOWN"), "loại token đòn bẩy UP/DOWN");
+  ok(!coins.includes("BNB") && !coins.includes("XRP"), "loại quote khác USDT và status BREAK");
+  ok(coins.length > 50 && coins.every((v, i, a) => a.indexOf(v) === i), "đủ nhiều coin, không trùng");
+  const truoc = goi;
+  await c.get("layTatCaCoinBinance")();
+  ok(goi === truoc, "lần 2 dùng cache bộ nhớ, không gọi lại API");
+  ok(store._m["tde_all_coins"] && JSON.parse(store._m["tde_all_coins"]).coins.length > 50, "cache localStorage 24h");
+
+  // 2. cache localStorage còn hạn → không gọi API
+  goi = 0;
+  const c2 = makeCtx({
+    ENDPOINTS: { binanceRest: ["https://fake"] },
+    localStorage: { getItem: () => JSON.stringify({ ts: Date.now(), coins: Array.from({ length: 60 }, (_, i) => "C" + i) }), setItem() {} },
+    fetchJson: async () => { goi++; throw new Error("không được gọi"); },
+  });
+  c2.load("assets/js/exchanges.js");
+  const cached = await c2.get("layTatCaCoinBinance")();
+  ok(goi === 0 && cached.length === 60, "dùng cache localStorage khi còn hạn");
+
+  // 3. API hỏng → trả null để UI fallback watchlist
+  const c3 = makeCtx({
+    ENDPOINTS: { binanceRest: ["https://fake"] },
+    localStorage: { getItem: () => null, setItem() {} },
+    fetchJson: async () => { throw new Error("451"); },
+  });
+  c3.load("assets/js/exchanges.js");
+  ok(await c3.get("layTatCaCoinBinance")() === null, "API hỏng → null (UI fallback watchlist)");
+
+  // 4. UI: dropdown tìm kiếm + ghim watchlist + ghi chú coin ngoài trạm
+  const scr = read("assets/js/screens.js");
+  ok(/napDanhSachCoinBieuDo\(selCoin\)/.test(scr), "renderBieuDo nạp danh sách coin động");
+  ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
+  ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
+  const idx = read("index.html");
+  ok(/Trade\.2026 v2\.10\.0/.test(idx), "index.html đã lên v2.10.0");
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

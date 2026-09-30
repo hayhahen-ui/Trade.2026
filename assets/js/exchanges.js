@@ -36,6 +36,46 @@ async function fetchKlines(coin, interval, limit = 260) {
   }
 }
 
+/* ---------- Toàn bộ coin USDT trên Binance (v2.10.0) ----------
+ * Kéo danh sách cặp giao dịch từ Binance exchangeInfo để màn hình Biểu đồ
+ * cho phép chọn BẤT KỲ coin nào — chọn xong engine chạy full phân tích
+ * (cấu trúc, POI/OB, nến, dòng tiền, phái sinh, killzone) và gom cảnh báo
+ * theo đúng kiến thức/quy luật của hệ thống.
+ * Cache localStorage 24h để không gọi exchangeInfo mỗi lần mở trang. */
+let CACHE_ALL_COINS = null;
+async function layTatCaCoinBinance() {
+  if (CACHE_ALL_COINS) return CACHE_ALL_COINS;
+  try {
+    const raw = localStorage.getItem("tde_all_coins");
+    if (raw) {
+      const j = JSON.parse(raw);
+      if (j && Date.now() - j.ts < 24 * 3600 * 1000 && Array.isArray(j.coins) && j.coins.length > 50) {
+        CACHE_ALL_COINS = j.coins;
+        return j.coins;
+      }
+    }
+  } catch {}
+  // Cùng universe với klines + widget TradingView: spot USDT
+  for (const base of ENDPOINTS.binanceRest) {
+    try {
+      const j = await fetchJson(`${base}/api/v3/exchangeInfo`);
+      if (!j || !Array.isArray(j.symbols)) continue;
+      const coins = j.symbols
+        .filter(s => s.status === "TRADING" && s.quoteAsset === "USDT")
+        .map(s => s.baseAsset)
+        .filter(b => b && !/^(UP|DOWN|BULL|BEAR)/.test(b) && !/(UP|DOWN|BULL|BEAR)$/.test(b)) // loại token đòn bẩy
+        .filter((v, i, a) => a.indexOf(v) === i)
+        .sort();
+      if (coins.length > 50) {
+        CACHE_ALL_COINS = coins;
+        try { localStorage.setItem("tde_all_coins", JSON.stringify({ ts: Date.now(), coins })); } catch {}
+        return coins;
+      }
+    } catch { /* thử endpoint kế */ }
+  }
+  return null; // tải thất bại → UI dùng watchlist cố định
+}
+
 /* ---------- Sổ lệnh spot (cho radar cá mập) ---------- */
 async function fetchDepth(coin, limit = 50) {
   for (const base of ENDPOINTS.binanceRest) {
