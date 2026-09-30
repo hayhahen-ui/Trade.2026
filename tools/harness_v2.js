@@ -1317,6 +1317,55 @@ console.log("\n[24] mục tiêu 1 tín hiệu/ngày — tín hiệu giấy khôn
 }
 };
 
+console.log("\n[25] v2.5.1 — tách UI thật/giấy + Kaizen học từ tín hiệu giấy");
+{
+  const js = read("assets/js/journal.js");
+  ok(/tinHieuThat\s*=\s*tinHieu\.filter\(r\s*=>\s*r\.loai\s*!==\s*"giay"\)/.test(js),
+    "bảng trạm lọc bỏ tín hiệu giấy (tinHieuThat)");
+  ok(/Tín hiệu thật từ trạm/.test(js), "tiêu đề bảng trạm ghi rõ 'tín hiệu thật'");
+  ok(/for\s*\(\s*const r of tinHieuThat\.slice\(0,\s*20\)\)/.test(js), "vòng lặp bảng trạm duyệt tinHieuThat");
+  ok(/Tín hiệu giấy — mục tiêu 1\/ngày/.test(js), "vẫn giữ mục tín hiệu giấy riêng");
+
+  // unit: rutBaiHocKaizen rút bài học từ tín hiệu giấy thắng/thua
+  const c = makeCtx({ window: {}, document: {}, localStorage: (() => { const m = {}; return {
+    getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; })() });
+  c.evalIn(`var window = globalThis; var localStorage = globalThis.localStorage;`);
+  c.load("assets/js/journal.js");
+  const J = c.get("JOURNAL");
+  const rutBaiHocKaizen = c.get("rutBaiHocKaizen");
+  const thongKeJournal = c.get("thongKeJournal");
+  const now = Date.now();
+  const mkRec = (loai, coin, side, diem, tt, r, ngay) => ({
+    id: `${loai}-${coin}-${now}-${Math.random()}`, coin, side, loai, tsVao: now,
+    giaVao: 100, sl: 99, tp: 102, rr: 2, diem, phien: "New York KZ", bias4h: "bearish-yếu",
+    ngay: ngay || null, trangThai: tt,
+    ketQua: tt === "thang" || tt === "thua" ? { ketQua: tt, r, gioDenKQ: 0.6 } : null,
+  });
+  // 3 thật đã ngã ngũ (1 thắng 2 thua) + 1 giấy thắng + 1 giấy thua
+  const ds = [
+    mkRec("that", "BTC", "long", 85, "thang", 2),
+    mkRec("that", "ETH", "long", 82, "thua", -1),
+    mkRec("that", "SOL", "short", 80, "thua", -1),
+    mkRec("giay", "BTC", "short", 70, "thang", 2, "2026-09-29"),
+    mkRec("giay", "DOGE", "long", 65, "thua", -1, "2026-09-29"),
+  ];
+  const st = thongKeJournal(ds);
+  ok(st.tong === 3 && st.giay.tong === 2, `thống kê tách thật/giấy (thật=${st.tong}, giấy=${st.giay.tong})`);
+  const bh = rutBaiHocKaizen(st, ds);
+  ok(bh.some(b => /Tín hiệu giấy thắng \+2R/.test(b.tieuDe) && b.muc === "tot"),
+    "Kaizen rút bài học từ tín hiệu giấy THẮNG");
+  ok(bh.some(b => /Tín hiệu giấy cũng sai/.test(b.tieuDe)),
+    "Kaizen rút bài học từ tín hiệu giấy THUA");
+  ok(bh.some(b => /Tín hiệu giấy thắng/.test(b.tieuDe) && /bias4h/.test(b.chiTiet)),
+    "bài học giấy ghi rõ bias4h/phiên để đối chiếu");
+  // giấy không làm méo thống kê thật
+  ok(st.winRate === 33, `win-rate thật không bị giấy méo (=${st.winRate}%)`);
+  // không có giấy → không sinh bài học giấy
+  const st2 = thongKeJournal(ds.filter(r => r.loai !== "giay"));
+  const bh2 = rutBaiHocKaizen(st2, ds.filter(r => r.loai !== "giay"));
+  ok(!bh2.some(b => /Tín hiệu giấy/.test(b.tieuDe)), "không có giấy → không sinh bài học giấy");
+}
+
 _p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

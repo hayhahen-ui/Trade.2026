@@ -309,6 +309,38 @@ function rutBaiHocKaizen(st, ds) {
   const coins = Object.entries(st.theo.coin).filter(([, v]) => v.n >= 4).sort((a, b) => a[1].wr - b[1].wr);
   if (coins.length && coins[0][1].wr < 35)
     bh.push({ muc: "xau", tieuDe: `🪙 ${coins[0][0]} đang "khó ăn"`, chiTiet: `Win rate ${coins[0][1].wr}% trên ${coins[0][1].n} lệnh.`, goiY: "Tạm đứng ngoài coin này cho đến khi setup cải thiện." });
+  // 8. Tín hiệu giấy — Kaizen học từ setup tốt nhất ngày (v2.5.1)
+  //    Giấy KHÔNG tính vào win-rate/expectancy thật, nhưng được chấm bằng nến thật
+  //    nên vẫn rút được bài học: setup nào bị chuẩn thật loại bỏ mà vẫn đúng/sai.
+  const G = st.giay;
+  if (G && G.xong > 0) {
+    const dsGiay = (ds || []).filter(r => r.loai === "giay");
+    for (const r of dsGiay.filter(x => x.trangThai === "thang").slice(-3)) {
+      const rR = r.ketQua && r.ketQua.r != null ? `+${r.ketQua.r}R` : "thắng";
+      const gio = r.ketQua && r.ketQua.gioDenKQ != null ? ` trong ${r.ketQua.gioDenKQ}h` : "";
+      bh.push({
+        muc: "tot",
+        tieuDe: `📝 Tín hiệu giấy thắng ${rR}`,
+        chiTiet: `${r.coin} ${String(r.side).toUpperCase()} ${r.diem}đ ngày ${r.ngay || "—"} — setup tốt nhất ngày nhưng không đủ chuẩn vào lệnh thật; bias4h ${r.bias4h || "—"}, phiên ${r.phien || "—"}${gio}.`,
+        goiY: "Đối chiếu điều kiện đã chặn nó thành tín hiệu thật (thường là phase SMC chưa đạt alert_ready/retest_in_progress): nếu mẫu 'giấy thắng' lặp lại khi bias4h đồng thuận hướng, đó là ứng viên để nới lỏng có kiểm soát — quyết định thuộc về bạn, không tự động đổi luật.",
+      });
+    }
+    for (const r of dsGiay.filter(x => x.trangThai === "thua").slice(-3)) {
+      bh.push({
+        muc: "ghi_nho",
+        tieuDe: "📝 Tín hiệu giấy cũng sai",
+        chiTiet: `${r.coin} ${String(r.side).toUpperCase()} ${r.diem}đ ngày ${r.ngay || "—"} thua — chuẩn vào lệnh thật đã lọc đúng trường hợp này.`,
+        goiY: "Không có gì phải tiếc: hệ thống đã tránh được một lệnh thua.",
+      });
+    }
+    if (G.xong >= 3 && st.xong >= 3 && G.winRate - st.winRate >= 20)
+      bh.push({
+        muc: "warn",
+        tieuDe: "📝 Giấy đang 'ăn' hơn thật",
+        chiTiet: `Tín hiệu giấy thắng ${G.winRate}% (${G.xong} lệnh) so với tín hiệu thật ${st.winRate}% (${st.xong} lệnh).`,
+        goiY: "Mẫu còn nhỏ nhưng đáng theo dõi: gom các setup giấy thắng, tìm điểm chung (bias4h/phiên/khung điểm) rồi mới quyết định có điều chỉnh chuẩn vào lệnh.",
+      });
+  }
   if (!bh.length)
     bh.push({ muc: "ghi_nho", tieuDe: "📊 Chưa có điểm khác biệt rõ", chiTiet: `Đã có ${st.xong} lệnh nhưng các nhóm chưa phân hóa đủ mạnh.`, goiY: "Tiếp tục tích lũy — bài học sẽ rõ dần theo mẫu." });
   return bh;
@@ -396,15 +428,17 @@ function renderSoTinHieu(root) {
         }
         cTram.appendChild(cL);
       }
+      // v2.5.1: bảng trạm CHỈ hiện tín hiệu thật — tín hiệu giấy nằm riêng ở mục bên dưới (tránh hiển thị trùng, tránh nhầm lẫn)
       const tinHieu = Array.isArray(d.tinHieu) ? d.tinHieu : [];
-      const cT = el("div", {}, el("div", { class: "card-title" }, `📋 Tín hiệu trạm mới nhất (${tinHieu.length})`));
-      if (tinHieu.length) {
+      const tinHieuThat = tinHieu.filter(r => r.loai !== "giay");
+      const cT = el("div", {}, el("div", { class: "card-title" }, `📋 Tín hiệu thật từ trạm (${tinHieuThat.length})`));
+      if (tinHieuThat.length) {
         const tbl = el("table", { class: "mini-table" });
         tbl.appendChild(el("tr", {},
           el("th", {}, "Giờ vào"), el("th", {}, "Coin"), el("th", {}, "Hướng"),
           el("th", {}, "Entry"), el("th", {}, "Stop"), el("th", {}, "Kết thúc"), el("th", {}, "±"),
           el("th", {}, "Điểm"), el("th", {}, "Trạng thái"), el("th", {}, "R")));
-        for (const r of tinHieu.slice(0, 20)) {
+        for (const r of tinHieuThat.slice(0, 20)) {
           const [nhan, cls] = TRANG_THAI_JOURNAL[r.trangThai] || ["?", ""];
           const kq = r.ketQua;
           const gkt = giaKetThuc(r), cl = chenhLechGia(r);
