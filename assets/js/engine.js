@@ -411,6 +411,8 @@ async function phanTichCoin(coin) {
     fvg15: fvg15.filter(g => !g.filled).slice(-4),
   };
   SIGNAL_CACHE.set(coin, ketQua);
+  /* v2.13.0: NN shadow — chỉ quan sát, KHÔNG ảnh hưởng điểm/verdict */
+  try { if (typeof NN !== "undefined" && NN.sanSang()) ketQua.nnXacSuat = NN.duDoanChoEngine(ketQua); } catch (e) {}
   /* v2.2.0: tự ghi nhận tín hiệu LONG/SHORT vào Nhật ký để chấm điểm & học Kaizen */
   try { if (typeof JOURNAL !== "undefined" && JOURNAL.ghiNhan) JOURNAL.ghiNhan(ketQua); } catch (e) {}
   document.dispatchEvent(new CustomEvent("siro:signal", { detail: ketQua }));

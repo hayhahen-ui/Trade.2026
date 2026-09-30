@@ -52,6 +52,7 @@ const JOURNAL = {
         giaVao: p.entry, sl: p.sl, tp: p.tp1,
         rr: p.rr1 || +(Math.abs(p.tp1 - p.entry) / Math.abs(p.entry - p.sl)).toFixed(2),
         diem: kq.score, phase: kq.phase,
+        nn: kq.nnXacSuat != null ? +kq.nnXacSuat : null, // v2.13.0: NN shadow — chỉ quan sát
         phien: kq.killzone?.ten || kq.killzone?.id || "—",
         bias4h: kq.htf?.bias || "—",
         // v2.6.0: cấu trúc thị trường 18-phút (TĂNG/GIẢM/ĐI NGANG 4H|1H + cờ ngược cấu trúc/CHoCH) — để Kaizen đối chiếu
@@ -97,6 +98,7 @@ const JOURNAL = {
         giaVao: p.entry, sl: p.sl, tp: p.tp1,
         rr: p.rr1 || +(Math.abs(p.tp1 - p.entry) / Math.abs(p.entry - p.sl)).toFixed(2),
         diem: kq.score, phase: kq.phase,
+        nn: kq.nnXacSuat != null ? +kq.nnXacSuat : null, // v2.13.0: NN shadow — chỉ quan sát
         phien: kq.killzone?.ten || kq.killzone?.id || "—",
         bias4h: kq.htf?.bias || "—",
         // v2.6.0: cấu trúc thị trường 18-phút — để Kaizen đối chiếu giấy vs thật
@@ -399,6 +401,29 @@ function rutBaiHocKaizen(st, ds) {
       tieuDe: `🕯️ ${nenXau.length} lệnh có nến xấu (chống lệnh / sai chỗ)`,
       chiTiet: `${thuaNen}/${nenXau.length} đã thua — mẫu nến chỉ có giá trị khi ĐÚNG CHỖ (vùng quan trọng) + đúng hướng + có volume; nến đẹp giữa range là trap.`,
       goiY: "Từ v2.8.0 engine tự trừ 8đ khi nến LTF chống lại hướng lệnh. Khi thấy cảnh báo nến, chờ nến xác nhận đúng chỗ thay vì vào ngay.",
+    });
+  }
+  // 12. Mạng nơ-ron shadow — quan sát độ chính xác dự đoán (v2.13.0)
+  //     NN chỉ quan sát, KHÔNG ảnh hưởng điểm hay quyết định. Mục này thuần túy
+  //     đối chiếu: NN dự đoán thắng (nn≥50%) có đúng với kết quả thật không.
+  const dsNN = (ds || []).filter(r => r.nn != null && (r.trangThai === "thang" || r.trangThai === "thua" || r.trangThai === "het_han"));
+  if (dsNN.length >= 3) {
+    let dung = 0;
+    for (const r of dsNN) {
+      const duDoanThang = r.nn >= 0.5;
+      const thatThang = r.ketQua && r.ketQua.r > 0;
+      if (duDoanThang === thatThang) dung++;
+    }
+    const acc = Math.round(dung / dsNN.length * 100);
+    bh.push({
+      muc: dsNN.length >= 10 ? (acc >= 60 ? "tot" : "warn") : "ghi_nho",
+      tieuDe: `🧠 NN thử nghiệm: đúng ${dung}/${dsNN.length} (${acc}%)`,
+      chiTiet: dsNN.length < 10
+        ? `Mới ${dsNN.length} tín hiệu có dự đoán NN — mẫu quá nhỏ để kết luận. NN đang chạy shadow: chỉ ghi nhận, không ảnh hưởng điểm hay quyết định vào lệnh.`
+        : `NN dự đoán đúng ${acc}% trên ${dsNN.length} tín hiệu. Ngưỡng thăng cấp: ≥30 mẫu và vượt baseline — quyết định thuộc về bạn.`,
+      goiY: dsNN.length < 10
+        ? "Tiếp tục tích lũy tín hiệu ngã ngũ; mỗi tín hiệu đóng là 1 mẫu học mới cho NN."
+        : "Nếu NN duy trì vượt baseline trên mẫu lớn, cân nhắc dùng xác suất NN làm 'ý kiến thứ hai' khi điểm engine ở vùng biên (70–75đ).",
     });
   }
   if (!bh.length)

@@ -87,12 +87,21 @@ async function main() {
 
   ["assets/js/config.js", "assets/js/utils.js", "assets/js/ta.js", "assets/js/smc.js",
    "assets/js/exchanges.js", "assets/js/derivatives.js", "assets/js/journal.js",
-   "assets/js/engine.js"].forEach(load);
+   "assets/js/neural.js", "assets/js/engine.js"].forEach(load);
 
   const phanTichCoin = get("phanTichCoin");
   const JOURNAL = get("JOURNAL");
   const thongKeJournal = get("thongKeJournal");
   const rutBaiHocKaizen = get("rutBaiHocKaizen");
+
+  /* v2.13.0: nạp trọng số NN cho trạm (shadow — thiếu file thì bỏ qua, không crash) */
+  try {
+    const NN = get("NN");
+    const wPath = path.join(ROOT, "assets/nn-weights.json");
+    if (fs.existsSync(wPath) && NN.napTrongSo(JSON.parse(fs.readFileSync(wPath, "utf8"))))
+      console.log("  NN: đã nạp trọng số", JSON.stringify(NN.thongTin()));
+    else console.log("  NN: chưa có trọng số — trạm chạy không NN (shadow tắt)");
+  } catch (e) { console.log("  NN: không nạp được trọng số — trạm chạy không NN"); }
 
   /* v2.5.0 — Mục tiêu 1 tín hiệu/ngày (giờ VN, Asia/Saigon).
    * Chuẩn vào lệnh KHÔNG đổi: chỉ LONG/SHORT ≥70 mới là tín hiệu thật.
@@ -161,6 +170,7 @@ async function main() {
       giaVao: r.giaVao, sl: r.sl, tp: r.tp, rr: r.rr, diem: r.diem,
       phien: r.phien, bias4h: r.bias4h, trangThai: r.trangThai,
       ketQua: r.ketQua, daDanhGiaDen: r.daDanhGiaDen,
+      nn: r.nn != null ? r.nn : null, // v2.13.0: xác suất thắng do NN shadow dự đoán
       loai: r.loai || "that", ngay: r.ngay || null, // v2.5.0: phân biệt giấy/thật
     })),
   };

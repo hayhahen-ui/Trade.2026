@@ -849,6 +849,12 @@ function veTheTinHieu(kq) {
     el("div", { class: "score-fill " + (kq.score >= VERDICT.ALERT ? "hot" : kq.score >= VERDICT.PREPARE ? "warm" : ""), style: `width:${kq.score}%` }));
   card.appendChild(el("div", { class: "kv" }, el("span", {}, `Điểm hợp lưu`), el("b", {}, `${kq.score}/100`)));
   card.appendChild(scoreBar);
+  // v2.13.0: NN shadow — chỉ quan sát, không ảnh hưởng điểm/verdict
+  if (kq.nnXacSuat != null) {
+    const pnn = Math.round(kq.nnXacSuat * 100);
+    card.appendChild(el("div", { class: "kv" }, el("span", {}, "🧠 NN dự đoán"),
+      el("b", { class: "muted", title: "Mạng nơ-ron thử nghiệm (shadow): xác suất thắng ước tính từ 12 đặc trưng tín hiệu. Chưa ảnh hưởng điểm hay quyết định vào lệnh." }, `${pnn}% thắng`)));
+  }
   card.appendChild(el("div", { class: "kv" }, el("span", {}, "Pha"), el("b", {}, kq.phaseLabel)));
   card.appendChild(el("div", { class: "kv" }, el("span", {}, "Bias 4H"), el("b", { class: biasClass(kq.htf.bias) }, biasLabel(kq.htf.bias))));
   // v2.6.0: 3 trạng thái cấu trúc thị trường TĂNG/GIẢM/ĐI NGANG (kiến thức "18 phút")

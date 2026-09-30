@@ -1643,7 +1643,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.12\.0/.test(idx), "index.html đã lên v2.12.0");
+  ok(/Trade\.2026 v2\.13\.0/.test(idx), "index.html đã lên v2.13.0");
 }
 
 const _p30 = async () => {
@@ -1704,7 +1704,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.12\.0/.test(idx), "index.html đã lên v2.12.0");
+  ok(/Trade\.2026 v2\.13\.0/.test(idx), "index.html đã lên v2.13.0");
 };
 
 const _p31 = async () => {
@@ -1744,7 +1744,7 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.12\.0/.test(read("index.html")), "index.html đã lên v2.12.0");
+  ok(/Trade\.2026 v2\.13\.0/.test(read("index.html")), "index.html đã lên v2.13.0");
 }
 };
 
@@ -1801,11 +1801,136 @@ console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h")
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.12\.0/.test(read("index.html")), "index.html đã lên v2.12.0");
+  ok(/Trade\.2026 v2\.13\.0/.test(read("index.html")), "index.html đã lên v2.13.0");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(() => {
+/* ---------- [33] v2.13.0 — Mạng nơ-ron MLP dự đoán xác suất thắng (shadow mode) ---------- */
+const _p33 = async () => {
+console.log("\n[33] v2.13.0 — MLP neural.js: đặc trưng, backprop, shadow wiring");
+{
+  const c = makeCtx(); c.load("assets/js/neural.js");
+  const MLP = c.get("MLP"), NN = c.get("NN");
+  const trich = c.get("trichDacTrung"), dacE = c.get("dacTrungTuEngine"), dacJ = c.get("dacTrungTuJournal");
+  const nhan = c.get("nhanMau"), taoDS = c.get("taoTapDuLieu");
+
+  // 1. đặc trưng: 12 chiều, chuẩn hóa 0..1, null-safe
+  const f0 = trich({});
+  ok(f0.length === 12 && f0.every(v => Number.isFinite(v) && v >= 0 && v <= 1), "12 đặc trưng, chuẩn hóa 0..1, null-safe");
+  ok(Math.abs(f0[7] - 0.5) < 1e-9 && Math.abs(f0[9] - 0.5) < 1e-9, "thiếu ob/nen → giá trị trung tính 0.5");
+
+  // 2. adapter engine
+  const kq = { score: 80, verdict: "LONG", plan: { rr1: 2 }, htf: { bias: "bullish" },
+    killzone: { ten: "NewYork KZ" }, cauTruc: { nguocCauTruc: false, chochNguoc: true },
+    chatLuongOB: { diem: 85, xepLoai: "KHỎE", soLanCham: 1 },
+    chatLuongNen: { diem: 70, xepLoai: "MẠNH", mau: ["pin"], viTri: "POI" },
+    checklist: [{ id: "a", dat: true }, { id: "b", dat: true }] };
+  const fe = dacE(kq);
+  ok(fe.side === "long" && fe.killzoneNong === true && fe.cauTrucChoch === true, "adapter engine map đúng side/killzone/choch");
+  const fxe = trich(fe);
+  ok(Math.abs(fxe[0] - 0.8) < 1e-9 && fxe[3] === 1 && Math.abs(fxe[8] - 0.75) < 1e-9, "đặc trưng engine: điểm 0.8, bias mạnh 1, OB tươi 0.75");
+
+  // 3. adapter journal + nhãn học
+  const rec = { id: "r1", diem: 73, rr: 2, side: "short", phien: "—", bias4h: "bearish-yếu",
+    cauTruc: null, ob: null, nen: null, checklist: ["a"],
+    trangThai: "thua", ketQua: { r: -1 } };
+  const fj = trich(dacJ(rec));
+  ok(fj[2] === 0 && fj[4] === 0 && Math.abs(fj[3] - 0.5) < 1e-9, "adapter journal: short, ngoài killzone, bias yếu 0.5");
+  ok(nhan(rec) === 0, "nhãn: thua r=-1 → 0");
+  ok(nhan({ trangThai: "thang", ketQua: { r: 2 } }) === 1, "nhãn: thắng r>0 → 1");
+  ok(nhan({ trangThai: "het_han", ketQua: { r: 0.3 } }) === 1, "nhãn: hết hạn lãi → 1");
+  ok(nhan({ trangThai: "dang_theo_doi", ketQua: null }) === null, "chưa ngã ngũ → null");
+  ok(nhan({ trangThai: "thang", ketQua: { r: null } }) === null, "r null → bỏ mẫu");
+
+  // 4. taoTapDuLieu chỉ lấy bản ghi ngã ngũ có r
+  const ds = taoDS([rec, { id: "r2", diem: 80, side: "long", trangThai: "dang_theo_doi", ketQua: null }, { id: "r3", diem: 90, side: "long", trangThai: "thang", ketQua: { r: 2 } }]);
+  ok(ds.n === 2 && ds.X.length === 2 && ds.Y.join() === "0,1", "taoTapDuLieu: chỉ lấy bản ghi ngã ngũ có r");
+
+  // 5. forward xác định với cùng seed; output trong (0,1)
+  const m1 = new MLP([12, 8, 1], 42), m2 = new MLP([12, 8, 1], 42);
+  ok(Math.abs(m1.duDoan(fxe) - m2.duDoan(fxe)) < 1e-12, "cùng seed → cùng trọng số → cùng dự đoán");
+  const p0 = m1.duDoan(fxe);
+  ok(p0 > 0 && p0 < 1, "sigmoid output trong (0,1)");
+
+  // 6. gradient check: backprop ≈ sai phân hữu hạn (seed 10: nơ-ron ẩn sống, gradient ≠ 0)
+  const mg = new MLP([3, 2, 1], 10);
+  const Xg = [[0.2, 0.5, 0.8]], Yg = [1];
+  const snapMg = () => JSON.stringify({ W: mg.W, b: mg.b });
+  const restoreMg = (s) => { const o = JSON.parse(s); mg.W = o.W; mg.b = o.b; };
+  const lossFn = () => { const o = Math.min(1 - 1e-9, Math.max(1e-9, mg.duDoan(Xg[0]))); return -(Yg[0] * Math.log(o) + (1 - Yg[0]) * Math.log(1 - o)); };
+  const s0 = snapMg();
+  const wCu = mg.W[1][0][0];
+  mg._buocHoc(Xg, Yg, 1);
+  const gradA = wCu - mg.W[1][0][0]; // lr=1 → delta chính là gradient
+  restoreMg(s0);
+  const eps = 1e-6;
+  mg.W[1][0][0] = wCu + eps; const lp = lossFn();
+  mg.W[1][0][0] = wCu - eps; const lm = lossFn();
+  restoreMg(s0);
+  const gradN = (lp - lm) / (2 * eps);
+  ok(Math.abs(gradA) > 1e-6, `gradient khác 0 (=${gradA.toFixed(4)}) — check không rỗng`);
+  ok(Math.abs(gradA - gradN) < 1e-4, `gradient check: analytic≈numeric (${gradA.toFixed(6)} vs ${gradN.toFixed(6)})`);
+
+  // 7. học được bài toán tách được đơn giản + early stopping
+  const mt = new MLP([12, 8, 1], 11);
+  const Xt = [], Yt = [];
+  const rnd = c.get("mulberry32")(99);
+  for (let i = 0; i < 60; i++) {
+    const a = rnd(), b = rnd();
+    const v = new Array(12).fill(0.5); v[0] = a; v[7] = b;
+    Xt.push(v); Yt.push(a + b > 1 ? 1 : 0);
+  }
+  const kqHoc = mt.hoc(Xt, Yt, { epochs: 400, lr: 0.2, patience: 60, seed: 3 });
+  ok(!kqHoc.loi && kqHoc.trainAcc >= 0.9, `học bài toán đơn giản: trainAcc=${kqHoc.trainAcc}`);
+  ok(kqHoc.epochs <= 400 && Number.isFinite(kqHoc.valLoss), "early stopping trả trọng số tốt nhất");
+
+  // 8. serialize roundtrip
+  const ser = mt.xuat({ mau: 60 });
+  const mNap = MLP.nap(JSON.parse(JSON.stringify(ser)));
+  ok(Math.abs(mNap.duDoan(Xt[0]) - mt.duDoan(Xt[0])) < 1e-12, "xuat/nap trọng số giữ nguyên dự đoán");
+
+  // 9. facade NN
+  ok(NN.sanSang() === false, "chưa nạp trọng số → sanSang false");
+  ok(NN.napTrongSo({}) === false && NN.napTrongSo(null) === false, "từ chối trọng số sai định dạng");
+  ok(NN.napTrongSo(ser) === true && NN.sanSang() === true, "nạp trọng số hợp lệ");
+  const pnn = NN.duDoan(fe);
+  ok(pnn != null && pnn >= 0 && pnn <= 1, "duDoan trả xác suất 0..1");
+  ok(NN.duDoan(null) === null && NN.duDoanChoEngine(null) === null, "null-safe khi thiếu dữ liệu");
+
+  // 10. journal ghiNhan lưu nn (shadow, không ảnh hưởng gì khác)
+  const store = {};
+  const ls = { getItem: k => k in store ? store[k] : null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
+  const c2 = makeCtx({ localStorage: ls });
+  c2.load("assets/js/neural.js"); c2.load("assets/js/journal.js");
+  const J = c2.get("JOURNAL");
+  const kq2 = { coin: "BTC", verdict: "LONG", score: 80, phase: "alert_ready", time: Date.now(),
+    plan: { entry: 100, sl: 98, tp1: 104, rr1: 2 }, killzone: { ten: "—" }, htf: { bias: "bullish" },
+    cauTruc: null, chatLuongOB: null, chatLuongNen: null, checklist: [], nnXacSuat: 0.62 };
+  const rec2 = J.ghiNhan(kq2);
+  ok(rec2 && rec2.nn === 0.62, "ghiNhan lưu nn từ kq (shadow)");
+  const rec3 = J.ghiNhan({ ...kq2, coin: "ETH", nnXacSuat: null });
+  ok(rec3 && rec3.nn === null, "thiếu nn → lưu null, không crash");
+
+  // 11. Kaizen có mục quan sát NN khi ≥3 dự đoán
+  const rut = c2.get("rutBaiHocKaizen");
+  const dsK = [
+    { id: "a", loai: "that", coin: "BTC", side: "long", diem: 80, nn: 0.7, trangThai: "thang", ketQua: { r: 2 } },
+    { id: "b", loai: "that", coin: "ETH", side: "short", diem: 75, nn: 0.3, trangThai: "thua", ketQua: { r: -1 } },
+    { id: "c", loai: "that", coin: "SOL", side: "long", diem: 72, nn: 0.8, trangThai: "thang", ketQua: { r: 1.5 } },
+  ];
+  const st = { xong: 3, winRate: 66.7, theo: { side: {}, phien: {}, coin: {}, nhomDiem: {} }, giay: null, tbGioDenTP: 0, tbGioDenSL: 0 };
+  const bh = rut(st, dsK);
+  ok(bh.some(b => /NN thử nghiệm/.test(b.tieuDe) && /đúng 3\/3/.test(b.tieuDe)), "Kaizen có mục quan sát NN (đúng 3/3)");
+  const bh2 = rut({ ...st, xong: 0 }, []);
+  ok(!bh2.some(b => /NN thử nghiệm/.test(b.tieuDe)), "chưa có dự đoán NN → không có mục NN");
+
+  // 12. version
+  ok(/Trade\.2026 v2\.13\.0/.test(read("index.html")), "index.html đã lên v2.13.0");
+  ok(/neural\.js\?v=2\.13\.0/.test(read("index.html")), "index.html nạp neural.js");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

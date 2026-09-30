@@ -95,6 +95,10 @@ function veDongHo() {
 
 /* ---------- Khởi động ---------- */
 function boot() {
+  // v2.13.0: nạp trọng số NN (shadow mode — thiếu file thì bỏ qua)
+  fetch("assets/nn-weights.json").then(r => r.ok ? r.json() : null).then(j => {
+    if (j && typeof NN !== "undefined" && NN.napTrongSo(j)) console.log("[NN] đã nạp trọng số", NN.thongTin());
+  }).catch(() => {});
   // Sidebar
   const nav = $("#nav-list");
   for (const [id, s] of Object.entries(SCREENS)) {
