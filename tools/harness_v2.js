@@ -1643,7 +1643,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.13\.0/.test(idx), "index.html đã lên v2.13.0");
+  ok(/Trade\.2026 v2\.13\.1/.test(idx), "index.html đã lên v2.13.1");
 }
 
 const _p30 = async () => {
@@ -1704,7 +1704,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.13\.0/.test(idx), "index.html đã lên v2.13.0");
+  ok(/Trade\.2026 v2\.13\.1/.test(idx), "index.html đã lên v2.13.1");
 };
 
 const _p31 = async () => {
@@ -1744,7 +1744,7 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.13\.0/.test(read("index.html")), "index.html đã lên v2.13.0");
+  ok(/Trade\.2026 v2\.13\.1/.test(read("index.html")), "index.html đã lên v2.13.1");
 }
 };
 
@@ -1801,7 +1801,7 @@ console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h")
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.13\.0/.test(read("index.html")), "index.html đã lên v2.13.0");
+  ok(/Trade\.2026 v2\.13\.1/.test(read("index.html")), "index.html đã lên v2.13.1");
 }
 };
 
@@ -1924,9 +1924,25 @@ console.log("\n[33] v2.13.0 — MLP neural.js: đặc trưng, backprop, shadow w
   const bh2 = rut({ ...st, xong: 0 }, []);
   ok(!bh2.some(b => /NN thử nghiệm/.test(b.tieuDe)), "chưa có dự đoán NN → không có mục NN");
 
+  // 13. v2.13.1: buChoCache bù nn cho kq đã phân tích trước khi weights về
+  const cache = new Map();
+  const kqA = { coin: "BTC", verdict: "LONG", score: 80, time: Date.now(), nnXacSuat: null };
+  const kqB = { coin: "ETH", verdict: "SHORT", score: 75, time: Date.now(), nnXacSuat: 0.4 }; // đã có → giữ nguyên
+  cache.set("BTC", kqA); cache.set("ETH", kqB);
+  let veLaiCount = 0; const veLai = () => { veLaiCount++; };
+  const nb = NN.buChoCache(cache, veLai);
+  ok(nb === 1 && kqA.nnXacSuat != null && kqA.nnXacSuat >= 0 && kqA.nnXacSuat <= 1, "buChoCache bù 1 kq thiếu nn");
+  ok(kqB.nnXacSuat === 0.4, "kq đã có nn → không bị ghi đè");
+  ok(veLaiCount === 1, "chỉ gọi veLai cho kq vừa được bù");
+  const ctxN = makeCtx(); ctxN.load("assets/js/neural.js");
+  const NN2 = ctxN.get("NN"); // chưa nạp weights
+  const cache2 = new Map([["X", { coin: "X", score: 70, time: Date.now() }]]);
+  ok(NN2.buChoCache(cache2, () => {}) === 0 && cache2.get("X").nnXacSuat === undefined, "chưa sẵn sàng → không bù, không crash");
+  ok(NN.buChoCache(null, veLai) === 0 && NN.buChoCache({}, veLai) === 0, "cache lỗi → trả 0, không crash");
+
   // 12. version
-  ok(/Trade\.2026 v2\.13\.0/.test(read("index.html")), "index.html đã lên v2.13.0");
-  ok(/neural\.js\?v=2\.13\.0/.test(read("index.html")), "index.html nạp neural.js");
+  ok(/Trade\.2026 v2\.13\.1/.test(read("index.html")), "index.html đã lên v2.13.1");
+  ok(/neural\.js\?v=2\.13\.1/.test(read("index.html")), "index.html nạp neural.js v2.13.1");
 }
 };
 

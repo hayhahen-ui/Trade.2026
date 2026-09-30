@@ -96,8 +96,12 @@ function veDongHo() {
 /* ---------- Khởi động ---------- */
 function boot() {
   // v2.13.0: nạp trọng số NN (shadow mode — thiếu file thì bỏ qua)
+  // v2.13.1: bù dự đoán cho các thẻ đã vẽ trước khi weights về (race condition)
   fetch("assets/nn-weights.json").then(r => r.ok ? r.json() : null).then(j => {
-    if (j && typeof NN !== "undefined" && NN.napTrongSo(j)) console.log("[NN] đã nạp trọng số", NN.thongTin());
+    if (j && typeof NN !== "undefined" && NN.napTrongSo(j)) {
+      console.log("[NN] đã nạp trọng số", NN.thongTin());
+      try { if (typeof SIGNAL_CACHE !== "undefined" && typeof veTheTinHieu === "function") NN.buChoCache(SIGNAL_CACHE, veTheTinHieu); } catch (e) {}
+    }
   }).catch(() => {});
   // Sidebar
   const nav = $("#nav-list");

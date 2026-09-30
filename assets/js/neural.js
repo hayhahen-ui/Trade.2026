@@ -276,6 +276,26 @@ const NN = {
   },
   duDoanChoEngine(kq) { return this.duDoan(dacTrungTuEngine(kq)); },
   duDoanChoJournal(rec) { return this.duDoan(dacTrungTuJournal(rec)); },
+  /* v2.13.1: bù dự đoán cho các kết quả đã phân tích TRƯỚC khi weights về
+   * (tránh race condition: thẻ vẽ trước, weights về sau → thiếu dòng NN).
+   * signalCache: Map-like có .values(); veLai(kq): vẽ lại thẻ (tùy chọn).
+   * Trả về số kq được bù. */
+  buChoCache(signalCache, veLai) {
+    if (!this.sanSang() || !signalCache || typeof signalCache.values !== "function") return 0;
+    let n = 0;
+    try {
+      for (const kq of signalCache.values()) {
+        if (kq && kq.nnXacSuat == null) {
+          kq.nnXacSuat = this.duDoanChoEngine(kq);
+          if (kq.nnXacSuat != null) {
+            n++;
+            if (typeof veLai === "function") { try { veLai(kq); } catch (e) {} }
+          }
+        }
+      }
+    } catch (e) {}
+    return n;
+  },
 };
 
 if (typeof module !== "undefined" && module.exports) {
