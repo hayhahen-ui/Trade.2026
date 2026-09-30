@@ -343,6 +343,24 @@ async function phanTichCoin(coin) {
     if (cauTruc.dongPha3Khung) score = clamp(score + 5, 0, 100); // đồng pha đa khung = chìa khóa
   }
 
+  /* ---------- Chất lượng Order Block (v2.7.0 — kiến thức "4 kiểu OB nên né") ----------
+   * OB dỏm = nằm giữa vùng nhiễu / ngược xu hướng lớn / không có liquidity /
+   * bị test quá nhiều lần. Chỉ đánh giá khi POI là OB (nguồn "OB ..."). */
+  let chatLuongOB = null;
+  if (poi && poi.nguon && poi.nguon.startsWith("OB") && side && typeof danhGiaChatLuongOB === "function") {
+    const tangMTF = poi.tang === 3;
+    const nenPOI = tangMTF ? c1h : c15;
+    chatLuongOB = danhGiaChatLuongOB(poi, {
+      side,
+      choch: tangMTF ? choch1h : choch,
+      sweep: tangMTF ? sweep1h : sweepDungPhia,
+      ttHTF, eq: eq1h, atr: atr15, candles: nenPOI,
+    });
+    for (const cb of chatLuongOB.canhBao) canhBao.push(cb);
+    if (chatLuongOB.xepLoai === "YẾU") score = clamp(score - 10, 0, 100);   // OB dỏm → phạt nặng
+    else if (chatLuongOB.xepLoai === "KHỎE") score = clamp(score + 5, 0, 100); // OB chất lượng → thưởng
+  }
+
   /* ---------- Phái sinh: funding / OI / thanh lý / volatility (v2.1.0) ----------
    * Logic từ skills Vibe-Trading: perp-funding-basis, liquidation-heatmap,
    * volatility. Funding quá nóng ngược hướng lệnh → trừ điểm, contrarian → cộng. */
@@ -371,7 +389,7 @@ async function phanTichCoin(coin) {
     mtf: { obCount: ob1h.filter(o => !o.mitigated).length, poc: vp?.poc, hvn: vp?.hvn || [], range: range1h, eq: eq1h },
     ltf: { sweep: sweepDungPhia, choch, idm, rsi: rsi15, atr: atr15 },
     side, phase, phaseLabel: PHASE_LABELS[phase], retest,
-    score, checklist, verdict, killzone: kz, canhBao, cauTruc,
+    score, checklist, verdict, killzone: kz, canhBao, cauTruc, chatLuongOB,
     poi, plan,
     candles15: c15.slice(-90),
     ob15: ob15.filter(o => !o.mitigated).slice(-4),

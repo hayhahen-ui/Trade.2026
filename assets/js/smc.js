@@ -275,3 +275,75 @@ function chonPOI({ phia, chochLTF, obLTF, obMTF, fvgLTF, fvgMTF, sweep }) {
   }
   return null;
 }
+
+/* ---------- Chất lượng Order Block (v2.7.0 — kiến thức "4 kiểu OB nên né") ----------
+ * 4 YẾU TỐ OB CHẤT LƯỢNG (cộng điểm):
+ *  1. Xuất hiện trước cú đẩy mạnh — momentum (strength = độ dài impulse / ATR)
+ *  2. Gắn với phá cấu trúc BOS/CHoCH (OB được xác nhận, không phải nhiễu)
+ *  3. Có thanh khoản đứng sau (sweep trước đó, hoặc pool EQH/EQL gần vùng)
+ *  4. Nằm ở vị trí hợp lý trong xu hướng (đúng hướng cấu trúc HTF)
+ * 4 KIỂU OB NÊN NÉ (trừ điểm + cảnh báo):
+ *  1. OB trong vùng tích lũy/nhiễu (HTF ĐI NGANG) — thị trường chưa chọn hướng
+ *  2. OB bẫy thanh khoản — hình thành mà không có sweep/liquidity đứng sau
+ *  3. OB ngược xu hướng lớn (HTF) — chỉ là nhịp hồi yếu, dễ bị quét SL
+ *  4. OB bị test quá nhiều lần — mỗi lần chạm hút bớt lệnh chờ, mất sức mạnh
+ * Xếp loại: ≥70 KHỎE · 40–69 TRUNG BÌNH · <40 YẾU */
+function demChamOB(candles, ob) {
+  let dem = 0;
+  const [zLo, zHi] = ob.zone;
+  for (let i = ob.index + 1; i < candles.length - 1; i++) { // chỉ nến đã đóng
+    const c = candles[i];
+    if (c.low <= zHi && c.high >= zLo) dem++;
+  }
+  return dem;
+}
+
+function danhGiaChatLuongOB(ob, ctx) {
+  const chiTiet = [], canhBao = [];
+  if (!ob || !ob.zone || ob.zone.length < 2) {
+    return { diem: -100, xepLoai: "YẾU", chiTiet, canhBao: ["POI không phải vùng giá hợp lệ"], soLanCham: 0, strength: 0 };
+  }
+  let diem = 0;
+  const mid = (ob.zone[0] + ob.zone[1]) / 2;
+
+  // 1. Momentum trước OB
+  const st = ob.strength || 0;
+  if (st >= 2.5) { diem += 25; chiTiet.push(`Momentum mạnh (strength ${st} ATR)`); }
+  else if (st >= 1.35) { diem += 12; chiTiet.push(`Momentum vừa (strength ${st} ATR)`); }
+  else { diem -= 10; canhBao.push("OB momentum yếu — không có lực đẩy rõ ràng (nhiễu)"); }
+
+  // 2. Gắn với BOS/CHoCH
+  if (ctx.choch && Math.abs(ob.index - ctx.choch.index) <= 12) {
+    diem += 25; chiTiet.push("OB gắn với CHoCH (xác nhận đổi tính chất)");
+  }
+
+  // 3. Thanh khoản đứng sau
+  if (ctx.sweep) { diem += 25; chiTiet.push("Có sweep thanh khoản đứng sau"); }
+  else {
+    const eq = ctx.eq || { eqh: [], eql: [] };
+    const atrRef = ctx.atr || mid * 0.002;
+    const eqGan = [...(eq.eqh || []), ...(eq.eql || [])].some(e => Math.abs(e.gia - mid) <= atrRef * 1.5);
+    if (eqGan) { diem += 10; chiTiet.push("Có pool EQH/EQL gần vùng"); }
+    else { diem -= 10; canhBao.push("OB không có liquidity đứng sau — dễ bị quét"); }
+  }
+
+  // 4. Vị trí trong xu hướng + kiểu né "ngược xu hướng lớn" / "vùng tích lũy"
+  const tt = ctx.ttHTF;
+  if (tt && tt.huong) {
+    const cungHuong = (ctx.side === "long" && tt.huong === "long") || (ctx.side === "short" && tt.huong === "short");
+    if (cungHuong) { diem += 25; chiTiet.push(`Đúng xu hướng 4H ${tt.trangThai}`); }
+    else { diem -= 30; canhBao.push(`OB đi ngược xu hướng lớn 4H ${tt.trangThai} — chỉ là nhịp hồi yếu, dễ bị quét SL`); }
+  } else {
+    diem -= 15; canhBao.push("OB nằm giữa vùng tích lũy/đi ngang — thị trường chưa chọn hướng, OB chỉ là nhiễu");
+  }
+
+  // 5. Số lần bị test (mitigated nhiều lần → mất sức mạnh)
+  const soLanCham = demChamOB(ctx.candles || [], ob);
+  if (soLanCham >= 3) { diem -= 20; canhBao.push(`OB đã bị test ${soLanCham} lần — mất dần sức mạnh, không còn giá trị`); }
+  else if (soLanCham >= 1) { diem -= 5; chiTiet.push(`Đã bị chạm ${soLanCham} lần`); }
+  else chiTiet.push("OB tươi (fresh) — chưa bị test");
+
+  diem = clamp(diem, -100, 100);
+  const xepLoai = diem >= 70 ? "KHỎE" : diem >= 40 ? "TRUNG BÌNH" : "YẾU";
+  return { diem, xepLoai, chiTiet, canhBao, soLanCham, strength: st };
+}

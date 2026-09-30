@@ -417,6 +417,14 @@ function vePanelSMC(kq) {
       el("b", { class: cls }, `4H ${ct.htf} · 1H ${ct.mtf} · 15m ${ct.ltf}${badges}`)));
     if (ct.quyTacHTF) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "📏 Quy tắc 4H"), el("span", { class: "muted small" }, ct.quyTacHTF)));
   }
+  // v2.7.0: chất lượng Order Block (kiến thức "4 kiểu OB nên né")
+  if (kq.chatLuongOB) {
+    const qb = kq.chatLuongOB;
+    const cls = qb.xepLoai === "YẾU" ? "down" : qb.xepLoai === "KHỎE" ? "up" : "";
+    const cb0 = qb.canhBao.length ? qb.canhBao[0] : (qb.chiTiet[0] || "");
+    panel.appendChild(el("div", { class: "kv" }, el("span", {}, "🧱 Chất lượng OB"),
+      el("b", { class: cls, title: cb0 }, `${qb.xepLoai} · ${qb.diem}đ · chạm ${qb.soLanCham} lần · strength ${qb.strength}`)));
+  }
   if (kq.htf.ema200) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "EMA200 4H"), el("b", { class: "mono" }, fmtGia(kq.htf.ema200))));
   if (kq.mtf.range) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Dải giá 1H"), el("b", {}, `${kq.mtf.range.vung.toUpperCase()} (${kq.mtf.range.viTriPct}%)`)));
   if (kq.mtf.poc) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "POC volume 1H"), el("b", { class: "mono" }, fmtGia(kq.mtf.poc))));
@@ -768,6 +776,12 @@ function veTheTinHieu(kq) {
     const badges = (ct.dongPha3Khung ? " ✓đồng pha" : "") + (ct.nguocCauTruc ? " ⚠NGƯỢC" : "") + (ct.chochNguoc ? " 🔄CHoCH" : "");
     const cls = ct.nguocCauTruc || ct.chochNguoc ? "down" : ct.dongPha3Khung ? "up" : "";
     card.appendChild(el("div", { class: "kv" }, el("span", {}, "🏯 Cấu trúc"), el("b", { class: cls }, `4H ${ct.htf} · 1H ${ct.mtf}${badges}`)));
+  }
+  // v2.7.0: chất lượng Order Block (kiến thức "4 kiểu OB nên né")
+  if (kq.chatLuongOB) {
+    const qb = kq.chatLuongOB;
+    const cls = qb.xepLoai === "YẾU" ? "down" : qb.xepLoai === "KHỎE" ? "up" : "";
+    card.appendChild(el("div", { class: "kv" }, el("span", {}, "🧱 OB"), el("b", { class: cls }, `${qb.xepLoai} ${qb.diem}đ`)));
   }
   if (kq.dongTien) {
     const dt = kq.dongTien;

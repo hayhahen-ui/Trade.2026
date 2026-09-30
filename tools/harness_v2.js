@@ -1435,6 +1435,96 @@ console.log("\n[26] v2.6.0 — cấu trúc thị trường 18 phút (TĂNG/GIẢ
   ok(/bỏ dòng này nếu cauTruc null/.test(hookDef.prompt), "template bỏ qua dòng cấu trúc với tín hiệu cũ");
 }
 
+console.log("\n[27] v2.7.0 — chất lượng Order Block (4 kiểu OB nên né + 4 yếu tố OB chất lượng)");
+{
+  // 1. danhGiaChatLuongOB — unit
+  const c = makeCtx({ clamp: (v, a, b) => Math.min(b, Math.max(a, v)) });
+  c.load("assets/js/ta.js"); c.load("assets/js/smc.js");
+  const danhGiaChatLuongOB = c.get("danhGiaChatLuongOB");
+  const demChamOB = c.get("demChamOB");
+  const mkNen = (lo, hi) => ({ open: lo, high: hi, low: lo, close: (lo + hi) / 2, volume: 100 });
+  // demChamOB: ob.index=5, nến 6 và 8 chạm zone [90,110], nến 11 (forming) bị bỏ qua
+  const nen = [90, 92, 94, 96, 98, 100].map(v => mkNen(v, v + 2));
+  nen.push(mkNen(95, 105), mkNen(120, 125), mkNen(85, 115), mkNen(130, 135), mkNen(140, 145), mkNen(95, 105));
+  ok(demChamOB(nen, { zone: [90, 110], index: 5 }) === 2, "demChamOB đếm đúng 2 lần chạm (bỏ nến forming cuối)");
+  // OB KHỎE: momentum mạnh + gắn CHoCH + có sweep + đúng xu hướng 4H + fresh
+  const khoe = danhGiaChatLuongOB(
+    { zone: [90, 110], index: 20, huong: "bullish", strength: 3.0 },
+    { side: "long", choch: { index: 26 }, sweep: { wick: 88 }, ttHTF: { trangThai: "TĂNG", huong: "long" }, eq: { eqh: [], eql: [] }, atr: 5, candles: [] });
+  ok(khoe.xepLoai === "KHỎE" && khoe.diem >= 70, `OB đủ 4 yếu tố → KHỎE (${khoe.diem}đ)`);
+  ok(khoe.soLanCham === 0 && /fresh/.test(khoe.chiTiet.join(" ")), "OB tươi được ghi nhận");
+  // OB YẾU: momentum yếu + không CHoCH + không liquidity + vùng tích lũy + bị test 4 lần
+  const nenYeu = []; for (let i = 0; i < 20; i++) nenYeu.push(mkNen(120, 125));
+  for (let i = 11; i <= 14; i++) nenYeu.push(mkNen(95, 105)); // 4 nến chạm zone sau ob.index=10
+  nenYeu.push(mkNen(120, 125));
+  const yeu = danhGiaChatLuongOB(
+    { zone: [90, 110], index: 10, huong: "bullish", strength: 0.5 },
+    { side: "long", choch: null, sweep: null, ttHTF: { trangThai: "ĐI NGANG", huong: null }, eq: { eqh: [], eql: [] }, atr: 5, candles: nenYeu });
+  ok(yeu.xepLoai === "YẾU" && yeu.diem < 40, `OB dỏm → YẾU (${yeu.diem}đ)`);
+  ok(yeu.soLanCham === 4 && yeu.canhBao.some(x => /test 4 lần/.test(x)), "cảnh báo OB bị test quá nhiều lần");
+  ok(yeu.canhBao.some(x => /vùng tích lũy/.test(x)), "cảnh báo OB trong vùng tích lũy/nhiễu");
+  ok(yeu.canhBao.some(x => /liquidity/.test(x)), "cảnh báo OB thiếu liquidity đứng sau");
+  // OB ngược xu hướng lớn
+  const nguoc = danhGiaChatLuongOB(
+    { zone: [90, 110], index: 20, huong: "bullish", strength: 3.0 },
+    { side: "long", choch: { index: 26 }, sweep: { wick: 88 }, ttHTF: { trangThai: "GIẢM", huong: "short" }, eq: { eqh: [], eql: [] }, atr: 5, candles: [] });
+  ok(nguoc.canhBao.some(x => /ngược xu hướng lớn/.test(x)) && nguoc.diem <= 45, "OB ngược xu hướng 4H bị phạt nặng (−30)");
+  // EQH/EQL gần vùng được tính là có thanh khoản
+  const eqGan = danhGiaChatLuongOB(
+    { zone: [90, 110], index: 20, huong: "bullish", strength: 2.0 },
+    { side: "long", choch: null, sweep: null, ttHTF: { trangThai: "TĂNG", huong: "long" }, eq: { eqh: [{ gia: 104 }], eql: [] }, atr: 5, candles: [] });
+  ok(eqGan.chiTiet.some(x => /EQH\/EQL/.test(x)), "pool EQH/EQL gần vùng được ghi nhận liquidity");
+  // guard: POI không phải vùng giá
+  const guard = danhGiaChatLuongOB(null, { side: "long" });
+  ok(guard.xepLoai === "YẾU", "POI rỗng → YẾU an toàn");
+
+  // 2. engine.js — gọi đánh giá OB + điều chỉnh điểm + ketQua
+  const eng = read("assets/js/engine.js");
+  ok(/danhGiaChatLuongOB\(poi/.test(eng), "engine gọi danhGiaChatLuongOB khi POI là OB");
+  ok(/xepLoai === "YẾU"\) score = clamp\(score - 10/.test(eng), "OB YẾU → trừ 10 điểm");
+  ok(/xepLoai === "KHỎE"\) score = clamp\(score \+ 5/.test(eng), "OB KHỎE → cộng 5 điểm");
+  ok(/canhBao, cauTruc, chatLuongOB,/.test(eng), "ketQua mang field chatLuongOB");
+
+  // 3. journal.js — ghiNhan lưu ob + Kaizen bài học OB dỏm
+  const c2 = makeCtx({ window: {}, document: {}, localStorage: (() => { const m = {}; return {
+    getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; })() });
+  c2.evalIn(`var window = globalThis; var localStorage = globalThis.localStorage;`);
+  c2.load("assets/js/journal.js");
+  const J = c2.get("JOURNAL");
+  const kq = { coin: "BTC", verdict: "LONG", score: 85, phase: "alert_ready", time: Date.now(),
+    plan: { entry: 84000, sl: 83000, tp1: 86000, rr1: 2 }, htf: { bias: "tang" }, killzone: { ten: "London" }, checklist: [],
+    chatLuongOB: { diem: 25, xepLoai: "YẾU", soLanCham: 4 } };
+  const r = J.ghiNhan(kq);
+  ok(r && r.ob && r.ob.xepLoai === "YẾU" && r.ob.cham === 4, "ghiNhan lưu ob (YẾU + số lần chạm)");
+  const rutBaiHocKaizen = c2.get("rutBaiHocKaizen");
+  const thongKeJournal = c2.get("thongKeJournal");
+  const mkRec = (obYeu, tt) => ({
+    id: `t-${Math.random()}`, coin: "BTC", side: "long", loai: "that", tsVao: Date.now(),
+    giaVao: 100, sl: 99, tp: 102, rr: 2, diem: 80, phien: "X", bias4h: "bullish",
+    trangThai: tt, ketQua: tt === "thang" || tt === "thua" ? { ketQua: tt, r: tt === "thang" ? 2 : -1, gioDenKQ: 0.5 } : null,
+    ob: obYeu ? { diem: 25, xepLoai: "YẾU", cham: 4 } : { diem: 85, xepLoai: "KHỎE", cham: 0 },
+  });
+  const ds = [mkRec(true, "thua"), mkRec(true, "thua"), mkRec(true, "thang"), mkRec(false, "thang"), mkRec(false, "thua")];
+  const bh = rutBaiHocKaizen(thongKeJournal(ds), ds);
+  ok(bh.some(b => /OB YẾU \(dỏm\)/.test(b.tieuDe)), "Kaizen sinh bài học khi ≥3 lệnh vào OB YẾU");
+  ok(bh.some(b => /2\/3 lệnh OB YẾU đã thua/.test(b.chiTiet)), "chi tiết ghi rõ số lệnh thua OB dỏm");
+  const ds2 = [mkRec(true, "thua"), mkRec(true, "thua"), mkRec(false, "thang")];
+  const bh2 = rutBaiHocKaizen(thongKeJournal(ds2), ds2);
+  ok(!bh2.some(b => /OB YẾU/.test(b.tieuDe)), "dưới 3 lệnh OB YẾU → không sinh bài học");
+
+  // 4. screens.js — dòng 🧱 trên thẻ tín hiệu + panel SMC
+  const scr = read("assets/js/screens.js");
+  ok(/🧱 Chất lượng OB/.test(scr), "panel SMC có dòng 🧱 Chất lượng OB");
+  ok(/\$\{qb\.xepLoai\} \$\{qb\.diem\}đ/.test(scr), "thẻ tín hiệu hiện xếp loại + điểm OB");
+
+  // 5. hook WhatsApp — pick ob + template tin nhắn
+  const hookSh = fs.readFileSync("/home/hatch/hooks/scripts/trade2026-signal-whatsapp.sh", "utf8");
+  ok(/ob: s\.ob \|\| null/.test(hookSh), "hook pick thêm ob");
+  const hookDef = JSON.parse(fs.readFileSync("/home/hatch/hooks/definitions/trade2026-signal-whatsapp.json", "utf8"));
+  ok(/🧱 OB/.test(hookDef.prompt), "template WhatsApp có dòng 🧱 OB");
+  ok(/bỏ dòng này nếu ob null/.test(hookDef.prompt), "template bỏ qua dòng OB với tín hiệu cũ");
+}
+
 _p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
