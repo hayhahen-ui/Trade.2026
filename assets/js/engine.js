@@ -68,6 +68,21 @@ async function phanTichCoin(coin) {
   const idm = choch ? kiemTraIDM(c15, choch, sweepDungPhia) : false;
   const rsi15 = rsiReversal(c15.map(c => c.close), c15.map(c => c.high), c15.map(c => c.low));
 
+  /* ---------- Cấu trúc thị trường 18-phút (v2.6.0) ----------
+   * 3 trạng thái TĂNG/GIẢM/ĐI NGANG trên 4H (xu hướng chính) + 1H (bối cảnh) + 15m (trigger).
+   * - NGUYÊN TẮC BẤT BIẾN: không bao giờ giao dịch ngược lại với cấu trúc.
+   * - CHoCH 1H ngược hướng tín hiệu = "Change of Character" — cảnh báo đảo chiều sớm
+   *   (bài học Kaizen v2.5.1: 4 LONG thua khi bias 4H còn bullish nhưng cấu trúc đã đảo). */
+  const ttHTF = danhGiaTrangThai(ct4h);
+  const ttMTF = danhGiaTrangThai(ct1h);
+  const ttLTF = danhGiaTrangThai(ct15);
+  const sweep1h = timSweepGanNhat(c1h, ct1h);
+  const choch1h = sweep1h ? timChoCh(c1h, ct1h, sweep1h, TIMEFRAMES.MTF.swingL) : null;
+  const nguocCauTruc = !!(side && ttHTF.huong && ttHTF.huong !== side);
+  const chochNguoc = !!(side && choch1h && ((side === "long" && choch1h.phia === "short") || (side === "short" && choch1h.phia === "long")));
+  const dongPha3Khung = !!(side && ttHTF.huong === side && ttMTF.huong === side && ttLTF.huong === side);
+  const cauTruc = { htf: ttHTF.trangThai, mtf: ttMTF.trangThai, ltf: ttLTF.trangThai, quyTacHTF: ttHTF.quyTac, nguocCauTruc, chochNguoc, dongPha3Khung };
+
   /* ---------- POI ---------- */
   const poi = side ? chonPOI({
     phia: side, chochLTF: choch, obLTF: ob15, obMTF: ob1h,
@@ -314,6 +329,20 @@ async function phanTichCoin(coin) {
     else if (dongTien.lsNguoc) score = clamp(score - 3, 0, 100);
   }
 
+  /* ---------- Cấu trúc thị trường → tinh chỉnh điểm hợp lưu (v2.6.0) ----------
+   * Nguyên tắc bất biến từ lộ trình 18 phút: KHÔNG BAO GIỜ giao dịch ngược cấu trúc. */
+  if (side) {
+    if (cauTruc.nguocCauTruc) {
+      score = clamp(score - 12, 0, 100);
+      canhBao.push(`🏯 Cấu trúc 4H đang ${cauTruc.htf} — tín hiệu ${side.toUpperCase()} NGƯỢC cấu trúc thị trường. Nguyên tắc: không giao dịch ngược lại với cấu trúc.`);
+    }
+    if (cauTruc.chochNguoc) {
+      score = clamp(score - 8, 0, 100);
+      canhBao.push(`🔄 CHoCH ${choch1h.phia === "long" ? "tăng" : "giảm"} mới trên 1H — thị trường có thể đang đổi tính chất, ngược hướng ${side.toUpperCase()}.`);
+    }
+    if (cauTruc.dongPha3Khung) score = clamp(score + 5, 0, 100); // đồng pha đa khung = chìa khóa
+  }
+
   /* ---------- Phái sinh: funding / OI / thanh lý / volatility (v2.1.0) ----------
    * Logic từ skills Vibe-Trading: perp-funding-basis, liquidation-heatmap,
    * volatility. Funding quá nóng ngược hướng lệnh → trừ điểm, contrarian → cộng. */
@@ -342,7 +371,7 @@ async function phanTichCoin(coin) {
     mtf: { obCount: ob1h.filter(o => !o.mitigated).length, poc: vp?.poc, hvn: vp?.hvn || [], range: range1h, eq: eq1h },
     ltf: { sweep: sweepDungPhia, choch, idm, rsi: rsi15, atr: atr15 },
     side, phase, phaseLabel: PHASE_LABELS[phase], retest,
-    score, checklist, verdict, killzone: kz, canhBao,
+    score, checklist, verdict, killzone: kz, canhBao, cauTruc,
     poi, plan,
     candles15: c15.slice(-90),
     ob15: ob15.filter(o => !o.mitigated).slice(-4),

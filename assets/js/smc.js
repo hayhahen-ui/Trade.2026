@@ -228,6 +228,26 @@ function dealingRange(cauTruc, giaHienTai) {
   return { dinh: hi, day: lo, equilibrium: (hi + lo) / 2, viTriPct, vung };
 }
 
+/* ---------- 3 TRẠNG THÁI CƠ BẢN CỦA THỊ TRƯỜNG (v2.6.0 — kiến thức "18 phút") ----------
+ * 1. TĂNG (UPTREND): chuỗi HH + HL — người mua kiểm soát → chỉ tìm LONG tại HL
+ * 2. GIẢM (DOWNTREND): chuỗi LH + LL — người bán kiểm soát → chỉ tìm SHORT tại LH
+ * 3. ĐI NGANG (SIDEWAYS): cân bằng cung cầu → chờ phá vỡ, không giao dịch giữa dải
+ * Dùng 6 swing gần nhất của phanTichCauTruc. EQH/EQL (đỉnh/đáy bằng nhau) tự rơi vào ĐI NGANG. */
+function danhGiaTrangThai(cauTruc) {
+  const mau = (cauTruc && cauTruc.swings ? cauTruc.swings.slice(-6) : []).map(s => s.nhan).filter(Boolean);
+  const tang = mau.filter(n => n === "HH" || n === "HL").length;
+  const giam = mau.filter(n => n === "LH" || n === "LL").length;
+  let trangThai = "ĐI NGANG", huong = null, quyTac = "Chờ phá vỡ khỏi vùng đi ngang — không giao dịch giữa dải";
+  if (tang >= 4 && giam <= 1) {
+    trangThai = "TĂNG"; huong = "long";
+    quyTac = "Người mua kiểm soát — chỉ tìm LONG tại đáy cao hơn (HL)";
+  } else if (giam >= 4 && tang <= 1) {
+    trangThai = "GIẢM"; huong = "short";
+    quyTac = "Người bán kiểm soát — chỉ tìm SHORT tại đỉnh thấp hơn (LH)";
+  }
+  return { trangThai, huong, tang, giam, mau, quyTac };
+}
+
 /* ---------- POI ưu tiên 5 tầng (Engine A coin-pulse) ----------
  * 1) OB LTF hình thành ngay trước CHoCH  2) OB LTF fresh cùng hướng
  * 3) OB MTF cùng hướng                    4) FVG chưa lấp cùng hướng

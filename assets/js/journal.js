@@ -52,6 +52,8 @@ const JOURNAL = {
         diem: kq.score, phase: kq.phase,
         phien: kq.killzone?.ten || kq.killzone?.id || "—",
         bias4h: kq.htf?.bias || "—",
+        // v2.6.0: cấu trúc thị trường 18-phút (TĂNG/GIẢM/ĐI NGANG 4H|1H + cờ ngược cấu trúc/CHoCH) — để Kaizen đối chiếu
+        cauTruc: kq.cauTruc ? { htf: kq.cauTruc.htf, mtf: kq.cauTruc.mtf, nguoc: !!kq.cauTruc.nguocCauTruc, choch: !!kq.cauTruc.chochNguoc } : null,
         checklist: (kq.checklist || []).filter(c => c.dat).map(c => c.id),
         trangThai: "dang_theo_doi",
         ketQua: null,
@@ -93,6 +95,8 @@ const JOURNAL = {
         diem: kq.score, phase: kq.phase,
         phien: kq.killzone?.ten || kq.killzone?.id || "—",
         bias4h: kq.htf?.bias || "—",
+        // v2.6.0: cấu trúc thị trường 18-phút — để Kaizen đối chiếu giấy vs thật
+        cauTruc: kq.cauTruc ? { htf: kq.cauTruc.htf, mtf: kq.cauTruc.mtf, nguoc: !!kq.cauTruc.nguocCauTruc, choch: !!kq.cauTruc.chochNguoc } : null,
         checklist: (kq.checklist || []).filter(c => c.dat).map(c => c.id),
         lyDo: "Setup tốt nhất trong ngày — không đủ chuẩn vào lệnh thật, ghi nhận để Kaizen học",
         trangThai: "dang_theo_doi",
@@ -341,6 +345,30 @@ function rutBaiHocKaizen(st, ds) {
         goiY: "Mẫu còn nhỏ nhưng đáng theo dõi: gom các setup giấy thắng, tìm điểm chung (bias4h/phiên/khung điểm) rồi mới quyết định có điều chỉnh chuẩn vào lệnh.",
       });
   }
+  // 9. Cấu trúc thị trường — nguyên tắc bất biến từ lộ trình 18 phút (v2.6.0)
+  //    Lệnh vào NGƯỢC cấu trúc 4H (hoặc có CHoCH 1H ngược hướng) là lỗi hệ thống đã biết:
+  //    bias HTF có thể trễ khi thị trường đảo chiều — CHoCH là tín hiệu đổi tính chất sớm.
+  const dsThat = (ds || []).filter(r => r.loai !== "giay" && (r.trangThai === "thang" || r.trangThai === "thua"));
+  const nguoc = dsThat.filter(r => r.cauTruc && r.cauTruc.nguoc);
+  const choch = dsThat.filter(r => r.cauTruc && r.cauTruc.choch);
+  if (nguoc.length >= 2) {
+    const thuaNguoc = nguoc.filter(r => r.trangThai === "thua").length;
+    bh.push({
+      muc: thuaNguoc * 2 >= nguoc.length ? "xau" : "warn",
+      tieuDe: `🏯 ${nguoc.length} lệnh vào NGƯỢC cấu trúc 4H`,
+      chiTiet: `${thuaNguoc}/${nguoc.length} lệnh ngược cấu trúc đã thua — nguyên tắc bất biến: không bao giờ giao dịch ngược lại với cấu trúc thị trường.`,
+      goiY: "Từ v2.6.0 engine tự trừ 12đ cho tín hiệu ngược cấu trúc; theo dõi xem các tín hiệu này còn vượt qua ngưỡng 70đ không.",
+    });
+  }
+  if (choch.length >= 2) {
+    const thuaChoch = choch.filter(r => r.trangThai === "thua").length;
+    bh.push({
+      muc: thuaChoch * 2 >= choch.length ? "xau" : "warn",
+      tieuDe: `🔄 ${choch.length} lệnh có CHoCH 1H ngược hướng`,
+      chiTiet: `${thuaChoch}/${choch.length} đã thua — CHoCH là "đổi tính chất": dấu hiệu đảo chiều sớm, trước khi bias HTF kịp cập nhật.`,
+      goiY: "Khi thấy cảnh báo CHoCH ngược trên thẻ tín hiệu, kiên nhẫn chờ cấu trúc mới rõ ràng thay vì vào lệnh.",
+    });
+  }
   if (!bh.length)
     bh.push({ muc: "ghi_nho", tieuDe: "📊 Chưa có điểm khác biệt rõ", chiTiet: `Đã có ${st.xong} lệnh nhưng các nhóm chưa phân hóa đủ mạnh.`, goiY: "Tiếp tục tích lũy — bài học sẽ rõ dần theo mẫu." });
   return bh;
@@ -450,7 +478,7 @@ function renderSoTinHieu(root) {
             el("td", { class: "down" }, fmtGia(r.sl)),
             el("td", {}, gkt != null ? fmtGia(gkt) : "—"),
             el("td", { class: cl ? (cl.gia >= 0 ? "up" : "down") : "" }, fmtChenhLech(cl)),
-            el("td", {}, String(r.diem)),
+            el("td", {}, String(r.diem), r.cauTruc ? el("div", { class: "muted small", title: `Cấu trúc: 4H ${r.cauTruc.htf} · 1H ${r.cauTruc.mtf}` }, `🏯${r.cauTruc.htf}${r.cauTruc.nguoc ? " ⚠" : ""}${r.cauTruc.choch ? " 🔄" : ""}`) : null),
             el("td", { class: cls }, nhan),
             el("td", { class: kq && kq.r != null ? (kq.r >= 0 ? "up" : "down") : "" },
               kq && kq.r != null ? (kq.r >= 0 ? "+" : "") + kq.r + "R" : "—")));
@@ -477,7 +505,7 @@ function renderSoTinHieu(root) {
             el("td", { class: "strong" }, r.coin),
             el("td", { class: r.side === "long" ? "up" : "down" }, r.side === "long" ? "🟢 LONG" : "🔴 SHORT"),
             el("td", {}, fmtGia(r.giaVao)),
-            el("td", {}, String(r.diem)),
+            el("td", {}, String(r.diem), r.cauTruc ? el("div", { class: "muted small", title: `Cấu trúc: 4H ${r.cauTruc.htf} · 1H ${r.cauTruc.mtf}` }, `🏯${r.cauTruc.htf}${r.cauTruc.nguoc ? " ⚠" : ""}${r.cauTruc.choch ? " 🔄" : ""}`) : null),
             el("td", { class: cls }, nhan),
             el("td", { class: kq && kq.r != null ? (kq.r >= 0 ? "up" : "down") : "" },
               kq && kq.r != null ? (kq.r >= 0 ? "+" : "") + kq.r + "R" : "—")));

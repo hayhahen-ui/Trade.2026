@@ -1366,6 +1366,75 @@ console.log("\n[25] v2.5.1 — tách UI thật/giấy + Kaizen học từ tín h
   ok(!bh2.some(b => /Tín hiệu giấy/.test(b.tieuDe)), "không có giấy → không sinh bài học giấy");
 }
 
+console.log("\n[26] v2.6.0 — cấu trúc thị trường 18 phút (TĂNG/GIẢM/ĐI NGANG + CHoCH ngược)");
+{
+  // 1. danhGiaTrangThai — unit trên nhãn swing giả
+  const c = makeCtx({ clamp: (v, a, b) => Math.min(b, Math.max(a, v)) });
+  c.load("assets/js/ta.js"); c.load("assets/js/smc.js");
+  const danhGiaTrangThai = c.get("danhGiaTrangThai");
+  const mkCT = (mau) => ({ swings: mau.map(nhan => ({ nhan })) });
+  const tang = danhGiaTrangThai(mkCT(["HL", "HH", "HL", "HH", "HL", "HH"]));
+  ok(tang.trangThai === "TĂNG" && tang.huong === "long", "chuỗi HH/HL → TĂNG (long)");
+  const giam = danhGiaTrangThai(mkCT(["LH", "LL", "LH", "LL", "LH", "LL"]));
+  ok(giam.trangThai === "GIẢM" && giam.huong === "short", "chuỗi LH/LL → GIẢM (short)");
+  const ngang = danhGiaTrangThai(mkCT(["HH", "LL", "HL", "LH", "HH", "LL"]));
+  ok(ngang.trangThai === "ĐI NGANG" && ngang.huong === null, "mẫu hỗn hợp → ĐI NGANG");
+  ok(danhGiaTrangThai({ swings: [] }).trangThai === "ĐI NGANG", "không swing → ĐI NGANG an toàn");
+  ok(/chỉ tìm LONG/.test(tang.quyTac) && /chỉ tìm SHORT/.test(giam.quyTac), "quy tắc đúng hướng (LONG tại HL / SHORT tại LH)");
+
+  // 2. engine.js — khối cấu trúc + điều chỉnh điểm + cảnh báo + ketQua
+  const eng = read("assets/js/engine.js");
+  ok(/danhGiaTrangThai\(ct4h\)/.test(eng), "engine tính cấu trúc 4H");
+  ok(/danhGiaTrangThai\(ct1h\)/.test(eng) && /danhGiaTrangThai\(ct15\)/.test(eng), "engine tính cấu trúc 1H + 15m");
+  ok(/nguocCauTruc/.test(eng) && /score = clamp\(score - 12/.test(eng), "ngược cấu trúc 4H → trừ 12 điểm");
+  ok(/chochNguoc/.test(eng) && /score = clamp\(score - 8/.test(eng), "CHoCH 1H ngược hướng → trừ 8 điểm");
+  ok(/dongPha3Khung/.test(eng) && /score = clamp\(score \+ 5/.test(eng), "đồng pha 3 khung → cộng 5 điểm");
+  ok(/canhBao\.push\(`🏯/.test(eng), "cảnh báo ngược cấu trúc (🏯)");
+  ok(/canhBao\.push\(`🔄/.test(eng), "cảnh báo CHoCH ngược (🔄)");
+  ok(/score, checklist, verdict, killzone: kz, canhBao, cauTruc,/.test(eng), "ketQua mang field cauTruc");
+
+  // 3. journal.js — ghiNhan lưu cauTruc + Kaizen rút bài học ngược cấu trúc
+  const c2 = makeCtx({ window: {}, document: {}, localStorage: (() => { const m = {}; return {
+    getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; })() });
+  c2.evalIn(`var window = globalThis; var localStorage = globalThis.localStorage;`);
+  c2.load("assets/js/journal.js");
+  const J = c2.get("JOURNAL");
+  const kq = { coin: "BTC", verdict: "LONG", score: 85, phase: "alert_ready", time: Date.now(),
+    plan: { entry: 84000, sl: 83000, tp1: 86000, rr1: 2 }, htf: { bias: "tang" }, killzone: { ten: "London" }, checklist: [],
+    cauTruc: { htf: "GIẢM", mtf: "GIẢM", ltf: "GIẢM", nguocCauTruc: true, chochNguoc: false, dongPha3Khung: false } };
+  const r = J.ghiNhan(kq);
+  ok(r && r.cauTruc && r.cauTruc.htf === "GIẢM" && r.cauTruc.nguoc === true, "ghiNhan lưu cauTruc (4H GIẢM + cờ ngược)");
+  const rutBaiHocKaizen = c2.get("rutBaiHocKaizen");
+  const thongKeJournal = c2.get("thongKeJournal");
+  const mkRec = (nguoc, tt) => ({
+    id: `t-${Math.random()}`, coin: "BTC", side: "long", loai: "that", tsVao: Date.now(),
+    giaVao: 100, sl: 99, tp: 102, rr: 2, diem: 80, phien: "X", bias4h: "bullish",
+    trangThai: tt, ketQua: tt === "thang" || tt === "thua" ? { ketQua: tt, r: tt === "thang" ? 2 : -1, gioDenKQ: 0.5 } : null,
+    cauTruc: nguoc ? { htf: "GIẢM", mtf: "GIẢM", nguoc: true, choch: false } : { htf: "TĂNG", mtf: "TĂNG", nguoc: false, choch: false },
+  });
+  const ds = [mkRec(true, "thua"), mkRec(true, "thua"), mkRec(false, "thang"), mkRec(false, "thang"), mkRec(false, "thua")];
+  const st = thongKeJournal(ds);
+  const bh = rutBaiHocKaizen(st, ds);
+  ok(bh.some(b => /NGƯỢC cấu trúc 4H/.test(b.tieuDe)), "Kaizen sinh bài học khi ≥2 lệnh ngược cấu trúc");
+  ok(bh.some(b => /2\/2 lệnh ngược cấu trúc đã thua/.test(b.chiTiet)), "chi tiết ghi rõ số lệnh thua ngược cấu trúc");
+  // không có lệnh ngược → không sinh bài học cấu trúc
+  const ds2 = [mkRec(false, "thang"), mkRec(false, "thang"), mkRec(false, "thua"), mkRec(false, "thua")];
+  const bh2 = rutBaiHocKaizen(thongKeJournal(ds2), ds2);
+  ok(!bh2.some(b => /NGƯỢC cấu trúc/.test(b.tieuDe)), "không có lệnh ngược → không sinh bài học cấu trúc");
+
+  // 4. screens.js — dòng 🏯 trên thẻ tín hiệu + panel SMC
+  const scr = read("assets/js/screens.js");
+  ok(/🏯 Cấu trúc/.test(scr), "screens.js có dòng 🏯 Cấu trúc");
+  ok(/4H \$\{ct\.htf\} · 1H \$\{ct\.mtf\}/.test(scr), "thẻ tín hiệu hiện trạng thái 4H/1H");
+
+  // 5. hook WhatsApp — pick cauTruc + template tin nhắn
+  const hookSh = fs.readFileSync("/home/hatch/hooks/scripts/trade2026-signal-whatsapp.sh", "utf8");
+  ok(/cauTruc: s\.cauTruc \|\| null/.test(hookSh), "hook pick thêm cauTruc");
+  const hookDef = JSON.parse(fs.readFileSync("/home/hatch/hooks/definitions/trade2026-signal-whatsapp.json", "utf8"));
+  ok(/🏯 Cấu trúc/.test(hookDef.prompt), "template WhatsApp có dòng 🏯 Cấu trúc");
+  ok(/bỏ dòng này nếu cauTruc null/.test(hookDef.prompt), "template bỏ qua dòng cấu trúc với tín hiệu cũ");
+}
+
 _p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

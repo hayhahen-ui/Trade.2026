@@ -408,6 +408,15 @@ function vePanelSMC(kq) {
   panel.appendChild(vd);
   panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Pha setup"), el("b", {}, kq.phaseLabel)));
   panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Bias 4H"), el("b", { class: biasClass(kq.htf.bias) }, `${biasLabel(kq.htf.bias)} (${kq.htf.ctBias})`)));
+  // v2.6.0: 3 trạng thái cấu trúc thị trường (kiến thức "18 phút") + quy tắc khung chính
+  if (kq.cauTruc) {
+    const ct = kq.cauTruc;
+    const badges = (ct.dongPha3Khung ? " ✓đồng pha" : "") + (ct.nguocCauTruc ? " ⚠NGƯỢC cấu trúc" : "") + (ct.chochNguoc ? " 🔄CHoCH ngược" : "");
+    const cls = ct.nguocCauTruc || ct.chochNguoc ? "down" : ct.dongPha3Khung ? "up" : "";
+    panel.appendChild(el("div", { class: "kv" }, el("span", {}, "🏯 Cấu trúc"),
+      el("b", { class: cls }, `4H ${ct.htf} · 1H ${ct.mtf} · 15m ${ct.ltf}${badges}`)));
+    if (ct.quyTacHTF) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "📏 Quy tắc 4H"), el("span", { class: "muted small" }, ct.quyTacHTF)));
+  }
   if (kq.htf.ema200) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "EMA200 4H"), el("b", { class: "mono" }, fmtGia(kq.htf.ema200))));
   if (kq.mtf.range) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "Dải giá 1H"), el("b", {}, `${kq.mtf.range.vung.toUpperCase()} (${kq.mtf.range.viTriPct}%)`)));
   if (kq.mtf.poc) panel.appendChild(el("div", { class: "kv" }, el("span", {}, "POC volume 1H"), el("b", { class: "mono" }, fmtGia(kq.mtf.poc))));
@@ -753,6 +762,13 @@ function veTheTinHieu(kq) {
   card.appendChild(scoreBar);
   card.appendChild(el("div", { class: "kv" }, el("span", {}, "Pha"), el("b", {}, kq.phaseLabel)));
   card.appendChild(el("div", { class: "kv" }, el("span", {}, "Bias 4H"), el("b", { class: biasClass(kq.htf.bias) }, biasLabel(kq.htf.bias))));
+  // v2.6.0: 3 trạng thái cấu trúc thị trường TĂNG/GIẢM/ĐI NGANG (kiến thức "18 phút")
+  if (kq.cauTruc) {
+    const ct = kq.cauTruc;
+    const badges = (ct.dongPha3Khung ? " ✓đồng pha" : "") + (ct.nguocCauTruc ? " ⚠NGƯỢC" : "") + (ct.chochNguoc ? " 🔄CHoCH" : "");
+    const cls = ct.nguocCauTruc || ct.chochNguoc ? "down" : ct.dongPha3Khung ? "up" : "";
+    card.appendChild(el("div", { class: "kv" }, el("span", {}, "🏯 Cấu trúc"), el("b", { class: cls }, `4H ${ct.htf} · 1H ${ct.mtf}${badges}`)));
+  }
   if (kq.dongTien) {
     const dt = kq.dongTien;
     const cls = dt.score >= 15 ? "up" : dt.score <= -15 ? "down" : "muted";
