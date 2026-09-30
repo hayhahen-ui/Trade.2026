@@ -1643,7 +1643,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.11\.0/.test(idx), "index.html đã lên v2.11.0");
+  ok(/Trade\.2026 v2\.12\.0/.test(idx), "index.html đã lên v2.12.0");
 }
 
 const _p30 = async () => {
@@ -1704,7 +1704,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.11\.0/.test(idx), "index.html đã lên v2.11.0");
+  ok(/Trade\.2026 v2\.12\.0/.test(idx), "index.html đã lên v2.12.0");
 };
 
 const _p31 = async () => {
@@ -1744,11 +1744,68 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.11\.0/.test(read("index.html")), "index.html đã lên v2.11.0");
+  ok(/Trade\.2026 v2\.12\.0/.test(read("index.html")), "index.html đã lên v2.12.0");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(() => {
+const _p32 = async () => {
+console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h");
+{
+  const store = {};
+  const lsStub = {
+    getItem: (k) => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v); },
+    removeItem: (k) => { delete store[k]; },
+  };
+  const t0 = Date.now();
+  // 20 nến 15m trung tính trong 5h: high 101 < TP 105, low 99.5 > SL 98, close cuối 100.5
+  const klines = [];
+  for (let i = 0; i < 20; i++)
+    klines.push({ openTime: t0 - 5 * 3600e3 + i * 15 * 60e3, open: 100, high: 101, low: 99.5, close: 100.5, volume: 1 });
+  const c = makeCtx({ localStorage: lsStub, fetchKlines: async () => klines });
+  c.load("assets/js/utils.js"); // fmtGia thật
+  c.load("assets/js/journal.js");
+  const JOURNAL = c.get("JOURNAL");
+  const TRANG_THAI = c.get("TRANG_THAI_JOURNAL");
+
+  ok(JOURNAL._hanGio === 4, "cửa sổ đánh giá tín hiệu futures = 4h (trước đây 48h)");
+  ok(TRANG_THAI.het_han[0] === "⌛ Hết hạn 4h", "nhãn trạng thái: Hết hạn 4h");
+
+  // quá 4h chưa chạm TP/SL → hết hạn, đóng theo giá thị trường, chấm R ngay
+  const recCu = { id: "T-CU", coin: "BTC", side: "long", loai: "that", tsVao: t0 - 5 * 3600e3,
+    giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
+  lsStub.setItem("trade2026_signal_journal", JSON.stringify([recCu]));
+  const r1 = await JOURNAL.chamDiem(recCu);
+  ok(!r1.loi && r1.rec.trangThai === "het_han", "quá 4h chưa chạm TP/SL → hết hạn");
+  ok(r1.rec.ketQua.gioDenKQ === 4, "hết hạn ghi gioDenKQ = 4h");
+  ok(r1.rec.ketQua.giaKetThuc === 100.5, "hết hạn đóng theo giá nến cuối (giá thị trường)");
+  ok(Math.abs(r1.rec.ketQua.r - 0.25) < 1e-9, "hết hạn tính R theo giá đóng: (100.5-100)/2 = +0.25R");
+
+  // trong 4h chưa chạm → vẫn theo dõi (không bị ép hết hạn sớm)
+  const recMoi = { id: "T-MOI", coin: "BTC", side: "long", loai: "that", tsVao: t0 - 1 * 3600e3,
+    giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
+  lsStub.setItem("trade2026_signal_journal", JSON.stringify([recMoi]));
+  const r2 = await JOURNAL.chamDiem(recMoi);
+  ok(!r2.loi && r2.rec.trangThai === "dang_theo_doi", "trong 4h chưa chạm TP/SL → vẫn theo dõi");
+
+  // short hết hạn: R âm khi giá đóng cao hơn entry
+  const klinesS = klines.map(n => ({ ...n, close: 101 }));
+  const c3 = makeCtx({ localStorage: lsStub, fetchKlines: async () => klinesS });
+  c3.load("assets/js/utils.js"); c3.load("assets/js/journal.js");
+  const J3 = c3.get("JOURNAL");
+  const recS = { id: "T-S", coin: "ETH", side: "short", loai: "that", tsVao: t0 - 6 * 3600e3,
+    giaVao: 100, sl: 102, tp: 95, rr: 2.5, diem: 75, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
+  lsStub.setItem("trade2026_signal_journal", JSON.stringify([recS]));
+  const r3 = await J3.chamDiem(recS);
+  ok(!r3.loi && r3.rec.trangThai === "het_han" && Math.abs(r3.rec.ketQua.r + 0.5) < 1e-9,
+    "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
+
+  // version
+  ok(/Trade\.2026 v2\.12\.0/.test(read("index.html")), "index.html đã lên v2.12.0");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

@@ -6,13 +6,15 @@
  * v2.2.1: bảng chi tiết thêm cột STOP / KẾT THÚC / ±(chênh lệch giá);
  *   fix chamDiemLenh nhận cả "giaVao" (record thật) lẫn "entry" (test cũ);
  *   kết quả chấm điểm lưu thêm giá kết thúc lệnh (giaKT/giaKetThuc).
+ * v2.12.0: trade futures — rút cửa sổ đánh giá từ 48h xuống 4h (_hanGio):
+ *   quá 4h chưa chạm TP/SL → đóng theo giá thị trường, chấm kết quả ngay.
  * ============================================================ */
 "use strict";
 
 const JOURNAL = {
   _k: "trade2026_signal_journal",
   _max: 300,
-  _hanGio: 48, // cửa sổ đánh giá 1 tín hiệu
+  _hanGio: 4, // v2.12.0: cửa sổ đánh giá 1 tín hiệu — futures: tối đa 4h (trước đây 48h)
 
   _doc() { try { return JSON.parse(localStorage.getItem(this._k) || "[]"); } catch (e) { return []; } },
   /* Chính sách bộ nhớ (user 26/09/2026): KHÔNG tự xóa.
@@ -306,7 +308,7 @@ function rutBaiHocKaizen(st, ds) {
       muc: "ghi_nho", tieuDe: "⏱️ Bao lâu thì lệnh đúng?",
       chiTiet: `Lệnh thắng chạm TP1 trung bình sau ${st.tbGioDenTP} giờ; lệnh thua chạm SL sau ${st.tbGioDenSL} giờ.`,
       goiY: st.tbGioDenSL < st.tbGioDenTP
-        ? `Lệnh sai thường "chết" nhanh (${st.tbGioDenSL}h) — nếu sau ${Math.ceil(st.tbGioDenTP * 1.5)}h giá vẫn lình xình quanh entry, cân nhắc thoát sớm thay vì chờ đủ 48h.`
+        ? `Lệnh sai thường "chết" nhanh (${st.tbGioDenSL}h) — nếu sau ${Math.ceil(st.tbGioDenTP * 1.5)}h giá vẫn lình xình quanh entry, cân nhắc thoát sớm thay vì chờ đủ 4h.`
         : "Theo dõi thêm để có ngưỡng thời gian thoát sớm.",
     });
   // 6. Phiên giao dịch
@@ -411,7 +413,7 @@ const TRANG_THAI_JOURNAL = {
   dang_theo_doi: ["⏳ Đang theo dõi", "warn"],
   thang: ["✅ Thắng (chạm TP1)", "up"],
   thua: ["❌ Thua (chạm SL)", "down"],
-  het_han: ["⌛ Hết hạn 48h", "muted"],
+  het_han: ["⌛ Hết hạn 4h", "muted"],
 };
 function fmtNgayGio(ts) {
   try { return new Date(ts).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }
@@ -441,7 +443,7 @@ function renderSoTinHieu(root) {
   root.appendChild(el("div", { class: "note-box" },
     "📝 Mỗi tín hiệu ", el("b", {}, "LONG/SHORT được xác nhận"), " tự ghi lại thời điểm, entry/SL/TP vào sổ này. ",
     "Hệ thống dùng ", el("b", {}, "nến 15m thật"), " sau đó để chấm điểm đúng/sai → rút bài học Kaizen. ",
-    el("span", { class: "muted small" }, "Giả định: khớp entry tại giá tín hiệu; SL chạm trước TP trong cùng nến → tính thua (bảo thủ); quá 48h chưa chạm → hết hạn."),
+    el("span", { class: "muted small" }, "Giả định: khớp entry tại giá tín hiệu; SL chạm trước TP trong cùng nến → tính thua (bảo thủ); quá 4h chưa chạm → hết hạn (đóng theo giá thị trường)."),
     el("br", {}),
     el("span", { class: "muted small" }, "Cột ", el("b", {}, "Stop"), ": giá SL khuyến nghị · ", el("b", {}, "Kết thúc"), ": giá TP/SL/giá cuối thực tế · ", el("b", {}, "±"), ": chênh lệch kết thúc − vào (", el("span", { class: "up" }, "xanh lãi"), "/", el("span", { class: "down" }, "đỏ lỗ"), ").")));
 
