@@ -95,6 +95,8 @@ function veDongHo() {
 
 /* ---------- Khởi động ---------- */
 function boot() {
+  // v2.14.0: feature flag NN off|shadow (MRBIT_NEURAL_CODING_01 §4 P0) — đọc từ SETTINGS
+  try { if (typeof NN !== "undefined") NN.datCheDo((typeof SETTINGS !== "undefined" && SETTINGS.nnCheDo) || "shadow"); } catch (e) {}
   // v2.13.0: nạp trọng số NN (shadow mode — thiếu file thì bỏ qua)
   // v2.13.1: bù dự đoán cho các thẻ đã vẽ trước khi weights về (race condition)
   fetch("assets/nn-weights.json").then(r => r.ok ? r.json() : null).then(j => {

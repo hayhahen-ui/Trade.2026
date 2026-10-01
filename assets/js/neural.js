@@ -255,14 +255,54 @@ class MLP {
 
 /* ---------- Facade dùng ở runtime (shadow mode) ---------- */
 const NN_MAU_TOI_THIEU = 30; // dưới ngưỡng này: chỉ quan sát, không ảnh hưởng tín hiệu
+/* Feature registry (tài liệu §7): phiên bản + kiến trúc của bộ 12 đặc trưng.
+ * ĐỔI NN_PHEN_BAN_DAC_TRUNG khi thêm/bớt/sắp xếp lại đặc trưng — weights cũ
+ * sẽ bị từ chối với trạng thái khong_tuong_thich thay vì chạy sai lặng lẽ. */
+const NN_PHEN_BAN_DAC_TRUNG = "dac-trung-v1";
+const NN_KIEN_TRUC = [NN_SO_DAC_TRUNG, 8, 1];
+
+/* Checksum FNV-1a cho artifact trọng số — phát hiện file hỏng khi nạp. */
+function bamKiemTra(obj) {
+  const s = JSON.stringify(obj);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return ("0000000" + (h >>> 0).toString(16)).slice(-8);
+}
+
 const NN = {
   _mlp: null,
+  _cheDo: "shadow",       // feature flag 'shadow' | 'off' (tài liệu §4 P0)
+  _khongTuongThich: null, // lý do lần nạp gần nhất (nếu có)
+  /* Feature flag off|shadow. Mặc định shadow; 'off' tắt hẳn nhánh NN. */
+  datCheDo(m) { this._cheDo = (m === "off") ? "off" : "shadow"; return this._cheDo; },
+  cheDo() { return this._cheDo; },
+  /* Kiểm tra tương thích artifact (tài liệu T09). Weights v2.13.x chưa có
+   * phienBanDacTrung được coi là legacy của dac-trung-v1 nếu kiến trúc khớp. */
+  kiemTraTuongThich(obj) {
+    if (!obj || obj.version !== 1 || !Array.isArray(obj.sizes)) return { ok: false, lyDo: "CAU_TRUC_FILE_SAI" };
+    const sz = obj.sizes;
+    const dungKT = sz.length === NN_KIEN_TRUC.length && sz.every((v, i) => v === NN_KIEN_TRUC[i]);
+    if (!dungKT) return { ok: false, lyDo: "KIEN_TRUC_KHAC_BIET" };
+    const W = obj.W, b = obj.b;
+    if (!Array.isArray(W) || !Array.isArray(b) || W.length !== sz.length - 1 || b.length !== sz.length - 1)
+      return { ok: false, lyDo: "KICH_THUOC_TRONG_SO_SAI" };
+    const meta = obj.meta || {};
+    if (meta.phienBanDacTrung != null && meta.phienBanDacTrung !== NN_PHEN_BAN_DAC_TRUNG)
+      return { ok: false, lyDo: "PHIEN_BAN_DAC_TRUNG_KHAC" };
+    if (meta.checksum != null) {
+      const tinh = bamKiemTra({ sizes: obj.sizes, W: obj.W, b: obj.b });
+      if (tinh !== meta.checksum) return { ok: false, lyDo: "CHECKSUM_SAI" };
+    }
+    return { ok: true, legacy: meta.phienBanDacTrung == null };
+  },
   napTrongSo(obj) {
     try {
-      if (!obj || obj.version !== 1 || !Array.isArray(obj.sizes)) return false;
+      const kt = this.kiemTraTuongThich(obj);
+      if (!kt.ok) { this._mlp = null; this._khongTuongThich = kt.lyDo; return false; }
       this._mlp = MLP.nap(obj);
+      this._khongTuongThich = null;
       return true;
-    } catch (e) { return false; }
+    } catch (e) { this._mlp = null; this._khongTuongThich = "NAP_THAT_BAI"; return false; }
   },
   sanSang() { return !!this._mlp; },
   thongTin() { return this._mlp ? this._mlp.meta : null; },
@@ -276,11 +316,44 @@ const NN = {
   },
   duDoanChoEngine(kq) { return this.duDoan(dacTrungTuEngine(kq)); },
   duDoanChoJournal(rec) { return this.duDoan(dacTrungTuJournal(rec)); },
+  /* Hợp đồng assessment (tài liệu §6.4): trạng thái rõ ràng, KHÔNG số giả.
+   * status: tat | chua_huan_luyen | khong_tuong_thich | thieu_du_lieu | san_sang | loi
+   * p: xác suất 0..1 khi san_sang, ngược lại null. */
+  danhGia(kq) {
+    const bayGio = () => (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+    const t0 = bayGio();
+    const base = {
+      mode: this._cheDo, status: "loi", p: null, modelVersion: null,
+      phienBanDacTrung: NN_PHEN_BAN_DAC_TRUNG, doTreMs: 0, lyDo: [],
+    };
+    const xong = (patch) => Object.assign(base, patch, { doTreMs: +((bayGio() - t0).toFixed(2)) });
+    if (this._cheDo === "off") return xong({ status: "tat", lyDo: ["NN_MODE_OFF"] });
+    if (this._khongTuongThich) return xong({ status: "khong_tuong_thich", lyDo: [this._khongTuongThich] });
+    if (!this._mlp) return xong({ status: "chua_huan_luyen", lyDo: ["MODEL_NOT_AVAILABLE"] });
+    let fe = null;
+    try { fe = dacTrungTuEngine(kq); } catch (e) { return xong({ status: "loi", lyDo: ["TRICH_DAC_TRUNG_LOI"] }); }
+    if (!fe) return xong({ status: "thieu_du_lieu", lyDo: ["KHONG_CO_DAC_TRUNG"] });
+    const p = this.duDoan(fe);
+    if (p == null || !isFinite(p)) return xong({ status: "loi", lyDo: ["DU_DOAN_THAT_BAI"] });
+    const meta = this._mlp.meta || {};
+    return xong({ status: "san_sang", p, modelVersion: meta.phienBan || meta.ngay || null });
+  },
+  /* Dòng mô tả trạng thái cho UI chẩn đoán/cài đặt (tiếng Việt, trung thực). */
+  moTaTrangThai() {
+    const tt = this.thongTin() || {};
+    const mau = tt.mau != null ? tt.mau : "?";
+    const val = tt.valAcc != null ? tt.valAcc : "?";
+    if (this._cheDo === "off") return "Đã tắt (off) — mô-đun NN không chạy.";
+    if (this._khongTuongThich) return "Mô hình không tương thích (" + this._khongTuongThich + ") — cần train lại.";
+    if (!this._mlp) return "Chưa huấn luyện (not_trained) — đang quan sát, chưa có dự báo.";
+    return "Shadow: đã nạp mô hình (" + mau + " mẫu, valAcc " + val + ") — chỉ quan sát, không ảnh hưởng tín hiệu.";
+  },
   /* v2.13.1: bù dự đoán cho các kết quả đã phân tích TRƯỚC khi weights về
    * (tránh race condition: thẻ vẽ trước, weights về sau → thiếu dòng NN).
    * signalCache: Map-like có .values(); veLai(kq): vẽ lại thẻ (tùy chọn).
    * Trả về số kq được bù. */
   buChoCache(signalCache, veLai) {
+    if (this._cheDo === "off") return 0; // T01: flag tắt → nhánh NN không hoạt động
     if (!this.sanSang() || !signalCache || typeof signalCache.values !== "function") return 0;
     let n = 0;
     try {
@@ -299,5 +372,5 @@ const NN = {
 };
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { MLP, NN, trichDacTrung, dacTrungTuEngine, dacTrungTuJournal, nhanMau, taoTapDuLieu, NN_MAU_TOI_THIEU, NN_SO_DAC_TRUNG, mulberry32 };
+  module.exports = { MLP, NN, trichDacTrung, dacTrungTuEngine, dacTrungTuJournal, nhanMau, taoTapDuLieu, NN_MAU_TOI_THIEU, NN_SO_DAC_TRUNG, NN_PHEN_BAN_DAC_TRUNG, NN_KIEN_TRUC, bamKiemTra, mulberry32 };
 }

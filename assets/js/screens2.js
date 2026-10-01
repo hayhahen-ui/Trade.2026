@@ -622,6 +622,16 @@ function moCaiDat() {
   box.appendChild(el("label", { class: "small muted" }, "Chu kỳ quét tín hiệu (giây):"));
   const inpRef = el("input", { class: "input num", type: "number", value: String(SETTINGS.refreshTinHieuSec), min: "60", max: "900", step: "30" });
   box.appendChild(inpRef);
+  // v2.14.0: feature flag NN off|shadow + trạng thái trung thực (MRBIT_NEURAL_CODING_01 §4, §11)
+  box.appendChild(el("label", { class: "small muted" }, "🧠 Mạng nơ-ron (shadow — chỉ quan sát):"));
+  const selNN = el("select", { class: "input" });
+  selNN.appendChild(el("option", { value: "shadow" }, "Theo dõi thử (shadow)"));
+  selNN.appendChild(el("option", { value: "off" }, "Tắt hẳn"));
+  selNN.value = SETTINGS.nnCheDo === "off" ? "off" : "shadow";
+  box.appendChild(selNN);
+  let nnStatus = "chưa tải mô-đun NN.";
+  try { if (typeof NN !== "undefined") nnStatus = NN.moTaTrangThai(); } catch (e) {}
+  box.appendChild(el("div", { class: "small muted", style: "margin:4px 0 8px" }, "Trạng thái: " + nnStatus));
   box.appendChild(el("div", { class: "row-gap", style: "margin-top:14px" },
     el("button", {
       class: "btn primary", onclick: () => {
@@ -629,6 +639,7 @@ function moCaiDat() {
         SETTINGS.risk.riskPct = clamp(+inpRisk.value || 1, 0.1, SETTINGS.risk.riskPctMax);
         SETTINGS.risk.vonBanDau = Math.max(100, +inpVon.value || 10000);
         SETTINGS.refreshTinHieuSec = clamp(+inpRef.value || 180, 60, 900);
+        SETTINGS.nnCheDo = selNN.value === "off" ? "off" : "shadow"; // v2.14.0
         saveSettings(SETTINGS);
         modal.remove();
         location.reload();

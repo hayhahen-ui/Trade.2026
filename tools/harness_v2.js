@@ -1643,7 +1643,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.13\.1/.test(idx), "index.html đã lên v2.13.1");
+  ok(/Trade\.2026 v2\.14\.0/.test(idx), "index.html đã lên v2.14.0");
 }
 
 const _p30 = async () => {
@@ -1704,7 +1704,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.13\.1/.test(idx), "index.html đã lên v2.13.1");
+  ok(/Trade\.2026 v2\.14\.0/.test(idx), "index.html đã lên v2.14.0");
 };
 
 const _p31 = async () => {
@@ -1744,7 +1744,7 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.13\.1/.test(read("index.html")), "index.html đã lên v2.13.1");
+  ok(/Trade\.2026 v2\.14\.0/.test(read("index.html")), "index.html đã lên v2.14.0");
 }
 };
 
@@ -1801,7 +1801,7 @@ console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h")
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.13\.1/.test(read("index.html")), "index.html đã lên v2.13.1");
+  ok(/Trade\.2026 v2\.14\.0/.test(read("index.html")), "index.html đã lên v2.14.0");
 }
 };
 
@@ -1941,12 +1941,107 @@ console.log("\n[33] v2.13.0 — MLP neural.js: đặc trưng, backprop, shadow w
   ok(NN.buChoCache(null, veLai) === 0 && NN.buChoCache({}, veLai) === 0, "cache lỗi → trả 0, không crash");
 
   // 12. version
-  ok(/Trade\.2026 v2\.13\.1/.test(read("index.html")), "index.html đã lên v2.13.1");
-  ok(/neural\.js\?v=2\.13\.1/.test(read("index.html")), "index.html nạp neural.js v2.13.1");
+  ok(/Trade\.2026 v2\.14\.0/.test(read("index.html")), "index.html đã lên v2.14.0");
+  ok(/neural\.js\?v=2\.14\.0/.test(read("index.html")), "index.html nạp neural.js v2.13.1");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(() => {
+/* ---------- [34] v2.14.0 — Tích hợp MRBIT_NEURAL_CODING_01 P0 ----------
+ * Ánh xạ kiểm thử nghiệm thu của tài liệu: T01 (flag off), T02 (shadow chưa
+ * model → not_trained), T09 (artifact không tương thích), T13 (UI không số
+ * giả), T14 (tắt/mở lại). */
+const _p34 = async () => {
+console.log("\n[34] v2.14.0 — MRBIT P0: flag off|shadow, assessment, tương thích artifact");
+{
+  const c = makeCtx(); c.load("assets/js/neural.js");
+  const NN = c.get("NN");
+  const PB = c.get("NN_PHEN_BAN_DAC_TRUNG"), KT = c.get("NN_KIEN_TRUC");
+  const kqMau = { coin: "BTC", verdict: "LONG", score: 80, time: Date.now(),
+    plan: { entry: 100, sl: 98, tp1: 104, rr1: 2 }, killzone: { ten: "—" }, htf: { bias: "bullish" },
+    cauTruc: null, chatLuongOB: null, chatLuongNen: null, checklist: [] };
+
+  // 1. T14/T01: flag off → nhánh NN không hoạt động, assessment 'tat', p null
+  ok(NN.datCheDo("off") === "off" && NN.cheDo() === "off", "datCheDo('off')");
+  const dgOff = NN.danhGia(kqMau);
+  ok(dgOff.status === "tat" && dgOff.p === null && dgOff.mode === "off", "T01: off → status tat, p null");
+  ok(NN.buChoCache(new Map([["X", kqMau]]), () => {}) === 0, "T01: off → buChoCache không bù");
+  ok(NN.datCheDo("shadow") === "shadow", "T14: bật lại shadow được");
+
+  // 2. T02: shadow nhưng chưa có model → not_trained, p null, không gọi order API
+  const dgChua = NN.danhGia(kqMau);
+  ok(dgChua.status === "chua_huan_luyen" && dgChua.p === null, "T02: chưa model → chua_huan_luyen, p null");
+  ok(dgChua.lyDo.includes("MODEL_NOT_AVAILABLE"), "T02: reason code MODEL_NOT_AVAILABLE");
+  ok(!("datLenh" in dgChua) && !("order" in dgChua), "T02: assessment không chứa khả năng đặt lệnh");
+
+  // 3. Feature registry versioned
+  ok(PB === "dac-trung-v1", "phiên bản đặc trưng dac-trung-v1");
+  ok(JSON.stringify(KT) === JSON.stringify([12, 8, 1]), "kiến trúc [12,8,1]");
+
+  // 4. T09: artifact sai phiên bản đặc trưng → từ chối
+  const MLP = c.get("MLP");
+  const mlp = new MLP([12, 8, 1], 42);
+  const fake = (meta) => ({ version: 1, sizes: [12, 8, 1], W: mlp.W, b: mlp.b, meta });
+  ok(NN.napTrongSo(fake({ phienBanDacTrung: "dac-trung-v999" })) === false, "T09: sai phiên bản đặc trưng → từ chối");
+  ok(NN.danhGia(kqMau).status === "khong_tuong_thich", "T09: status khong_tuong_thich");
+  ok(NN.danhGia(kqMau).lyDo.includes("PHIEN_BAN_DAC_TRUNG_KHAC"), "T09: reason code đúng");
+
+  // 5. T09: sai kiến trúc / sai kích thước trọng số → từ chối
+  ok(NN.napTrongSo({ version: 1, sizes: [12, 16, 1], W: mlp.W, b: mlp.b, meta: {} }) === false, "T09: sai kiến trúc → từ chối");
+  ok(NN.danhGia(kqMau).lyDo.includes("KIEN_TRUC_KHAC_BIET"), "T09: reason KIEN_TRUC_KHAC_BIET");
+  ok(NN.napTrongSo({ version: 1, sizes: [12, 8, 1], W: [], b: [], meta: {} }) === false, "T09: sai kích thước W/b → từ chối");
+
+  // 6. T09: checksum sai → từ chối; checksum đúng → nhận
+  const bam = c.get("bamKiemTra");
+  const csDung = bam({ sizes: [12, 8, 1], W: mlp.W, b: mlp.b });
+  ok(NN.napTrongSo(fake({ phienBanDacTrung: PB, checksum: "deadbeef" })) === false, "T09: checksum sai → từ chối");
+  ok(NN.danhGia(kqMau).lyDo.includes("CHECKSUM_SAI"), "T09: reason CHECKSUM_SAI");
+  ok(NN.napTrongSo(fake({ phienBanDacTrung: PB, checksum: csDung })) === true, "checksum đúng → nạp được");
+
+  // 7. Tương thích ngược: weights v2.13.x (thiếu phienBanDacTrung) vẫn nạp được
+  const c2 = makeCtx(); c2.load("assets/js/neural.js");
+  const NN2 = c2.get("NN");
+  ok(NN2.napTrongSo({ version: 1, sizes: [12, 8, 1], W: mlp.W, b: mlp.b, meta: { ngay: "2026-09-30" } }) === true,
+    "weights legacy (thiếu phiên bản) vẫn nạp được khi kiến trúc khớp");
+
+  // 8. san_sang → assessment đầy đủ, có đo độ trễ
+  const dgOk = NN.danhGia(kqMau);
+  ok(dgOk.status === "san_sang" && dgOk.p != null && dgOk.p >= 0 && dgOk.p <= 1, "san_sang: p trong [0,1]");
+  ok(dgOk.phienBanDacTrung === PB && typeof dgOk.doTreMs === "number" && dgOk.doTreMs >= 0, "assessment có phiên bản + độ trễ");
+  ok(dgOk.lyDo.length === 0, "san_sang: không có reason code lỗi");
+
+  // 9. T13: mọi trạng thái chưa sẵn sàng đều p null (không số giả 0%/50%/100%)
+  for (const st of ["tat", "chua_huan_luyen", "khong_tuong_thich"]) {
+    const n = makeCtx(); n.load("assets/js/neural.js"); const X = n.get("NN");
+    if (st === "tat") X.datCheDo("off");
+    if (st === "khong_tuong_thich") X.napTrongSo(fake({ phienBanDacTrung: "x" }));
+    const d = X.danhGia(kqMau);
+    ok(d.status === st && d.p === null, `T13: ${st} → p null, không số giả`);
+  }
+
+  // 10. moTaTrangThai trung thực theo từng trạng thái
+  const n3 = makeCtx(); n3.load("assets/js/neural.js"); const X3 = n3.get("NN");
+  ok(/Chưa huấn luyện/.test(X3.moTaTrangThai()), "mô tả khi chưa huấn luyện");
+  X3.datCheDo("off");
+  ok(/Đã tắt/.test(X3.moTaTrangThai()), "mô tả khi tắt");
+  X3.datCheDo("shadow"); X3.napTrongSo(fake({ phienBanDacTrung: PB, checksum: csDung }));
+  ok(/Shadow/.test(X3.moTaTrangThai()), "mô tả khi shadow sẵn sàng");
+
+  // 11. config + UI wiring: settings có nnCheDo, modal có công tắc
+  const cfg = read("assets/js/config.js");
+  ok(/nnCheDo/.test(cfg), "config.js có SETTINGS.nnCheDo");
+  const s2 = read("assets/js/screens2.js");
+  ok(/Mạng nơ-ron/.test(s2) && /moTaTrangThai/.test(s2), "modal Cài đặt có công tắc NN + trạng thái");
+  const eng = read("assets/js/engine.js");
+  ok(/nnDanhGia/.test(eng), "engine ghi nnDanhGia (assessment)");
+  ok(!/sanSang\(\)\) ketQua\.nnXacSuat = NN\.duDoanChoEngine/.test(eng), "engine không còn đường ghi cũ");
+
+  // 12. version
+  ok(/Trade\.2026 v2\.14\.0/.test(read("index.html")), "index.html đã lên v2.14.0");
+  ok(/neural\.js\?v=2\.14\.0/.test(read("index.html")), "index.html nạp neural.js v2.14.0");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(_p34).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

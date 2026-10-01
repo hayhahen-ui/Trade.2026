@@ -108,8 +108,10 @@ function loadSettings() {
       risk: { ...RISK_DEFAULTS, ...(s.risk || {}) },
       refreshTinHieuSec: s.refreshTinHieuSec || 180,
       theme: s.theme || "dark",
+      // v2.14.0: feature flag NN (MRBIT_NEURAL_CODING_01 §4 P0) — 'shadow' (mặc định) | 'off'
+      nnCheDo: s.nnCheDo === "off" ? "off" : "shadow",
     };
-  } catch { return { watchlist: [...WATCHLIST_CORE], watchlistPhu: [...WATCHLIST_PHU], tinHieuCoins: [...WATCHLIST_CORE], risk: { ...RISK_DEFAULTS }, refreshTinHieuSec: 180, theme: "dark" }; }
+  } catch { return { watchlist: [...WATCHLIST_CORE], watchlistPhu: [...WATCHLIST_PHU], tinHieuCoins: [...WATCHLIST_CORE], risk: { ...RISK_DEFAULTS }, refreshTinHieuSec: 180, theme: "dark", nnCheDo: "shadow" }; }
 }
 function saveSettings(s) { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch {} }
 

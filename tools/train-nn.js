@@ -52,9 +52,20 @@ function main() {
   const duMau = n >= N.NN_MAU_TOI_THIEU;
   const honBaseline = kq.valAcc > Math.max(bl.majority, bl.diem75);
   const cheDo = (duMau && honBaseline) ? "de-xuat-thang-cap (chờ user duyệt)" : "thu-nghiem (shadow)";
+  const ngay = new Date().toISOString().slice(0, 10);
+  const thang = Y.filter(y => y === 1).length;
+  // v2.14.0: metadata artifact đầy đủ (MRBIT_NEURAL_CODING_01 §8) — phiên bản,
+  // phiên bản đặc trưng, kiến trúc, số mẫu theo lớp, seed, checksum
+  const trongSoTho = mlp.xuat({});
   const meta = {
-    ngay: new Date().toISOString().slice(0, 10),
-    mau: n, trainAcc: kq.trainAcc, valAcc: kq.valAcc,
+    phienBan: "nn-" + ngay,
+    phienBanDacTrung: N.NN_PHEN_BAN_DAC_TRUNG,
+    kienTruc: N.NN_KIEN_TRUC.slice(),
+    ngay,
+    mau: n, mauThang: thang, mauThua: n - thang,
+    trainAcc: kq.trainAcc, valAcc: kq.valAcc, nTrain: kq.nTrain, nVal: kq.nVal,
+    seed: 7, epochs: kq.epochs,
+    checksum: N.bamKiemTra({ sizes: trongSoTho.sizes, W: trongSoTho.W, b: trongSoTho.b }),
     baseline, cheDo,
     ghiChu: duMau
       ? (honBaseline ? "Val hơn baseline — user xem xét thăng cấp thủ công." : "Val chưa hơn baseline — giữ shadow.")
