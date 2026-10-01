@@ -1,11 +1,12 @@
 /* ============================================================
  * Trade.2026 — Trạm quan trắc 24/7 (collector-247)
  * Chạy trên server (cron 15 phút), KHÔNG cần mở web, KHÔNG cần máy user bật.
- * Mỗi vòng: engine phân tích 7 coin → ghi nhận tín hiệu LONG/SHORT →
- * chấm điểm bằng nến thật → rút bài học Kaizen → ghi data/journal-247.json
+ * Mỗi vòng: engine phân tích universe tự động (top 30 perpetual USDT theo volume 24h
+ * Binance futures + coin cũ) → ghi nhận tín hiệu LONG/SHORT → chấm điểm bằng nến thật
+ * → rút bài học Kaizen → ghi data/journal-247.json
  * (đẩy lên nhánh `data` của GitHub mỗi giờ để web tải về hiển thị).
- * 01/10/2026 (quyết định của user): thêm SUI vào phạm vi trạm để tín hiệu SUI
- * cũng lên được kênh WhatsApp (trước đây SUI chỉ có ở journal browser-local).
+ * 01/10/2026 (quyết định của user): chế độ AUTO thay danh sách coin cố định —
+ * có tín hiệu đạt chuẩn là lên WhatsApp luôn, không cần khai báo coin.
  * ============================================================ */
 "use strict";
 const fs = require("fs");
@@ -17,7 +18,44 @@ const DATA_DIR = path.join(ROOT, "data");
 const PUBLIC_PATH = path.join(DATA_DIR, "journal-247.json"); // payload web tải về
 const STORE_PATH = path.join(DATA_DIR, ".journal-247-store.json"); // toàn bộ localStorage sandbox
 const PUSH_STAMP = path.join(DATA_DIR, ".journal-247-push.txt");
-const COINS = ["BTC", "ETH", "SOL", "BNB", "DOGE", "DYDX", "SUI"]; // 01/10/2026: +SUI theo quyết định của user (WhatsApp)
+/* 01/10/2026 (quyết định của user): chế độ AUTO — trạm tự chọn coin để quét thay vì
+ * danh sách cố định. Mỗi vòng: lấy top 30 cặp USDT theo volume 24h (spot ticker qua
+ * data-api.binance.vision — cùng host engine đang dùng, không bị chặn geo) + giữ lại
+ * các coin đã quét trước đây để không mất tín hiệu khi coin rớt top.
+ * Có tín hiệu đạt chuẩn (LONG/SHORT) là ghi vào journal-247.json → WhatsApp gửi luôn,
+ * không cần khai báo coin ở đâu nữa. Lấy universe lỗi → fallback danh sách dự phòng. */
+const UNIVERSE_TOP_N = 30;
+const COINS_DU_PHONG = ["BTC", "ETH", "SOL", "BNB", "DOGE", "DYDX", "SUI"];
+const STABLE_LOAI = new Set(["USDT", "USDC", "FDUSD", "TUSD", "DAI", "USD1", "USDP", "AEUR", "RLUSD", "USDE", // stablecoin
+  "EUR", "GBP", "BRL", "TRY", "ARS", "MXN", "NGN", "ZAR", "UAH", "RUB", "PLN", "CZK"]); // fiat
+function chonUniverse(tickers, topN) {
+  // pure — test được: lọc cặp USDT, bỏ stablecoin/fiat + token đòn bẩy, xếp theo quoteVolume
+  const hop = [];
+  for (const t of tickers || []) {
+    const s = String(t.symbol || "");
+    if (!/USDT$/.test(s)) continue;
+    if (/(UP|DOWN|BULL|BEAR)USDT$/.test(s)) continue; // token đòn bẩy x3/xuống
+    const base = s.replace(/USDT$/, "");
+    if (!base || STABLE_LOAI.has(base)) continue; // stablecoin/fiat: không biến động, không tín hiệu
+    hop.push({ coin: base, vol: +t.quoteVolume || 0 });
+  }
+  hop.sort((a, b) => b.vol - a.vol);
+  const top = hop.slice(0, topN).map(x => x.coin);
+  for (const c of COINS_DU_PHONG) if (!top.includes(c)) top.push(c); // giữ coin cũ
+  return top;
+}
+async function layUniverseTuDong() {
+  try {
+    const r = await fetch("https://data-api.binance.vision/api/v3/ticker/24hr"); // spot ticker: cùng host engine dùng (không bị chặn geo); universe chỉ cần coin thanh khoản
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const uni = chonUniverse(await r.json(), UNIVERSE_TOP_N);
+    if (!uni.length) throw new Error("universe rỗng");
+    return uni;
+  } catch (e) {
+    console.log(`  ⚠ không lấy được universe tự động (${e.message}) → dùng danh sách dự phòng`);
+    return COINS_DU_PHONG.slice();
+  }
+}
 const PUSH_MOI_GIO_MS = 60 * 60 * 1000;
 
 /* ---------- Stub browser API ---------- */
@@ -118,6 +156,8 @@ async function main() {
   if (!bestSetup || bestSetup.ngay !== ngayStr) bestSetup = { ngay: ngayStr, diem: -1, kq: null };
 
   const tomTat = [];
+  const COINS = await layUniverseTuDong(); // 01/10/2026: AUTO — tự chọn coin theo volume, không fix cứng
+  console.log(`  🌐 universe tự động: ${COINS.length} coin (${COINS.slice(0, 10).join(",")}${COINS.length > 10 ? ",…" : ""})`);
   for (const coin of COINS) {
     try {
       const kq = await phanTichCoin(coin);

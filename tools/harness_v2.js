@@ -822,7 +822,8 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
     "payload có tram + capNhat");
   ok(p && p.thongKe && typeof p.thongKe.tong === "number" && Array.isArray(p.baiHoc) && Array.isArray(p.tinHieu),
     "payload có thongKe + baiHoc + tinHieu");
-  ok(p && Array.isArray(p.vongQuet) && p.vongQuet.length === 6, "vòng quét đủ 6 coin");
+  ok(p && Array.isArray(p.vongQuet) && p.vongQuet.length >= 6 && p.vongQuet.some(s => String(s).startsWith("BTC:")),
+    "vòng quét đủ coin (auto universe ≥6, có BTC)");
   // 15.3 journal.js có thẻ trạm trỏ đúng nhánh data
   const jsrc = read("assets/js/journal.js");
   ok(jsrc.indexOf("tram-247") >= 0, "Sổ tín hiệu có thẻ trạm 24/7");
@@ -2102,13 +2103,41 @@ console.log("\n[35] v2.14.1 — biên 4h + auto chấm điểm journal trình du
   ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
   ok(/app\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp app.js v2.14.1");
 
-  // phạm vi trạm (quyết định user 01/10/2026): SUI vào watchlist để tín hiệu SUI lên WhatsApp
+  // phạm vi trạm AUTO (quyết định user 01/10/2026): tự chọn coin theo volume, không fix cứng
   const col = read("tools/collector-247.js");
-  const mCoins = col.match(/const COINS = \[([^\]]+)\]/);
-  ok(!!mCoins, "collector-247.js khai báo COINS");
-  const coins = mCoins[1].split(",").map(s => s.trim().replace(/["']/g, ""));
-  ok(coins.length === 7 && coins.includes("SUI"), "trạm quét 7 coin, có SUI (BTC/ETH/SOL/BNB/DOGE/DYDX/SUI)");
-  ok(/for \(const coin of COINS\)/.test(col), "vòng quét dùng COINS (SUI tự vào journal-247.json → WhatsApp)");
+  ok(!/const COINS = \[/.test(col), "không còn danh sách COINS cố định");
+  // nạp hàm thật: chonUniverse + các const nó dùng
+  const cAuto = makeCtx({});
+  const layConst = (ten) => col.match(new RegExp(`const ${ten} = [^;]+;`))[0];
+  cAuto.evalIn(layConst("UNIVERSE_TOP_N") + layConst("COINS_DU_PHONG") +
+    col.match(/const STABLE_LOAI = new Set\(\[[^\]]+\]\);/)[0] +
+    extractFunction(col, "chonUniverse"));
+  const uni = (tickers, n) => cAuto.evalIn(`chonUniverse(${JSON.stringify(tickers)}, ${n})`);
+  const fakeTickers = [
+    { symbol: "BTCUSDT", quoteVolume: "100" }, { symbol: "ETHUSDT", quoteVolume: "80" },
+    { symbol: "SOLUSDT", quoteVolume: "60" }, { symbol: "ETHBTC", quoteVolume: "999" },
+    { symbol: "BTCUPUSDT", quoteVolume: "500" }, { symbol: "USDCUSDT", quoteVolume: "400" },
+    { symbol: "EURUSDT", quoteVolume: "300" }, { symbol: "SUIUSDT", quoteVolume: "1" },
+  ];
+  const u3 = uni(fakeTickers, 3);
+  ok(JSON.stringify(u3.slice(0, 3)) === JSON.stringify(["BTC", "ETH", "SOL"]), "topN theo quoteVolume giảm dần, chỉ lấy topN");
+  ok(!u3.slice(0, 3).some(c => ["BTCUP", "USDC", "EUR"].includes(c)), "loại token đòn bẩy + stablecoin/fiat + cặp không phải USDT");
+  ok(["BTC","ETH","SOL","BNB","DOGE","DYDX","SUI"].every(c => u3.includes(c)), "giữ lại coin cũ (kể cả khi rớt top, VD DYDX/SUI)");
+  ok(u3.length === 3 + 7 - 3, "không trùng coin cũ đã có trong top");
+  ok(uni([], 30).length === 7, "tickers rỗng → chỉ còn coin dự phòng");
+  ok(uni(null, 30).length === 7, "tickers null → chỉ còn coin dự phòng");
+  // layUniverseTuDong: fetch lỗi → fallback danh sách dự phòng (không throw)
+  cAuto.evalIn("async " + extractFunction(col, "layUniverseTuDong")); // extractFunction cắt mất từ khóa async
+  const fb = await cAuto.evalIn(`(async () => {
+    const _f = globalThis.fetch;
+    globalThis.fetch = () => Promise.reject(new Error("mạng lỗi"));
+    try { return await layUniverseTuDong(); }
+    finally { globalThis.fetch = _f; }
+  })()`);
+  ok(JSON.stringify(fb) === JSON.stringify(["BTC","ETH","SOL","BNB","DOGE","DYDX","SUI"]), "fetch lỗi → fallback 7 coin dự phòng");
+  // wiring: main() dùng universe tự động
+  ok(/const COINS = await layUniverseTuDong\(\)/.test(col), "main() lấy universe tự động mỗi vòng");
+  ok(/for \(const coin of COINS\)/.test(col), "vòng quét dùng universe (tín hiệu đạt chuẩn → journal-247.json → WhatsApp)");
 }
 };
 
