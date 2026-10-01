@@ -851,16 +851,12 @@ function veTheTinHieu(kq) {
   card.appendChild(scoreBar);
   // v2.14.0: NN shadow theo assessment (MRBIT_NEURAL_CODING_01 §6.4, §11) —
   // chỉ hiện % khi san_sang; khong_tuong_thich thì cảnh báo; còn lại KHÔNG vẽ số giả
+  // v2.16.0 (A19): bỏ nhánh legacy nnXacSuat — chỉ assessment hợp lệ tại thời điểm inference
   const dg = kq.nnDanhGia;
   if (dg && dg.status === "san_sang" && dg.p != null) {
     const pnn = Math.round(dg.p * 100);
     card.appendChild(el("div", { class: "kv" }, el("span", {}, "🧠 NN dự đoán"),
-      el("b", { class: "muted", title: "Mạng nơ-ron thử nghiệm (shadow): xác suất thắng ước tính từ 12 đặc trưng tín hiệu. Chưa ảnh hưởng điểm hay quyết định vào lệnh." }, `${pnn}% thắng`)));
-  } else if (kq.nnXacSuat != null && (!dg || dg.status === "san_sang")) {
-    // tương thích ngược: kq cũ chỉ có nnXacSuat
-    const pnn = Math.round(kq.nnXacSuat * 100);
-    card.appendChild(el("div", { class: "kv" }, el("span", {}, "🧠 NN dự đoán"),
-      el("b", { class: "muted", title: "Mạng nơ-ron thử nghiệm (shadow): xác suất thắng ước tính từ 12 đặc trưng tín hiệu. Chưa ảnh hưởng điểm hay quyết định vào lệnh." }, `${pnn}% thắng`)));
+      el("b", { class: "muted", title: "Mạng nơ-ron thử nghiệm (shadow): xác suất thắng ước tính từ 24 đặc trưng tín hiệu (12 giá trị + 12 cờ thiếu). CHƯA HIỆU CHUẨN — không phải xác suất thắng đã kiểm chứng. Không ảnh hưởng điểm hay quyết định vào lệnh." }, `${pnn}% thắng (chưa hiệu chuẩn)`)));
   } else if (dg && dg.status === "khong_tuong_thich") {
     card.appendChild(el("div", { class: "kv" }, el("span", {}, "🧠 NN"),
       el("b", { class: "down", title: "Mô hình không tương thích với phiên bản đặc trưng hiện tại — cần train lại. Không ảnh hưởng tín hiệu." }, "không tương thích")));

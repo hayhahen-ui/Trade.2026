@@ -411,6 +411,25 @@ async function phanTichCoin(coin) {
     fvg15: fvg15.filter(g => !g.filled).slice(-4),
   };
   SIGNAL_CACHE.set(coin, ketQua);
+  /* v2.16.0 (A03): chụp snapshot đặc trưng v2 + provenance TẠI THỜI ĐIỂM PHÁT
+   * TÍN HIỆU — journal lưu copy, trainer chỉ đọc snapshot đã lưu. */
+  try {
+    if (typeof NN !== "undefined" && NN.taoSnapshotDacTrung) {
+      const nenDongCuoi = (nen, khungMs) => {
+        const now = Date.now();
+        for (let i = nen.length - 1; i >= 0; i--)
+          if (nen[i].openTime + khungMs <= now) return nen[i];
+        return null;
+      };
+      const prov = [
+        ["4h", c4h, 4 * 3600e3], ["1h", c1h, 3600e3], ["15m", c15, 15 * 60e3],
+      ].map(([khung, nen, ms]) => {
+        const n = nenDongCuoi(nen, ms);
+        return n ? { khung, openTime: n.openTime, closeTime: n.openTime + ms, availableAt: Date.now() } : null;
+      }).filter(Boolean);
+      ketQua.featureSnapshot = NN.taoSnapshotDacTrung(ketQua, prov);
+    }
+  } catch (e) {}
   /* v2.14.0: NN shadow qua hợp đồng assessment (MRBIT_NEURAL_CODING_01 §6.4) —
    * chỉ quan sát, KHÔNG ảnh hưởng điểm/verdict. nnXacSuat giữ lại để tương thích. */
   try {

@@ -140,6 +140,7 @@ class PriceHub {
     this.timers = {};
     this.retry = { BINANCE: 0, OKX: 0, MEXC: 0 };
     this.listeners = new Set();
+    this._daDung = false; // v2.16.0 (A21): cờ dừng — chặn reconnect sau stop()
   }
   onTick(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   emit(san, coin) {
@@ -174,13 +175,18 @@ class PriceHub {
     }
     return best;
   }
-  start() { this.connectBinance(); this.connectOKX(); this.connectMEXC(); }
-  stop() { for (const k of Object.keys(this.ws)) { try { this.ws[k]?.close(); } catch {} } for (const t of Object.values(this.timers)) clearInterval(t); }
+  start() { this._daDung = false; this.connectBinance(); this.connectOKX(); this.connectMEXC(); }
+  stop() {
+    this._daDung = true; // v2.16.0 (A21): chặn mọi reconnect đã lên lịch/chờ
+    for (const k of Object.keys(this.ws)) { try { this.ws[k]?.close(); } catch {} }
+    for (const t of Object.values(this.timers)) clearInterval(t);
+  }
 
   reconnect(san, fn) {
+    if (this._daDung) return; // đã stop() → không lên lịch kết nối lại
     const delay = Math.min(30000, 2000 * Math.pow(2, this.retry[san]++));
     ConnState.set(san, "retry", `Kết nối lại sau ${Math.round(delay / 1000)}s`);
-    setTimeout(fn, delay);
+    setTimeout(() => { if (!this._daDung) fn(); }, delay);
   }
 
   /* --- Binance: combined miniTicker stream --- */

@@ -53,8 +53,9 @@ function timSweepGanNhat(candles, cauTruc, maxBars = 24) {
   const { highs, lows } = cauTruc;
   for (let i = Math.max(1, n - maxBars); i < lastDong; i++) {
     const c = candles[i];
-    const dayTruoc = [...lows].reverse().find(p => p.index < i);
-    const dinhTruoc = [...highs].reverse().find(p => p.index < i);
+    // v2.16.0 (A10): chỉ tham chiếu pivot ĐÃ XÁC NHẬN tại nến đang xét
+    const dayTruoc = [...lows].reverse().find(p => typeof pivotDaXacNhan === "function" ? pivotDaXacNhan(p, i) : p.index < i);
+    const dinhTruoc = [...highs].reverse().find(p => typeof pivotDaXacNhan === "function" ? pivotDaXacNhan(p, i) : p.index < i);
     if (dayTruoc && c.low < dayTruoc.price && c.close > dayTruoc.price) {
       sweepLong = { phia: "long", index: i, mucQuet: dayTruoc.price, wick: c.low, time: c.openTime };
     }
@@ -87,7 +88,8 @@ function timChoCh(candles, cauTruc, sweep, swingL, maxBarsSauSweep = 20) {
   for (let i = sweep.index + 1; i < Math.min(lastDong, sweep.index + 1 + maxBarsSauSweep); i++) {
     const c = candles[i];
     if (sweep.phia === "long") {
-      const dinhGan = [...cauTruc.highs].reverse().find(p => p.index < i);
+      // v2.16.0 (A10): chỉ phá đỉnh swing ĐÃ XÁC NHẬN tại nến đang xét
+      const dinhGan = [...cauTruc.highs].reverse().find(p => typeof pivotDaXacNhan === "function" ? pivotDaXacNhan(p, i) : p.index < i);
       if (!dinhGan) continue;
       const nguong = dinhGan.price;
       if (c.close > nguong) {
@@ -95,7 +97,7 @@ function timChoCh(candles, cauTruc, sweep, swingL, maxBarsSauSweep = 20) {
         return { phia: "long", index: i, mucPhaVo: nguong, time: c.openTime, bodyClose: bodyOk, sweptFirst: true, swingRef: dinhGan.index };
       }
     } else {
-      const dayGan = [...cauTruc.lows].reverse().find(p => p.index < i);
+      const dayGan = [...cauTruc.lows].reverse().find(p => typeof pivotDaXacNhan === "function" ? pivotDaXacNhan(p, i) : p.index < i);
       if (!dayGan) continue;
       const nguong = dayGan.price;
       if (c.close < nguong) {
@@ -165,9 +167,9 @@ function timOrderBlocks(candles, { lookback = 80, dispAtr = 1.35, bodyAtr = 0.15
     const body = Math.abs(c.close - c.open);
     if (body < bodyAtr * a) continue;
     const nenGiam = c.close < c.open, nenTang = c.close > c.open;
-    // đo impulse sau nến i
+    // đo impulse sau nến i — v2.16.0 (A11): chỉ nến đã đóng, không dùng nến forming
     let maxUp = 0, maxDown = 0;
-    for (let j = i + 1; j <= Math.min(n - 1, i + impulseBars); j++) {
+    for (let j = i + 1; j <= Math.min(n - 2, i + impulseBars); j++) {
       maxUp = Math.max(maxUp, candles[j].high - c.high);
       maxDown = Math.max(maxDown, c.low - candles[j].low);
     }

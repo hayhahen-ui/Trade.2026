@@ -742,9 +742,9 @@ console.log("\n[14] journal.js — chấm điểm, thống kê, bài học");
   // 14.2 long thua
   dg = chamDiemLenh([nen(100,101,97,99,1000)], { side:"long", entry:100, sl:98, tp:105 });
   ok(dg.ketQua === "thua" && dg.r === -1, "long chạm SL → thua R=-1");
-  // 14.3 SL & TP cùng nến → thua (bảo thủ)
+  // 14.3 v2.16.0 (A08): SL & TP cùng nến → khong_ro (không rõ thứ tự), KHÔNG tính thua
   dg = chamDiemLenh([nen(100,110,90,100,1000)], { side:"long", entry:100, sl:98, tp:105 });
-  ok(dg.ketQua === "thua", "SL+TP cùng nến → thua (bảo thủ)");
+  ok(dg.ketQua === "khong_ro" && dg.r === null && dg.netR === null, "SL+TP cùng nến → khong_ro, r/netR null");
   // 14.4 short thắng
   dg = chamDiemLenh([nen(100,101,94,95,1000)], { side:"short", entry:100, sl:102, tp:95 });
   ok(dg.ketQua === "thang" && dg.r === 2.5, "short chạm TP → thắng R=2.5");
@@ -833,7 +833,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.16.0"') >= 0, "APP_VERSION = 2.16.0");
 }
 };
 
@@ -884,7 +884,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.16.0"') >= 0, "APP_VERSION = 2.16.0");
 }
 };
 
@@ -914,7 +914,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.16.0"') >= 0, "APP_VERSION = 2.16.0");
 }
 };
 
@@ -957,7 +957,7 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.4.0"') >= 0, "APP_VERSION = 2.4.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.16.0"') >= 0, "APP_VERSION = 2.16.0");
 }
 };
 
@@ -1647,7 +1647,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.15\.0/.test(idx), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.16\.0/.test(idx), "index.html đã lên v2.16.0");
 }
 
 const _p30 = async () => {
@@ -1708,7 +1708,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.15\.0/.test(idx), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.16\.0/.test(idx), "index.html đã lên v2.16.0");
 };
 
 const _p31 = async () => {
@@ -1748,7 +1748,7 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
 }
 };
 
@@ -1805,117 +1805,176 @@ console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h")
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
 }
 };
 
-/* ---------- [33] v2.13.0 — Mạng nơ-ron MLP dự đoán xác suất thắng (shadow mode) ---------- */
+/* ---------- [33] v2.16.0 — NN v2: snapshot 24 chiều (12 giá trị + 12 cờ thiếu) ---------- */
 const _p33 = async () => {
-console.log("\n[33] v2.13.0 — MLP neural.js: đặc trưng, backprop, shadow wiring");
+console.log("\n[33] v2.16.0 — NN v2: missing-mask, snapshot contract, nhãn netR, temporal train");
 {
   const c = makeCtx(); c.load("assets/js/neural.js");
   const MLP = c.get("MLP"), NN = c.get("NN");
-  const trich = c.get("trichDacTrung"), dacE = c.get("dacTrungTuEngine"), dacJ = c.get("dacTrungTuJournal");
+  const taoSnap = c.get("taoSnapshotDacTrung"), ktSnap = c.get("kiemTraSnapshot");
   const nhan = c.get("nhanMau"), taoDS = c.get("taoTapDuLieu");
+  const trich = c.get("trichDacTrung"), tho = c.get("dacTrungTho");
+  const PB = c.get("NN_PHEN_BAN_DAC_TRUNG"), KT = c.get("NN_KIEN_TRUC"), ND = c.get("NN_SO_DAC_TRUNG");
 
-  // 1. đặc trưng: 12 chiều, chuẩn hóa 0..1, null-safe
-  const f0 = trich({});
-  ok(f0.length === 12 && f0.every(v => Number.isFinite(v) && v >= 0 && v <= 1), "12 đặc trưng, chuẩn hóa 0..1, null-safe");
-  ok(Math.abs(f0[7] - 0.5) < 1e-9 && Math.abs(f0[9] - 0.5) < 1e-9, "thiếu ob/nen → giá trị trung tính 0.5");
+  // 1. registry + cổng kỹ thuật
+  ok(PB === "dac-trung-v2-missing-mask", "phiên bản đặc trưng v2 missing-mask");
+  ok(JSON.stringify(KT) === JSON.stringify([24, 8, 1]), "kiến trúc [24,8,1]");
+  ok(ND === 24, "24 đặc trưng = 12 giá trị + 12 cờ thiếu");
+  ok(c.get("NN_MAU_TOI_THIEU") === 100, "cổng kỹ thuật 100 mẫu (trước đây 30)");
 
-  // 2. adapter engine
+  // 2. snapshot: thiếu dữ liệu → cờ mask = 1, KHÔNG điền 0.5 trung tính
   const kq = { score: 80, verdict: "LONG", plan: { rr1: 2 }, htf: { bias: "bullish" },
-    killzone: { ten: "NewYork KZ" }, cauTruc: { nguocCauTruc: false, chochNguoc: true },
+    killzone: { active: true }, cauTruc: { nguocCauTruc: false, chochNguoc: true },
     chatLuongOB: { diem: 85, xepLoai: "KHỎE", soLanCham: 1 },
-    chatLuongNen: { diem: 70, xepLoai: "MẠNH", mau: ["pin"], viTri: "POI" },
-    checklist: [{ id: "a", dat: true }, { id: "b", dat: true }] };
-  const fe = dacE(kq);
-  ok(fe.side === "long" && fe.killzoneNong === true && fe.cauTrucChoch === true, "adapter engine map đúng side/killzone/choch");
-  const fxe = trich(fe);
-  ok(Math.abs(fxe[0] - 0.8) < 1e-9 && fxe[3] === 1 && Math.abs(fxe[8] - 0.75) < 1e-9, "đặc trưng engine: điểm 0.8, bias mạnh 1, OB tươi 0.75");
+    chatLuongNen: null, // thiếu → mask
+    checklist: [{ id: "a", dat: true }, { id: "b", dat: false }, { id: "c", dat: true }],
+    time: 1700000000000 };
+  const prov = [{ khung: "15m", openTime: 1699999000000, closeTime: 1700000000000, availableAt: 1700000000000 }];
+  const snap = taoSnap(kq, prov);
+  ok(snap && snap.schemaVersion === 2 && snap.vector.length === 24, "snapshot 24 chiều, schema v2");
+  ok(snap.featureVersion === PB && snap.asOf === 1700000000000, "snapshot gắn phiên bản + asOf");
+  ok(snap.vector.every(v => typeof v === "number" && isFinite(v)), "vector toàn hữu hạn");
+  ok(snap.vector[12 + 9] === 1 && snap.vector[12 + 10] === 1, "thiếu chatLuongNen → cờ mask nenDiem/nenXepLoai = 1");
+  ok(snap.vector[12 + 0] === 0 && snap.vector[12 + 4] === 0, "có điểm/killzone → cờ mask = 0");
+  ok(snap.vector[9] === 0, "giá trị thiếu = 0 (không 0.5 trung tính)");
+  ok(Array.isArray(snap.missing) && snap.missing.includes("nenDiem"), "mảng missing liệt kê tên đặc trưng thiếu");
+  // A01: checklist đếm dat===true (2/3 → 2/6), không đếm tổng
+  ok(Math.abs(snap.vector[11] - 2 / 6) < 1e-9, "checklist: 2 mục đạt /6");
+  // A02: killzone boolean active
+  ok(snap.vector[4] === 1, "killzone active=true → 1");
+  const snapKz0 = taoSnap({ ...kq, killzone: { active: false } }, prov);
+  ok(snapKz0.vector[4] === 0 && snapKz0.vector[12 + 4] === 0, "killzone active=false → 0, không phải thiếu");
+  const snapKzNull = taoSnap({ ...kq, killzone: null }, prov);
+  ok(snapKzNull.vector[12 + 4] === 1, "killzone không có → mask thiếu (không tự điền)");
 
-  // 3. adapter journal + nhãn học
-  const rec = { id: "r1", diem: 73, rr: 2, side: "short", phien: "—", bias4h: "bearish-yếu",
-    cauTruc: null, ob: null, nen: null, checklist: ["a"],
-    trangThai: "thua", ketQua: { r: -1 } };
-  const fj = trich(dacJ(rec));
-  ok(fj[2] === 0 && fj[4] === 0 && Math.abs(fj[3] - 0.5) < 1e-9, "adapter journal: short, ngoài killzone, bias yếu 0.5");
-  ok(nhan(rec) === 0, "nhãn: thua r=-1 → 0");
-  ok(nhan({ trangThai: "thang", ketQua: { r: 2 } }) === 1, "nhãn: thắng r>0 → 1");
-  ok(nhan({ trangThai: "het_han", ketQua: { r: 0.3 } }) === 1, "nhãn: hết hạn lãi → 1");
-  ok(nhan({ trangThai: "dang_theo_doi", ketQua: null }) === null, "chưa ngã ngũ → null");
-  ok(nhan({ trangThai: "thang", ketQua: { r: null } }) === null, "r null → bỏ mẫu");
+  // 3. trường bắt buộc thiếu → không tạo snapshot (trung thực, không đoán)
+  ok(taoSnap({ ...kq, plan: null }, prov) === null, "thiếu rr → snapshot null");
+  ok(taoSnap({ ...kq, verdict: "WAIT" }, prov) === null, "side không long/short → snapshot null");
+  ok(ktSnap(snap).ok === true, "kiemTraSnapshot: snapshot hợp lệ → ok");
+  ok(ktSnap({ ...snap, vector: snap.vector.slice(0, 12) }).ok === false, "vector sai kích thước → từ chối");
+  const vecNaN = snap.vector.slice(); vecNaN[3] = NaN;
+  ok(ktSnap({ ...snap, vector: vecNaN }).lyDo === "VECTOR_KHONG_HUU_HAN", "vector NaN → từ chối");
+  ok(ktSnap({ ...snap, schemaVersion: 1 }).lyDo === "SCHEMA_VERSION_SAI", "schema legacy → từ chối");
+  ok(ktSnap(null).ok === false && ktSnap("x").ok === false, "null/rác → từ chối");
 
-  // 4. taoTapDuLieu chỉ lấy bản ghi ngã ngũ có r
-  const ds = taoDS([rec, { id: "r2", diem: 80, side: "long", trangThai: "dang_theo_doi", ketQua: null }, { id: "r3", diem: 90, side: "long", trangThai: "thang", ketQua: { r: 2 } }]);
-  ok(ds.n === 2 && ds.X.length === 2 && ds.Y.join() === "0,1", "taoTapDuLieu: chỉ lấy bản ghi ngã ngũ có r");
+  // 4. nhãn: ưu tiên netR; loại khong_ro/thieu_du_lieu/khong_hop_le/giay/dang_theo_doi
+  const recThang = { id: "t1", loai: "that", side: "long", giaVao: 100, sl: 98, trangThai: "thang",
+    ketQua: { netR: 1.9, at: 1 }, featureSnapshot: snap };
+  const recThuaNet = { id: "t2", loai: "that", side: "short", giaVao: 100, sl: 102, trangThai: "thua",
+    ketQua: { netR: -0.2, at: 2 }, featureSnapshot: snap };
+  ok(nhan(recThang) === 1, "netR > 0 → 1");
+  ok(nhan(recThuaNet) === 0, "netR < 0 → 0");
+  ok(nhan({ ...recThang, ketQua: { netR: 0, at: 1 } }) === 0, "netR = 0 → 0 (không lãi)");
+  ok(nhan({ ...recThang, trangThai: "khong_ro", ketQua: { netR: null } }) === null, "khong_ro → loại");
+  ok(nhan({ ...recThang, trangThai: "thieu_du_lieu", ketQua: null }) === null, "thieu_du_lieu → loại");
+  ok(nhan({ ...recThang, trangThai: "khong_hop_le" }) === null, "khong_hop_le → loại");
+  ok(nhan({ ...recThang, trangThai: "dang_theo_doi", ketQua: null }) === null, "dang_theo_doi → loại");
+  ok(nhan({ ...recThang, loai: "giay" }) === null, "tín hiệu giấy → loại khỏi train");
 
-  // 5. forward xác định với cùng seed; output trong (0,1)
-  const m1 = new MLP([12, 8, 1], 42), m2 = new MLP([12, 8, 1], 42);
-  ok(Math.abs(m1.duDoan(fxe) - m2.duDoan(fxe)) < 1e-12, "cùng seed → cùng trọng số → cùng dự đoán");
-  const p0 = m1.duDoan(fxe);
+  // 5. taoTapDuLieu: chỉ snapshot v2 hợp lệ + có nhãn; khử trùng id; trả asOf/ketQuaAt
+  const ds = taoDS([recThang, recThuaNet, recThang, // trùng id
+    { ...recThang, id: "t3", featureSnapshot: undefined }, // thiếu featureSnapshot → loại
+    { ...recThang, id: "t4", loai: "giay" }]); // giấy → loại
+  ok(ds.n === 2 && ds.Y.join() === "1,0", "chỉ lấy bản ghi có snapshot v2 + nhãn, khử trùng id");
+  ok(ds.X[0].length === 24 && ds.asOf.length === 2 && ds.ketQuaAt.length === 2, "trả asOf/ketQuaAt cho chia thời gian + purge");
+  ok(ds.ketQuaAt[0] === 1 && ds.ketQuaAt[1] === 2, "ketQuaAt lấy từ ketQua.at");
+
+  // 6. MLP [24,8,1]: forward xác định theo seed, output (0,1)
+  const m1 = new MLP([24, 8, 1], 42), m2 = new MLP([24, 8, 1], 42);
+  ok(Math.abs(m1.duDoan(snap.vector) - m2.duDoan(snap.vector)) < 1e-12, "cùng seed → cùng dự đoán");
+  const p0 = m1.duDoan(snap.vector);
   ok(p0 > 0 && p0 < 1, "sigmoid output trong (0,1)");
 
-  // 6. gradient check: backprop ≈ sai phân hữu hạn (seed 10: nơ-ron ẩn sống, gradient ≠ 0)
-  const mg = new MLP([3, 2, 1], 10);
-  const Xg = [[0.2, 0.5, 0.8]], Yg = [1];
+  // 7. gradient check trên [4,2,1] (nhanh) — backprop ≈ sai phân hữu hạn
+  const mg = new MLP([4, 2, 1], 10);
+  const Xg = [[0.2, 0.5, 0.8, 0.1]], Yg = [1];
   const snapMg = () => JSON.stringify({ W: mg.W, b: mg.b });
   const restoreMg = (s) => { const o = JSON.parse(s); mg.W = o.W; mg.b = o.b; };
   const lossFn = () => { const o = Math.min(1 - 1e-9, Math.max(1e-9, mg.duDoan(Xg[0]))); return -(Yg[0] * Math.log(o) + (1 - Yg[0]) * Math.log(1 - o)); };
   const s0 = snapMg();
   const wCu = mg.W[1][0][0];
   mg._buocHoc(Xg, Yg, 1);
-  const gradA = wCu - mg.W[1][0][0]; // lr=1 → delta chính là gradient
+  const gradA = wCu - mg.W[1][0][0];
   restoreMg(s0);
   const eps = 1e-6;
   mg.W[1][0][0] = wCu + eps; const lp = lossFn();
   mg.W[1][0][0] = wCu - eps; const lm = lossFn();
   restoreMg(s0);
   const gradN = (lp - lm) / (2 * eps);
-  ok(Math.abs(gradA) > 1e-6, `gradient khác 0 (=${gradA.toFixed(4)}) — check không rỗng`);
-  ok(Math.abs(gradA - gradN) < 1e-4, `gradient check: analytic≈numeric (${gradA.toFixed(6)} vs ${gradN.toFixed(6)})`);
+  ok(Math.abs(gradA) > 1e-6, "gradient khác 0 — check không rỗng");
+  ok(Math.abs(gradA - gradN) < 1e-4, "gradient check: analytic≈numeric");
 
-  // 7. học được bài toán tách được đơn giản + early stopping
-  const mt = new MLP([12, 8, 1], 11);
+  // 8. hocTheoChia: dùng phần chia ĐỊNH SẴN, không xáo trộn nội bộ (A04)
+  const mt = new MLP([24, 8, 1], 11);
+  const rnd = c.get("mulberry32")(7); // seed 7: split học được (seed 99 cho val pathological)
   const Xt = [], Yt = [];
-  const rnd = c.get("mulberry32")(99);
-  for (let i = 0; i < 60; i++) {
-    const a = rnd(), b = rnd();
-    const v = new Array(12).fill(0.5); v[0] = a; v[7] = b;
-    Xt.push(v); Yt.push(a + b > 1 ? 1 : 0);
+  for (let i = 0; i < 40; i++) {
+    const v = new Array(24).fill(0); v[0] = rnd(); v[1] = rnd();
+    Xt.push(v); Yt.push(v[0] + v[1] > 1 ? 1 : 0);
   }
-  const kqHoc = mt.hoc(Xt, Yt, { epochs: 400, lr: 0.2, patience: 60, seed: 3 });
-  ok(!kqHoc.loi && kqHoc.trainAcc >= 0.9, `học bài toán đơn giản: trainAcc=${kqHoc.trainAcc}`);
-  ok(kqHoc.epochs <= 400 && Number.isFinite(kqHoc.valLoss), "early stopping trả trọng số tốt nhất");
+  const kqHoc = mt.hocTheoChia(Xt.slice(0, 30), Yt.slice(0, 30), Xt.slice(30), Yt.slice(30), { epochs: 300, lr: 0.2, patience: 50, seed: 3 });
+  ok(!kqHoc.loi && kqHoc.nTrain === 30 && kqHoc.nVal === 10, "hocTheoChia giữ nguyên phần chia (30/10)");
+  ok(kqHoc.trainAcc >= 0.9, "học được bài toán tách được đơn giản");
+  // không xáo trộn nội bộ: mã nguồn method không dùng RNG/shuffle
+  const srcNN = read("assets/js/neural.js");
+  const bd = srcNN.indexOf("hocTheoChia(tX, tY, vX, vY, opts)");
+  const bodyHTC = srcNN.slice(bd, srcNN.indexOf("_valLoss(X, Y)", bd));
+  ok(bd > 0 && !/mulberry32|Math\.random|shuffle|xáo trộn/.test(bodyHTC), "hocTheoChia không xáo trộn nội bộ (A04)");
+  // xác định: 2 lần chạy cùng input → cùng kết quả
+  const mtB = new MLP([24, 8, 1], 11);
+  const kqHocB = mtB.hocTheoChia(Xt.slice(0, 30), Yt.slice(0, 30), Xt.slice(30), Yt.slice(30), { epochs: 300, lr: 0.2, patience: 50, seed: 3 });
+  ok(kqHocB.valLoss === kqHoc.valLoss && kqHocB.trainAcc === kqHoc.trainAcc, "hocTheoChia xác định giữa các lần chạy");
 
-  // 8. serialize roundtrip
-  const ser = mt.xuat({ mau: 60 });
-  const mNap = MLP.nap(JSON.parse(JSON.stringify(ser)));
-  ok(Math.abs(mNap.duDoan(Xt[0]) - mt.duDoan(Xt[0])) < 1e-12, "xuat/nap trọng số giữ nguyên dự đoán");
+  // 9. facade NN: off → tat; chưa model → chua_huan_luyen; calibrated:false
+  ok(NN.datCheDo("off") === "off", "datCheDo('off')");
+  const dgOff = NN.danhGia(kq);
+  ok(dgOff.status === "tat" && dgOff.p === null && dgOff.calibrated === false, "off → tat, p null, calibrated=false");
+  NN.datCheDo("shadow");
+  const dgChua = NN.danhGia(kq);
+  ok(dgChua.status === "chua_huan_luyen" && dgChua.p === null && dgChua.lyDo.includes("MODEL_NOT_AVAILABLE"), "chưa model → chua_huan_luyen");
+  ok(!("datLenh" in dgChua) && !("order" in dgChua), "assessment không chứa khả năng đặt lệnh");
 
-  // 9. facade NN
-  ok(NN.sanSang() === false, "chưa nạp trọng số → sanSang false");
-  ok(NN.napTrongSo({}) === false && NN.napTrongSo(null) === false, "từ chối trọng số sai định dạng");
-  ok(NN.napTrongSo(ser) === true && NN.sanSang() === true, "nạp trọng số hợp lệ");
-  const pnn = NN.duDoan(fe);
-  ok(pnn != null && pnn >= 0 && pnn <= 1, "duDoan trả xác suất 0..1");
-  ok(NN.duDoan(null) === null && NN.duDoanChoEngine(null) === null, "null-safe khi thiếu dữ liệu");
+  // 10. nạp artifact v2 hợp lệ → san_sang; dùng snapshot đã lưu của journal
+  const mlp = new MLP([24, 8, 1], 42);
+  const bam = c.get("bamKiemTra");
+  const art = { version: 1, sizes: [24, 8, 1], W: mlp.W, b: mlp.b,
+    meta: { phienBanDacTrung: PB, mau: 120, checksum: bam({ sizes: [24, 8, 1], W: mlp.W, b: mlp.b }) } };
+  ok(NN.napTrongSo(art) === true && NN.sanSang() === true, "nạp artifact v2 hợp lệ");
+  const dgOk = NN.danhGia({ featureSnapshot: snap });
+  ok(dgOk.status === "san_sang" && dgOk.p != null && dgOk.p >= 0 && dgOk.p <= 1, "san_sang: p trong [0,1]");
+  ok(dgOk.calibrated === false, "assessment ghi rõ calibrated=false (chưa hiệu chuẩn)");
+  ok(typeof dgOk.doTreMs === "number" && dgOk.doTreMs >= 0, "assessment có đo độ trễ");
+  // danhGia tự dựng snapshot từ kq khi journal chưa lưu (tương thích)
+  const dgTuKq = NN.danhGia(kq);
+  ok(dgTuKq.status === "san_sang", "thiếu featureSnapshot → tự dựng snapshot từ kq");
+  const dgThieu = NN.danhGia({ score: 10 }); // không đủ trường bắt buộc
+  ok(dgThieu.status === "thieu_du_lieu" && dgThieu.p === null, "không dựng được snapshot → thieu_du_lieu, p null");
+  // duDoan chỉ nhận vector 24 hữu hạn
+  ok(NN.duDoan(snap.vector) != null, "duDoan(vector 24) → xác suất");
+  ok(NN.duDoan(new Array(12).fill(0.5)) === null, "vector 12 chiều cũ → null (không đoán mò)");
 
-  // 10. journal ghiNhan lưu nn (shadow, không ảnh hưởng gì khác)
+  // 11. journal ghiNhan lưu deep copy featureSnapshot + nnDanhGia (A03)
   const store = {};
   const ls = { getItem: k => k in store ? store[k] : null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
   const c2 = makeCtx({ localStorage: ls });
   c2.load("assets/js/neural.js"); c2.load("assets/js/journal.js");
   const J = c2.get("JOURNAL");
-  const kq2 = { coin: "BTC", verdict: "LONG", score: 80, phase: "alert_ready", time: Date.now(),
-    plan: { entry: 100, sl: 98, tp1: 104, rr1: 2 }, killzone: { ten: "—" }, htf: { bias: "bullish" },
-    cauTruc: null, chatLuongOB: null, chatLuongNen: null, checklist: [], nnXacSuat: 0.62 };
+  const kq2 = { coin: "BTC", verdict: "LONG", score: 80, phase: "alert_ready", time: 1700000000000,
+    plan: { entry: 100, sl: 98, tp1: 104, rr1: 2 }, killzone: { active: true }, htf: { bias: "bullish" },
+    cauTruc: null, chatLuongOB: null, chatLuongNen: null, checklist: [],
+    featureSnapshot: snap, nnDanhGia: dgOk };
   const rec2 = J.ghiNhan(kq2);
-  ok(rec2 && rec2.nn === 0.62, "ghiNhan lưu nn từ kq (shadow)");
-  const rec3 = J.ghiNhan({ ...kq2, coin: "ETH", nnXacSuat: null });
-  ok(rec3 && rec3.nn === null, "thiếu nn → lưu null, không crash");
+  ok(rec2 && rec2.featureSnapshot && rec2.featureSnapshot.vector.length === 24, "ghiNhan lưu featureSnapshot");
+  ok(rec2.nnDanhGia && rec2.nnDanhGia.status === "san_sang", "ghiNhan lưu nnDanhGia");
+  ok(rec2.featureSnapshot !== snap, "deep copy — không giữ tham chiếu");
+  const rec3 = J.ghiNhanGiay({ ...kq2, coin: "ETH" });
+  ok(rec3 && rec3.featureSnapshot && rec3.nnDanhGia, "ghiNhanGiay cũng lưu snapshot + assessment");
 
-  // 11. Kaizen có mục quan sát NN khi ≥3 dự đoán
+  // 12. Kaizen có mục quan sát NN khi ≥3 dự đoán (giữ từ v2.13.0)
   const rut = c2.get("rutBaiHocKaizen");
   const dsK = [
     { id: "a", loai: "that", coin: "BTC", side: "long", diem: 80, nn: 0.7, trangThai: "thang", ketQua: { r: 2 } },
@@ -1928,120 +1987,109 @@ console.log("\n[33] v2.13.0 — MLP neural.js: đặc trưng, backprop, shadow w
   const bh2 = rut({ ...st, xong: 0 }, []);
   ok(!bh2.some(b => /NN thử nghiệm/.test(b.tieuDe)), "chưa có dự đoán NN → không có mục NN");
 
-  // 13. v2.13.1: buChoCache bù nn cho kq đã phân tích trước khi weights về
-  const cache = new Map();
-  const kqA = { coin: "BTC", verdict: "LONG", score: 80, time: Date.now(), nnXacSuat: null };
-  const kqB = { coin: "ETH", verdict: "SHORT", score: 75, time: Date.now(), nnXacSuat: 0.4 }; // đã có → giữ nguyên
-  cache.set("BTC", kqA); cache.set("ETH", kqB);
-  let veLaiCount = 0; const veLai = () => { veLaiCount++; };
-  const nb = NN.buChoCache(cache, veLai);
-  ok(nb === 1 && kqA.nnXacSuat != null && kqA.nnXacSuat >= 0 && kqA.nnXacSuat <= 1, "buChoCache bù 1 kq thiếu nn");
-  ok(kqB.nnXacSuat === 0.4, "kq đã có nn → không bị ghi đè");
-  ok(veLaiCount === 1, "chỉ gọi veLai cho kq vừa được bù");
-  const ctxN = makeCtx(); ctxN.load("assets/js/neural.js");
-  const NN2 = ctxN.get("NN"); // chưa nạp weights
-  const cache2 = new Map([["X", { coin: "X", score: 70, time: Date.now() }]]);
-  ok(NN2.buChoCache(cache2, () => {}) === 0 && cache2.get("X").nnXacSuat === undefined, "chưa sẵn sàng → không bù, không crash");
-  ok(NN.buChoCache(null, veLai) === 0 && NN.buChoCache({}, veLai) === 0, "cache lỗi → trả 0, không crash");
-
-  // 12. version
-  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
-  ok(/neural\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp neural.js v2.14.1");
+  // 13. version
+  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
+  ok(/neural\.js\?v=2\.16\.0/.test(read("index.html")), "index.html nạp neural.js v2.16.0");
 }
 };
 
-/* ---------- [34] v2.14.0 — Tích hợp MRBIT_NEURAL_CODING_01 P0 ----------
- * Ánh xạ kiểm thử nghiệm thu của tài liệu: T01 (flag off), T02 (shadow chưa
- * model → not_trained), T09 (artifact không tương thích), T13 (UI không số
- * giả), T14 (tắt/mở lại). */
+/* ---------- [34] v2.16.0 — Artifact hardening (A06): từng hàng W/b, phiên bản, checksum ---------- */
 const _p34 = async () => {
-console.log("\n[34] v2.14.0 — MRBIT P0: flag off|shadow, assessment, tương thích artifact");
+console.log("\n[34] v2.16.0 — A06: từ chối artifact hỏng/legacy, báo đúng phần lỗi");
 {
   const c = makeCtx(); c.load("assets/js/neural.js");
   const NN = c.get("NN");
   const PB = c.get("NN_PHEN_BAN_DAC_TRUNG"), KT = c.get("NN_KIEN_TRUC");
-  const kqMau = { coin: "BTC", verdict: "LONG", score: 80, time: Date.now(),
-    plan: { entry: 100, sl: 98, tp1: 104, rr1: 2 }, killzone: { ten: "—" }, htf: { bias: "bullish" },
-    cauTruc: null, chatLuongOB: null, chatLuongNen: null, checklist: [] };
+  const MLP = c.get("MLP"), bam = c.get("bamKiemTra");
+  const mlp = new MLP(KT, 42);
+  const cs = () => bam({ sizes: KT, W: mlp.W, b: mlp.b });
+  const art = (meta) => ({ version: 1, sizes: KT.slice(), W: mlp.W, b: mlp.b, meta });
 
-  // 1. T14/T01: flag off → nhánh NN không hoạt động, assessment 'tat', p null
-  ok(NN.datCheDo("off") === "off" && NN.cheDo() === "off", "datCheDo('off')");
-  const dgOff = NN.danhGia(kqMau);
-  ok(dgOff.status === "tat" && dgOff.p === null && dgOff.mode === "off", "T01: off → status tat, p null");
-  ok(NN.buChoCache(new Map([["X", kqMau]]), () => {}) === 0, "T01: off → buChoCache không bù");
-  ok(NN.datCheDo("shadow") === "shadow", "T14: bật lại shadow được");
+  // 1. artifact chuẩn → nạp được
+  ok(NN.napTrongSo(art({ phienBanDacTrung: PB, mau: 120, checksum: cs() })) === true, "artifact chuẩn v2 → nạp được");
 
-  // 2. T02: shadow nhưng chưa có model → not_trained, p null, không gọi order API
-  const dgChua = NN.danhGia(kqMau);
-  ok(dgChua.status === "chua_huan_luyen" && dgChua.p === null, "T02: chưa model → chua_huan_luyen, p null");
-  ok(dgChua.lyDo.includes("MODEL_NOT_AVAILABLE"), "T02: reason code MODEL_NOT_AVAILABLE");
-  ok(!("datLenh" in dgChua) && !("order" in dgChua), "T02: assessment không chứa khả năng đặt lệnh");
+  // 2. sai phiên bản đặc trưng → từ chối, báo đúng mã
+  const c2 = makeCtx(); c2.load("assets/js/neural.js"); const N2 = c2.get("NN");
+  ok(N2.napTrongSo(art({ phienBanDacTrung: "dac-trung-v999", checksum: cs() })) === false, "sai phiên bản đặc trưng → từ chối");
+  ok(N2.danhGia({ score: 80 }).status === "khong_tuong_thich", "status khong_tuong_thich");
+  ok(N2.danhGia({ score: 80 }).lyDo.includes("PHIEN_BAN_DAC_TRUNG_KHAC"), "reason PHIEN_BAN_DAC_TRUNG_KHAC");
 
-  // 3. Feature registry versioned
-  ok(PB === "dac-trung-v1", "phiên bản đặc trưng dac-trung-v1");
-  ok(JSON.stringify(KT) === JSON.stringify([12, 8, 1]), "kiến trúc [12,8,1]");
+  // 3. legacy thiếu phiên bản → TỪ CHỐI (A06: không còn nhánh cho qua)
+  const c3 = makeCtx(); c3.load("assets/js/neural.js"); const N3 = c3.get("NN");
+  ok(N3.napTrongSo(art({ mau: 50, checksum: cs() })) === false, "legacy thiếu phienBanDacTrung → từ chối");
+  ok(N3.danhGia({ score: 80 }).lyDo.includes("PHIEN_BAN_DAC_TRUNG_KHAC"), "legacy → reason PHIEN_BAN_DAC_TRUNG_KHAC");
 
-  // 4. T09: artifact sai phiên bản đặc trưng → từ chối
-  const MLP = c.get("MLP");
-  const mlp = new MLP([12, 8, 1], 42);
-  const fake = (meta) => ({ version: 1, sizes: [12, 8, 1], W: mlp.W, b: mlp.b, meta });
-  ok(NN.napTrongSo(fake({ phienBanDacTrung: "dac-trung-v999" })) === false, "T09: sai phiên bản đặc trưng → từ chối");
-  ok(NN.danhGia(kqMau).status === "khong_tuong_thich", "T09: status khong_tuong_thich");
-  ok(NN.danhGia(kqMau).lyDo.includes("PHIEN_BAN_DAC_TRUNG_KHAC"), "T09: reason code đúng");
+  // 4. sai kiến trúc / sai kích thước → từ chối với mã riêng
+  const c4 = makeCtx(); c4.load("assets/js/neural.js"); const N4 = c4.get("NN");
+  ok(N4.napTrongSo({ version: 1, sizes: [12, 8, 1], W: mlp.W, b: mlp.b, meta: {} }) === false, "artifact 12-input cũ → từ chối");
+  ok(N4.danhGia({ score: 80 }).lyDo.includes("KIEN_TRUC_KHAC_BIET"), "reason KIEN_TRUC_KHAC_BIET");
+  ok(N4.napTrongSo({ version: 1, sizes: KT, W: [], b: [], meta: {} }) === false, "W/b rỗng → từ chối");
+  ok(N4.danhGia({ score: 80 }).lyDo.includes("KICH_THUOC_TRONG_SO_SAI"), "reason KICH_THUOC_TRONG_SO_SAI");
 
-  // 5. T09: sai kiến trúc / sai kích thước trọng số → từ chối
-  ok(NN.napTrongSo({ version: 1, sizes: [12, 16, 1], W: mlp.W, b: mlp.b, meta: {} }) === false, "T09: sai kiến trúc → từ chối");
-  ok(NN.danhGia(kqMau).lyDo.includes("KIEN_TRUC_KHAC_BIET"), "T09: reason KIEN_TRUC_KHAC_BIET");
-  ok(NN.napTrongSo({ version: 1, sizes: [12, 8, 1], W: [], b: [], meta: {} }) === false, "T09: sai kích thước W/b → từ chối");
+  // 5. từng hàng W/b: NaN / Infinity / sai cột → từ chối, báo đúng hàng
+  const c5 = makeCtx(); c5.load("assets/js/neural.js"); const N5 = c5.get("NN");
+  const Wnan = JSON.parse(JSON.stringify(mlp.W)); Wnan[0][3][7] = NaN;
+  ok(N5.napTrongSo({ version: 1, sizes: KT, W: Wnan, b: mlp.b, meta: { phienBanDacTrung: PB, checksum: "x" } }) === false, "W có NaN → từ chối");
+  ok(N5.danhGia({ score: 80 }).lyDo.includes("W_KHONG_HUU_HAN_L0"), "reason W_KHONG_HUU_HAN_L0");
+  const Winf = JSON.parse(JSON.stringify(mlp.W)); Winf[1][0][0] = Infinity;
+  ok(N5.napTrongSo({ version: 1, sizes: KT, W: Winf, b: mlp.b, meta: { phienBanDacTrung: PB, checksum: "x" } }) === false, "W có Infinity → từ chối");
+  ok(N5.danhGia({ score: 80 }).lyDo.includes("W_KHONG_HUU_HAN_L1"), "reason W_KHONG_HUU_HAN_L1");
+  const Wcot = JSON.parse(JSON.stringify(mlp.W)); Wcot[0][0].push(0.5);
+  ok(N5.napTrongSo({ version: 1, sizes: KT, W: Wcot, b: mlp.b, meta: { phienBanDacTrung: PB, checksum: "x" } }) === false, "W sai số cột → từ chối");
+  ok(N5.danhGia({ score: 80 }).lyDo.includes("W_SAI_COT_L0"), "reason W_SAI_COT_L0");
+  const bInf = JSON.parse(JSON.stringify(mlp.b)); bInf[1][0] = -Infinity;
+  ok(N5.napTrongSo({ version: 1, sizes: KT, W: mlp.W, b: bInf, meta: { phienBanDacTrung: PB, checksum: "x" } }) === false, "b có -Infinity → từ chối");
+  ok(N5.danhGia({ score: 80 }).lyDo.includes("B_KHONG_HUU_HAN_L1"), "reason B_KHONG_HUU_HAN_L1");
 
-  // 6. T09: checksum sai → từ chối; checksum đúng → nhận
-  const bam = c.get("bamKiemTra");
-  const csDung = bam({ sizes: [12, 8, 1], W: mlp.W, b: mlp.b });
-  ok(NN.napTrongSo(fake({ phienBanDacTrung: PB, checksum: "deadbeef" })) === false, "T09: checksum sai → từ chối");
-  ok(NN.danhGia(kqMau).lyDo.includes("CHECKSUM_SAI"), "T09: reason CHECKSUM_SAI");
-  ok(NN.napTrongSo(fake({ phienBanDacTrung: PB, checksum: csDung })) === true, "checksum đúng → nạp được");
+  // 6. checksum: thiếu → từ chối; sai → từ chối; đúng → nhận
+  const c6 = makeCtx(); c6.load("assets/js/neural.js"); const N6 = c6.get("NN");
+  ok(N6.napTrongSo(art({ phienBanDacTrung: PB, mau: 120 })) === false, "thiếu checksum → từ chối");
+  ok(N6.danhGia({ score: 80 }).lyDo.includes("CHECKSUM_THIEU"), "reason CHECKSUM_THIEU");
+  ok(N6.napTrongSo(art({ phienBanDacTrung: PB, mau: 120, checksum: "deadbeef" })) === false, "checksum sai → từ chối");
+  ok(N6.danhGia({ score: 80 }).lyDo.includes("CHECKSUM_SAI"), "reason CHECKSUM_SAI");
 
-  // 7. Tương thích ngược: weights v2.13.x (thiếu phienBanDacTrung) vẫn nạp được
-  const c2 = makeCtx(); c2.load("assets/js/neural.js");
-  const NN2 = c2.get("NN");
-  ok(NN2.napTrongSo({ version: 1, sizes: [12, 8, 1], W: mlp.W, b: mlp.b, meta: { ngay: "2026-09-30" } }) === true,
-    "weights legacy (thiếu phiên bản) vẫn nạp được khi kiến trúc khớp");
+  // 7. số mẫu: khai báo sai → từ chối
+  const c7 = makeCtx(); c7.load("assets/js/neural.js"); const N7 = c7.get("NN");
+  ok(N7.napTrongSo(art({ phienBanDacTrung: PB, mau: -5, checksum: cs() })) === false, "mau âm → từ chối");
+  ok(N7.danhGia({ score: 80 }).lyDo.includes("SO_MAU_SAI"), "reason SO_MAU_SAI");
+  const artThieuMau = art({ phienBanDacTrung: PB, checksum: cs() }); delete artThieuMau.meta.mau;
+  ok(N7.napTrongSo(artThieuMau) === false, "thiếu mau → từ chối (A06: số mẫu bắt buộc)");
 
-  // 8. san_sang → assessment đầy đủ, có đo độ trễ
-  const dgOk = NN.danhGia(kqMau);
-  ok(dgOk.status === "san_sang" && dgOk.p != null && dgOk.p >= 0 && dgOk.p <= 1, "san_sang: p trong [0,1]");
-  ok(dgOk.phienBanDacTrung === PB && typeof dgOk.doTreMs === "number" && dgOk.doTreMs >= 0, "assessment có phiên bản + độ trễ");
-  ok(dgOk.lyDo.length === 0, "san_sang: không có reason code lỗi");
+  // 8. file rác → từ chối an toàn
+  const c8 = makeCtx(); c8.load("assets/js/neural.js"); const N8 = c8.get("NN");
+  ok(N8.napTrongSo(null) === false && N8.napTrongSo({}) === false && N8.napTrongSo("x") === false, "null/rác → từ chối");
+  ok(N8.danhGia({ score: 80 }).lyDo.includes("CAU_TRUC_FILE_SAI"), "reason CAU_TRUC_FILE_SAI");
 
-  // 9. T13: mọi trạng thái chưa sẵn sàng đều p null (không số giả 0%/50%/100%)
+  // 9. mọi trạng thái chưa sẵn sàng đều p null (không số giả)
   for (const st of ["tat", "chua_huan_luyen", "khong_tuong_thich"]) {
     const n = makeCtx(); n.load("assets/js/neural.js"); const X = n.get("NN");
     if (st === "tat") X.datCheDo("off");
-    if (st === "khong_tuong_thich") X.napTrongSo(fake({ phienBanDacTrung: "x" }));
-    const d = X.danhGia(kqMau);
-    ok(d.status === st && d.p === null, `T13: ${st} → p null, không số giả`);
+    if (st === "khong_tuong_thich") X.napTrongSo(art({ phienBanDacTrung: "x" }));
+    const d = X.danhGia({ score: 80 });
+    ok(d.status === st && d.p === null && d.calibrated === false, `${st} → p null, không số giả`);
   }
 
-  // 10. moTaTrangThai trung thực theo từng trạng thái
+  // 10. moTaTrangThai trung thực
   const n3 = makeCtx(); n3.load("assets/js/neural.js"); const X3 = n3.get("NN");
   ok(/Chưa huấn luyện/.test(X3.moTaTrangThai()), "mô tả khi chưa huấn luyện");
   X3.datCheDo("off");
   ok(/Đã tắt/.test(X3.moTaTrangThai()), "mô tả khi tắt");
-  X3.datCheDo("shadow"); X3.napTrongSo(fake({ phienBanDacTrung: PB, checksum: csDung }));
+  X3.datCheDo("shadow"); X3.napTrongSo(art({ phienBanDacTrung: PB, mau: 120, checksum: cs() }));
   ok(/Shadow/.test(X3.moTaTrangThai()), "mô tả khi shadow sẵn sàng");
 
-  // 11. config + UI wiring: settings có nnCheDo, modal có công tắc
+  // 11. wiring: config + UI + engine
   const cfg = read("assets/js/config.js");
   ok(/nnCheDo/.test(cfg), "config.js có SETTINGS.nnCheDo");
+  ok(/2\.16\.0/.test(cfg), "config.js APP_VERSION 2.16.0");
   const s2 = read("assets/js/screens2.js");
   ok(/Mạng nơ-ron/.test(s2) && /moTaTrangThai/.test(s2), "modal Cài đặt có công tắc NN + trạng thái");
   const eng = read("assets/js/engine.js");
-  ok(/nnDanhGia/.test(eng), "engine ghi nnDanhGia (assessment)");
-  ok(!/sanSang\(\)\) ketQua\.nnXacSuat = NN\.duDoanChoEngine/.test(eng), "engine không còn đường ghi cũ");
+  ok(/nnDanhGia/.test(eng) && /featureSnapshot/.test(eng), "engine chụp snapshot + ghi nnDanhGia (assessment)");
+  ok(!/NN\.duDoanChoEngine\(/.test(eng) && !/buChoCache\(/.test(read("assets/js/app.js")), "không còn đường ghi/backfill cũ (A19)");
 
   // 12. version
-  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
-  ok(/neural\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp neural.js v2.14.1");
+  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
+  ok(/neural\.js\?v=2\.16\.0/.test(read("index.html")), "index.html nạp neural.js v2.16.0");
 }
 };
 
@@ -2103,8 +2151,8 @@ console.log("\n[35] v2.14.1 — biên 4h + auto chấm điểm journal trình du
   ok(/SCREEN_HIENTAI === "sotinhieu"[^]*renderSoTinHieu/.test(app), "xong thì vẽ lại màn hình Sổ tín hiệu nếu đang mở");
 
   // version
-  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
-  ok(/app\.js\?v=2\.15\.0/.test(read("index.html")), "index.html nạp app.js v2.15.0");
+  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
+  ok(/app\.js\?v=2\.16\.0/.test(read("index.html")), "index.html nạp app.js v2.16.0");
 
   // phạm vi trạm AUTO (quyết định user 01/10/2026): tự chọn coin theo volume, không fix cứng
   const col = read("tools/collector-247.js");
@@ -2276,11 +2324,11 @@ console.log("\n[36] v2.15.0 — cầu nối trình duyệt → trạm → WhatsA
 // --- E. wiring: index.html + app.js + screens2.js + config.js + bridge-browser.js ---
 {
   const idx = fs.readFileSync("index.html", "utf8");
-  ok(/Trade\.2026 v2\.15\.0/.test(idx), "index.html đã lên v2.15.0");
+  ok(/Trade\.2026 v2\.16\.0/.test(idx), "index.html đã lên v2.16.0");
   ok(/assets\/js\/bridge\.js\?v=2\.15\.0/.test(idx), "index.html nạp bridge.js?v=2.15.0");
-  ok(/assets\/js\/config\.js\?v=2\.15\.0/.test(idx), "cache-bust config.js");
+  ok(/assets\/js\/config\.js\?v=2\.16\.0/.test(idx), "cache-bust config.js");
   ok(/assets\/js\/screens2\.js\?v=2\.15\.0/.test(idx), "cache-bust screens2.js");
-  ok(/assets\/js\/app\.js\?v=2\.15\.0/.test(idx), "cache-bust app.js");
+  ok(/assets\/js\/app\.js\?v=2\.16\.0/.test(idx), "cache-bust app.js");
   const app = fs.readFileSync("assets/js/app.js", "utf8");
   ok(/BRIDGE\.khoiDong\(\)/.test(app), "app.js boot gọi BRIDGE.khoiDong()");
   const s2 = fs.readFileSync("assets/js/screens2.js", "utf8");
@@ -2293,7 +2341,187 @@ console.log("\n[36] v2.15.0 — cầu nối trình duyệt → trạm → WhatsA
 console.log("[36] pass");
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(_p34).then(_p35).then(_p36).then(() => {
+
+/* ---------- [37] v2.16.0 — outcome nhân quả (A07/A09), pivot xác nhận (A10), nến đóng (A11), PriceHub stop (A21), version sync (A22) ---------- */
+const _p37 = async () => {
+console.log("\n[37] v2.16.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
+{
+  const store = {};
+  const lsStub = { getItem: k => k in store ? store[k] : null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
+  const c = makeCtx({ localStorage: lsStub, fetchKlines: async () => [] });
+  c.load("assets/js/utils.js");
+  c.load("assets/js/journal.js");
+  const chamDiemLenh = c.get("chamDiemLenh");
+  const tinhNetR = c.get("tinhNetR");
+  const JOURNAL = c.get("JOURNAL");
+  const nen = (o, h, l, cl, t) => ({ openTime: t, open: o, high: h, low: l, close: cl, volume: 1 });
+  const T0 = 1700000000000, M15 = 15 * 60e3;
+
+  // --- A09: entry ngoài bracket → khong_hop_le ---
+  let dg = chamDiemLenh([nen(100, 101, 99, 100.5, 1000)], { side: "long", entry: 97, sl: 98, tp: 105 });
+  ok(dg.ketQua === "khong_hop_le" && dg.r === null && dg.netR === null, "long entry 97 < SL 98 → khong_hop_le");
+  dg = chamDiemLenh([nen(100, 101, 99, 100.5, 1000)], { side: "long", entry: 105, sl: 98, tp: 105 });
+  ok(dg.ketQua === "khong_hop_le", "long entry = TP → khong_hop_le (biên)");
+  dg = chamDiemLenh([nen(100, 101, 94, 95, 1000)], { side: "short", entry: 103, sl: 102, tp: 95 });
+  ok(dg.ketQua === "khong_hop_le", "short entry 103 > SL 102 → khong_hop_le");
+  dg = chamDiemLenh([nen(100, 101, 99, 100.5, 1000)], { side: "short", entry: 100, sl: 102, tp: 95 });
+  ok(dg.ketQua !== "khong_hop_le", "short entry trong bracket → chấm bình thường");
+
+  // --- A09: gap qua SL → lỗ theo open, không phải SL ---
+  dg = chamDiemLenh([nen(100, 101, 99, 100.5, 1000), nen(97, 98, 96, 97, 2000)], { side: "long", entry: 100, sl: 98, tp: 105 });
+  ok(dg.ketQua === "thua" && dg.giaKT === 97, "gap qua SL: thua theo giá open 97");
+  ok(dg.r === -1.5, `gap qua SL: r = -1.5 (got ${dg.r})`);
+  dg = chamDiemLenh([nen(100, 101, 99, 100, 1000), nen(103, 104, 102.5, 103, 2000)], { side: "short", entry: 100, sl: 102, tp: 95 });
+  ok(dg.ketQua === "thua" && dg.giaKT === 103 && dg.r === -1.5, "short gap qua SL: thua theo open");
+
+  // --- A09: netR = R ròng sau phí 5bps + trượt 2bps mỗi chiều ---
+  const netWin = tinhNetR("long", 100, 104, 2); // gross 2R, cost=(204*7/10000)/2=0.0714
+  ok(Math.abs(netWin - 1.93) < 0.005, `netR thắng = 1.93 (got ${netWin})`);
+  const netLoss = tinhNetR("long", 100, 98, 2); // gross -1R
+  ok(netLoss < -1 && Math.abs(netLoss - (-1.07)) < 0.005, `netR thua < -1R do chi phí (got ${netLoss})`);
+  dg = chamDiemLenh([nen(100, 101, 99, 100.5, 1000), nen(100.5, 106, 100, 105, 2000)], { side: "long", entry: 100, sl: 98, tp: 104 });
+  ok(dg.ketQua === "thang" && dg.netR != null && dg.netR < dg.r, "thắng có netR < r (đã trừ chi phí)");
+
+  // --- A07/A09 journal-level: entry = open nến 15m KẾ TIẾP sau tsVao ---
+  const NOW = Date.now();
+  const tsVao = NOW - 5 * 3600e3;
+  const tsEntry = tsVao + 60e3;
+  const klA = [nen(101, 102, 100.5, 101.5, tsEntry)];
+  const cA = makeCtx({ localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, fetchKlines: async () => klA });
+  cA.load("assets/js/utils.js"); cA.load("assets/js/journal.js");
+  const JA = cA.get("JOURNAL");
+  const recA = { id: "A7-1", coin: "BTC", side: "long", loai: "that", tsVao, giaVao: 100, sl: 99, tp: 106, rr: 2, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
+  cA.evalIn(`localStorage.setItem("trade2026_signal_journal", '${JSON.stringify([recA])}')`);
+  const rA = await JA.chamDiem(recA);
+  ok(rA.rec.giaVao === 101 && rA.rec.giaVaoKeHoach === 100, "entry mô phỏng = open nến kế tiếp (101); giữ giá kế hoạch (100)");
+  ok(rA.rec.tsEntryMoPhong === tsEntry, "lưu tsEntryMoPhong");
+  ok(rA.rec.trangThai === "het_han" && rA.rec.ketQua.giaKetThuc === 101.5, "quá 4h không chạm → het_han theo close nến cuối");
+  ok(Math.abs(rA.rec.ketQua.r - 0.25) < 1e-9, "het_han r = (101.5-101)/2 = 0.25");
+
+  // --- A07: KHÔNG xét nến sau deadline (TP chạm muộn → het_han, không thang) ---
+  const dl = tsEntry + 4 * 3600e3;
+  const klB = [nen(100, 101, 99.5, 100.5, tsEntry),
+               nen(100.5, 106, 100, 105, dl + 60e3)]; // chạm TP nhưng SAU deadline
+  const cB = makeCtx({ localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, fetchKlines: async () => klB });
+  cB.load("assets/js/utils.js"); cB.load("assets/js/journal.js");
+  const JB = cB.get("JOURNAL");
+  const recB = { id: "A7-2", coin: "BTC", side: "long", loai: "that", tsVao, giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
+  cB.evalIn(`localStorage.setItem("trade2026_signal_journal", '${JSON.stringify([recB])}')`);
+  const rB = await JB.chamDiem(recB);
+  ok(rB.rec.trangThai === "het_han" && rB.rec.ketQua.giaKetThuc === 100.5, "TP sau deadline bị bỏ qua → het_han theo close nến trong hạn");
+
+  // --- A07: chưa có nến entry + chưa hết hạn → giữ theo dõi, KHÔNG thieu_du_lieu sớm ---
+  const cC = makeCtx({ localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, fetchKlines: async () => [] });
+  cC.load("assets/js/utils.js"); cC.load("assets/js/journal.js");
+  const JC = cC.get("JOURNAL");
+  const recC = { id: "A7-3", coin: "BTC", side: "long", loai: "that", tsVao: NOW - 30 * 60e3, giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
+  cC.evalIn(`localStorage.setItem("trade2026_signal_journal", '${JSON.stringify([recC])}')`);
+  const rC = await JC.chamDiem(recC);
+  ok(rC.rec.trangThai === "dang_theo_doi", "chưa có nến entry, chưa hết hạn → vẫn theo dõi");
+
+  // --- A07: hết hạn mà không có nến đóng nào → thieu_du_lieu (không bịa nhãn) ---
+  const recD = { ...recC, id: "A7-4", tsVao: NOW - 5 * 3600e3 };
+  cC.evalIn(`localStorage.setItem("trade2026_signal_journal", '${JSON.stringify([recD])}')`);
+  const rD = await JC.chamDiem(recD);
+  ok(rD.rec.trangThai === "thieu_du_lieu" && (rD.rec.ketQua.r === null), "hết hạn không nến → thieu_du_lieu, r null");
+
+  // --- A07: thongKe không vỡ với trạng thái mới ---
+  const tk = c.get("thongKeJournal")([
+    { loai: "that", trangThai: "khong_ro", ketQua: { r: null } },
+    { loai: "that", trangThai: "thieu_du_lieu", ketQua: { r: null } },
+    { loai: "that", trangThai: "khong_hop_le", ketQua: { r: null } },
+    { loai: "that", trangThai: "thang", ketQua: { r: 2 } },
+  ]);
+  ok(tk.xong === 1 && tk.tong === 4, "thống kê: chỉ thang/thua vào 'xong', trạng thái mới không vỡ");
+
+  // --- A10: pivot có confirmedIndex; chỉ tham chiếu pivot đã xác nhận ---
+  const cT = makeCtx({});
+  cT.load("assets/js/ta.js");
+  const findPivots = cT.get("findPivots"), pivotDaXacNhan = cT.get("pivotDaXacNhan");
+  const klP = [];
+  const highs = [100, 101, 102, 101, 100, 105, 101, 100, 99, 100, 101, 102];
+  for (let i = 0; i < highs.length; i++)
+    klP.push({ openTime: T0 + i * M15, open: highs[i] - 1, high: highs[i], low: highs[i] - 2, close: highs[i] - 0.5, volume: 1 });
+  const { highs: ph } = findPivots(klP, 2);
+  const piv5 = ph.find(p => p.index === 5);
+  ok(piv5 && piv5.confirmedIndex === 7, "pivot đỉnh i=5 (k=2) → confirmedIndex=7");
+  ok(piv5.confirmedAt === T0 + 7 * M15, "confirmedAt = openTime nến i+k");
+  ok(pivotDaXacNhan(piv5, 6) === false, "nến 6: pivot chưa xác nhận → không tham chiếu");
+  ok(pivotDaXacNhan(piv5, 7) === true, "nến 7: pivot đã xác nhận → được tham chiếu");
+  ok(pivotDaXacNhan({ index: 5 }, 6) === true, "pivot legacy (thiếu confirmedIndex) → giữ logic cũ");
+  const smc = read("assets/js/smc.js");
+  const demXacNhan = (smc.match(/pivotDaXacNhan\(p, i\)/g) || []).length;
+  ok(demXacNhan >= 4, `smc.js dùng pivotDaXacNhan ở sweep + CHoCH (${demXacNhan} chỗ)`);
+  const idx = read("index.html");
+  ok(idx.indexOf("ta.js?") < idx.indexOf("smc.js?"), "index.html nạp ta.js trước smc.js (pivotDaXacNhan khả dụng)");
+
+  // --- A11: OB impulse không dùng nến forming (n-2); adapter có closeTime ---
+  ok(/j <= Math\.min\(n - 2, i \+ impulseBars\)/.test(smc), "OB impulse: j ≤ n-2 (bỏ nến forming)");
+  ok(!/j <= Math\.min\(n - 1, i \+ impulseBars\)/.test(smc), "không còn dùng n-1 (nến forming)");
+  const eng = read("assets/js/engine.js");
+  ok(/closeTime/.test(eng), "engine có closeTime/provenance nến");
+
+  // --- A21: PriceHub.stop() chặn reconnect ---
+  let soLanHen = 0;
+  const cE = makeCtx({
+    document: { dispatchEvent() {} },
+    localStorage: { getItem: () => null, setItem() {} },
+    ConnState: { set() {} },
+    setTimeout: () => { soLanHen++; return 1; },
+  });
+  cE.load("assets/js/exchanges.js");
+  const PriceHub = cE.get("PriceHub");
+  const hub = new PriceHub(["BTC"]);
+  ok(hub._daDung === false, "mới tạo: chưa dừng");
+  hub.reconnect("BINANCE", () => {});
+  ok(soLanHen === 1, "chưa stop: reconnect lên lịch bình thường");
+  hub.stop();
+  ok(hub._daDung === true, "stop() đặt cờ _daDung");
+  hub.reconnect("BINANCE", () => {});
+  ok(soLanHen === 1, "sau stop(): reconnect KHÔNG lên lịch thêm");
+
+  // --- A22: version đồng bộ ---
+  const cfg = read("assets/js/config.js");
+  ok(/const APP_VERSION = "2\.16\.0"/.test(cfg), "config.js APP_VERSION = 2.16.0");
+  ok(/Trade\.2026 v2\.16\.0/.test(idx), "index.html title/header v2.16.0");
+  for (const f of ["config.js", "ta.js", "smc.js", "exchanges.js", "journal.js", "engine.js", "neural.js", "screens.js", "app.js"])
+    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.16\\.0").test(idx), `cache-bust ${f} = 2.16.0`);
+
+  // --- A04: chiaTheoThoiGian — sắp xếp theo asOf, cắt 60/20/20, purge 15m ---
+  const srcTrain = read("tools/train-nn.js");
+  const cTr = makeCtx({});
+  cTr.evalIn("const TY_LE = [0.6, 0.2, 0.2]; const PURGE_MS = 15 * 60e3;");
+  cTr.evalIn(extractFunction(srcTrain, "chiaTheoThoiGian"));
+  const dsT = { asOf: [], ketQuaAt: [], X: [], Y: [], ids: [] };
+  for (let i = 0; i < 10; i++) { // asOf đảo thứ tự + 1 mẫu overlap purge
+    dsT.asOf.push(T0 + (9 - i) * 3600e3);
+    dsT.ketQuaAt.push(T0 + (9 - i) * 3600e3 + 3600e3);
+    dsT.X.push([i]); dsT.Y.push(i % 2); dsT.ids.push("m" + i);
+  }
+  const chia2 = cTr.evalIn(`chiaTheoThoiGian({ asOf: [${dsT.asOf.join(",")}], ketQuaAt: [${dsT.ketQuaAt.join(",")}], X: [], Y: [], ids: [] })`);
+  ok(chia2.train.length + chia2.val.length + chia2.test.length + chia2.purgeTrain + chia2.purgeVal === 10, "chia đủ 10 mẫu (60/20/20 + purge)");
+  ok(chia2.test.length === 2, "test = 20% cuối theo thời gian");
+  // purge: mẫu train có ketQuaAt trong 15m trước val đầu → bị loại
+  const asOfP = [T0, T0 + 3600e3, T0 + 2 * 3600e3, T0 + 3 * 3600e3, T0 + 4 * 3600e3];
+  const kqAtP = [T0 + 5 * 3600e3 - 10 * 60e3, T0 + 60e3, T0 + 2 * 3600e3, T0 + 3 * 3600e3, T0 + 4 * 3600e3];
+  const chiaP = cTr.evalIn(`chiaTheoThoiGian({ asOf: [${asOfP.join(",")}], ketQuaAt: [${kqAtP.join(",")}], X: [], Y: [], ids: [] })`);
+  ok(chiaP.purgeTrain >= 1, "purge loại mẫu train có ketQuaAt quá gần val (overlap 15m)");
+
+  // --- A04/A05: train-nn.js với journal thật → 0 mẫu v2 → exit 2 trung thực ---
+  const { execFileSync } = require("child_process");
+  let exitCode = null, out = "";
+  try {
+    out = execFileSync("node", ["tools/train-nn.js", "--file", "data/journal-247.json"], { encoding: "utf8", timeout: 60000 });
+  } catch (e) { exitCode = e.status; out = (e.stdout || "") + (e.stderr || ""); }
+  ok(exitCode === 2, `train-nn exit 2 khi chưa đủ 100 mẫu (got ${exitCode})`);
+  ok(/CHƯA ĐỦ MẪU/.test(out), "train-nn báo CHƯA ĐỦ MẪU rõ ràng");
+  ok(!/artifacts\/nn-candidate\.json.*đã ghi/.test(out), "không ghi candidate khi chưa đủ mẫu");
+
+  console.log("[37] pass");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(_p34).then(_p35).then(_p36).then(_p37).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

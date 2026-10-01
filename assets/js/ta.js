@@ -103,10 +103,21 @@ function findPivots(candles, k) {
   const highs = candles.map(c => c.high), lows = candles.map(c => c.low);
   const ph = [], pl = [];
   for (let i = k; i < candles.length - k; i++) {
-    if (isPivotHigh(highs, i, k)) ph.push({ index: i, price: highs[i], time: candles[i].openTime });
-    if (isPivotLow(lows, i, k))  pl.push({ index: i, price: lows[i],  time: candles[i].openTime });
+    // v2.16.0 (A10): pivot tại i chỉ được XÁC NHẬN khi nến i+k đã đóng —
+    // sweep/CHoCH chỉ được tham chiếu pivot đã xác nhận tại nến đang xét
+    const confirmedIndex = i + k;
+    const confirmedAt = candles[confirmedIndex] ? candles[confirmedIndex].openTime : null;
+    if (isPivotHigh(highs, i, k)) ph.push({ index: i, price: highs[i], time: candles[i].openTime, confirmedIndex, confirmedAt });
+    if (isPivotLow(lows, i, k))  pl.push({ index: i, price: lows[i],  time: candles[i].openTime, confirmedIndex, confirmedAt });
   }
   return { highs: ph, lows: pl };
+}
+/* Pivot đã xác nhận tại nến j: confirmedIndex <= j.
+ * Pivot legacy (không có confirmedIndex) → giữ logic cũ p.index < j. */
+function pivotDaXacNhan(p, j) {
+  if (!p) return false;
+  if (p.confirmedIndex == null) return p.index < j;
+  return p.confirmedIndex <= j;
 }
 
 /* Max/min của N nến TRƯỚC endIndex (LOẠI TRỪ nến hiện tại — fix quan trọng từ Pine port) */
