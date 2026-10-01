@@ -742,7 +742,7 @@ console.log("\n[14] journal.js — chấm điểm, thống kê, bài học");
   // 14.2 long thua
   dg = chamDiemLenh([nen(100,101,97,99,1000)], { side:"long", entry:100, sl:98, tp:105 });
   ok(dg.ketQua === "thua" && dg.r === -1, "long chạm SL → thua R=-1");
-  // 14.3 v2.16.0 (A08): SL & TP cùng nến → khong_ro (không rõ thứ tự), KHÔNG tính thua
+  // 14.3 v2.17.0 (A08): SL & TP cùng nến → khong_ro (không rõ thứ tự), KHÔNG tính thua
   dg = chamDiemLenh([nen(100,110,90,100,1000)], { side:"long", entry:100, sl:98, tp:105 });
   ok(dg.ketQua === "khong_ro" && dg.r === null && dg.netR === null, "SL+TP cùng nến → khong_ro, r/netR null");
   // 14.4 short thắng
@@ -833,7 +833,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.16.0"') >= 0, "APP_VERSION = 2.16.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.0"') >= 0, "APP_VERSION = 2.17.0");
 }
 };
 
@@ -884,7 +884,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.16.0"') >= 0, "APP_VERSION = 2.16.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.0"') >= 0, "APP_VERSION = 2.17.0");
 }
 };
 
@@ -914,7 +914,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.16.0"') >= 0, "APP_VERSION = 2.16.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.0"') >= 0, "APP_VERSION = 2.17.0");
 }
 };
 
@@ -957,7 +957,7 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.16.0"') >= 0, "APP_VERSION = 2.16.0");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.0"') >= 0, "APP_VERSION = 2.17.0");
 }
 };
 
@@ -1647,7 +1647,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.16\.0/.test(idx), "index.html đã lên v2.16.0");
+  ok(/Trade\.2026 v2\.17\.0/.test(idx), "index.html đã lên v2.17.0");
 }
 
 const _p30 = async () => {
@@ -1708,7 +1708,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.16\.0/.test(idx), "index.html đã lên v2.16.0");
+  ok(/Trade\.2026 v2\.17\.0/.test(idx), "index.html đã lên v2.17.0");
 };
 
 const _p31 = async () => {
@@ -1748,12 +1748,12 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
+  ok(/Trade\.2026 v2\.17\.0/.test(read("index.html")), "index.html đã lên v2.17.0");
 }
 };
 
 const _p32 = async () => {
-console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h");
+console.log("\n[32] v2.17.0 — futures: cửa sổ đánh giá tín hiệu 15m (nến 1m)");
 {
   const store = {};
   const lsStub = {
@@ -1762,42 +1762,43 @@ console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h")
     removeItem: (k) => { delete store[k]; },
   };
   const t0 = Date.now();
-  // 20 nến 15m trung tính trong 5h: high 101 < TP 105, low 99.5 > SL 98, close cuối 100.5
+  // 20 nến 1m trung tính trong 20 phút: high 101 < TP 105, low 99.5 > SL 98, close cuối 100.5
   const klines = [];
   for (let i = 0; i < 20; i++)
-    klines.push({ openTime: t0 - 5 * 3600e3 + i * 15 * 60e3, open: 100, high: 101, low: 99.5, close: 100.5, volume: 1 });
+    klines.push({ openTime: t0 - 20 * 60e3 + i * 60e3, open: 100, high: 101, low: 99.5, close: 100.5, volume: 1 });
   const c = makeCtx({ localStorage: lsStub, fetchKlines: async () => klines }); // _p32 giữ nguyên
   c.load("assets/js/utils.js"); // fmtGia thật
   c.load("assets/js/journal.js");
   const JOURNAL = c.get("JOURNAL");
   const TRANG_THAI = c.get("TRANG_THAI_JOURNAL");
 
-  ok(JOURNAL._hanGio === 4, "cửa sổ đánh giá tín hiệu futures = 4h (trước đây 48h)");
-  ok(TRANG_THAI.het_han[0] === "⌛ Hết hạn 4h", "nhãn trạng thái: Hết hạn 4h");
+  ok(JOURNAL._hanGio === 0.25, "cửa sổ đánh giá tín hiệu futures = 15m (0.25h, trước đây 4h)");
+  ok(JOURNAL._khungNenChamDiem === "1m", "nến chấm điểm = 1m (trước đây 15m)");
+  ok(TRANG_THAI.het_han[0] === "⌛ Hết hạn 15m", "nhãn trạng thái: Hết hạn 15m");
 
-  // quá 4h chưa chạm TP/SL → hết hạn, đóng theo giá thị trường, chấm R ngay
-  const recCu = { id: "T-CU", coin: "BTC", side: "long", loai: "that", tsVao: t0 - 5 * 3600e3,
+  // quá 15m chưa chạm TP/SL → hết hạn, đóng theo giá thị trường, chấm R ngay
+  const recCu = { id: "T-CU", coin: "BTC", side: "long", loai: "that", tsVao: t0 - 20 * 60e3,
     giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
   lsStub.setItem("trade2026_signal_journal", JSON.stringify([recCu]));
   const r1 = await JOURNAL.chamDiem(recCu);
-  ok(!r1.loi && r1.rec.trangThai === "het_han", "quá 4h chưa chạm TP/SL → hết hạn");
-  ok(r1.rec.ketQua.gioDenKQ === 4, "hết hạn ghi gioDenKQ = 4h");
+  ok(!r1.loi && r1.rec.trangThai === "het_han", "quá 15m chưa chạm TP/SL → hết hạn");
+  ok(r1.rec.ketQua.gioDenKQ === 0.25, "hết hạn ghi gioDenKQ = 0.25h (15m)");
   ok(r1.rec.ketQua.giaKetThuc === 100.5, "hết hạn đóng theo giá nến cuối (giá thị trường)");
   ok(Math.abs(r1.rec.ketQua.r - 0.25) < 1e-9, "hết hạn tính R theo giá đóng: (100.5-100)/2 = +0.25R");
 
-  // trong 4h chưa chạm → vẫn theo dõi (không bị ép hết hạn sớm)
-  const recMoi = { id: "T-MOI", coin: "BTC", side: "long", loai: "that", tsVao: t0 - 1 * 3600e3,
+  // trong 15m chưa chạm → vẫn theo dõi (không bị ép hết hạn sớm)
+  const recMoi = { id: "T-MOI", coin: "BTC", side: "long", loai: "that", tsVao: t0 - 5 * 60e3,
     giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
   lsStub.setItem("trade2026_signal_journal", JSON.stringify([recMoi]));
   const r2 = await JOURNAL.chamDiem(recMoi);
-  ok(!r2.loi && r2.rec.trangThai === "dang_theo_doi", "trong 4h chưa chạm TP/SL → vẫn theo dõi");
+  ok(!r2.loi && r2.rec.trangThai === "dang_theo_doi", "trong 15m chưa chạm TP/SL → vẫn theo dõi");
 
   // short hết hạn: R âm khi giá đóng cao hơn entry
   const klinesS = klines.map(n => ({ ...n, close: 101 }));
   const c3 = makeCtx({ localStorage: lsStub, fetchKlines: async () => klinesS });
   c3.load("assets/js/utils.js"); c3.load("assets/js/journal.js");
   const J3 = c3.get("JOURNAL");
-  const recS = { id: "T-S", coin: "ETH", side: "short", loai: "that", tsVao: t0 - 6 * 3600e3,
+  const recS = { id: "T-S", coin: "ETH", side: "short", loai: "that", tsVao: t0 - 25 * 60e3,
     giaVao: 100, sl: 102, tp: 95, rr: 2.5, diem: 75, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
   lsStub.setItem("trade2026_signal_journal", JSON.stringify([recS]));
   const r3 = await J3.chamDiem(recS);
@@ -1805,13 +1806,13 @@ console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h")
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
+  ok(/Trade\.2026 v2\.17\.0/.test(read("index.html")), "index.html đã lên v2.17.0");
 }
 };
 
-/* ---------- [33] v2.16.0 — NN v2: snapshot 24 chiều (12 giá trị + 12 cờ thiếu) ---------- */
+/* ---------- [33] v2.17.0 — NN v2: snapshot 24 chiều (12 giá trị + 12 cờ thiếu) ---------- */
 const _p33 = async () => {
-console.log("\n[33] v2.16.0 — NN v2: missing-mask, snapshot contract, nhãn netR, temporal train");
+console.log("\n[33] v2.17.0 — NN v2: missing-mask, snapshot contract, nhãn netR, temporal train");
 {
   const c = makeCtx(); c.load("assets/js/neural.js");
   const MLP = c.get("MLP"), NN = c.get("NN");
@@ -1988,14 +1989,14 @@ console.log("\n[33] v2.16.0 — NN v2: missing-mask, snapshot contract, nhãn ne
   ok(!bh2.some(b => /NN thử nghiệm/.test(b.tieuDe)), "chưa có dự đoán NN → không có mục NN");
 
   // 13. version
-  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
-  ok(/neural\.js\?v=2\.16\.0/.test(read("index.html")), "index.html nạp neural.js v2.16.0");
+  ok(/Trade\.2026 v2\.17\.0/.test(read("index.html")), "index.html đã lên v2.17.0");
+  ok(/neural\.js\?v=2\.17\.0/.test(read("index.html")), "index.html nạp neural.js v2.17.0");
 }
 };
 
-/* ---------- [34] v2.16.0 — Artifact hardening (A06): từng hàng W/b, phiên bản, checksum ---------- */
+/* ---------- [34] v2.17.0 — Artifact hardening (A06): từng hàng W/b, phiên bản, checksum ---------- */
 const _p34 = async () => {
-console.log("\n[34] v2.16.0 — A06: từ chối artifact hỏng/legacy, báo đúng phần lỗi");
+console.log("\n[34] v2.17.0 — A06: từ chối artifact hỏng/legacy, báo đúng phần lỗi");
 {
   const c = makeCtx(); c.load("assets/js/neural.js");
   const NN = c.get("NN");
@@ -2080,7 +2081,7 @@ console.log("\n[34] v2.16.0 — A06: từ chối artifact hỏng/legacy, báo đ
   // 11. wiring: config + UI + engine
   const cfg = read("assets/js/config.js");
   ok(/nnCheDo/.test(cfg), "config.js có SETTINGS.nnCheDo");
-  ok(/2\.16\.0/.test(cfg), "config.js APP_VERSION 2.16.0");
+  ok(/2\.17\.0/.test(cfg), "config.js APP_VERSION 2.17.0");
   const s2 = read("assets/js/screens2.js");
   ok(/Mạng nơ-ron/.test(s2) && /moTaTrangThai/.test(s2), "modal Cài đặt có công tắc NN + trạng thái");
   const eng = read("assets/js/engine.js");
@@ -2088,14 +2089,14 @@ console.log("\n[34] v2.16.0 — A06: từ chối artifact hỏng/legacy, báo đ
   ok(!/NN\.duDoanChoEngine\(/.test(eng) && !/buChoCache\(/.test(read("assets/js/app.js")), "không còn đường ghi/backfill cũ (A19)");
 
   // 12. version
-  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
-  ok(/neural\.js\?v=2\.16\.0/.test(read("index.html")), "index.html nạp neural.js v2.16.0");
+  ok(/Trade\.2026 v2\.17\.0/.test(read("index.html")), "index.html đã lên v2.17.0");
+  ok(/neural\.js\?v=2\.17\.0/.test(read("index.html")), "index.html nạp neural.js v2.17.0");
 }
 };
 
-/* ---------- [35] v2.14.1 — tự động chấm điểm hết hạn 4h (không chờ bấm nút thủ công) ---------- */
+/* ---------- [35] v2.17.0 — tự động chấm điểm hết hạn 15m (không chờ bấm nút thủ công) ---------- */
 const _p35 = async () => {
-console.log("\n[35] v2.14.1 — biên 4h + auto chấm điểm journal trình duyệt");
+console.log("\n[35] v2.17.0 — biên 15m + auto chấm điểm journal trình duyệt");
 {
   const store = {};
   const lsStub = {
@@ -2104,41 +2105,41 @@ console.log("\n[35] v2.14.1 — biên 4h + auto chấm điểm journal trình du
     removeItem: (k) => { delete store[k]; },
   };
   const t0 = Date.now();
-  // 30 nến 15m trung tính phủ 7.5h gần nhất: không chạm TP/SL
+  // 30 nến 1m trung tính phủ 30 phút gần nhất: không chạm TP/SL
   const klines = [];
   for (let i = 0; i < 30; i++)
-    klines.push({ openTime: t0 - 7.5 * 3600e3 + i * 15 * 60e3, open: 100, high: 101, low: 99.5, close: 100.5, volume: 1 });
+    klines.push({ openTime: t0 - 30 * 60e3 + i * 60e3, open: 100, high: 101, low: 99.5, close: 100.5, volume: 1 });
   const c = makeCtx({ localStorage: lsStub, fetchKlines: async () => klines,
     setTimeout: (fn) => Promise.resolve().then(fn) }); // _p35: bỏ delay 250ms cho test nhanh
   c.load("assets/js/utils.js");
   c.load("assets/js/journal.js");
   const JOURNAL = c.get("JOURNAL");
-  const mkRec = (id, gioTruoc) => ({ id, coin: "BTC", side: "long", loai: "that", tsVao: t0 - gioTruoc * 3600e3,
+  const mkRec = (id, phutTruoc) => ({ id, coin: "BTC", side: "long", loai: "that", tsVao: t0 - phutTruoc * 60e3,
     giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 });
 
-  // 4h - 1 phút (sát biên nhưng chưa quá — chamDiem dùng Date.now() tại lúc gọi nên
-  // không test được "đúng 4h" tuyệt đối; cặp 4h±1 phút kẹp biên đủ chặt)
-  const recBien = mkRec("T-BIEN", 4 - 1 / 60);
+  // 15m - 30 giây (sát biên nhưng chưa quá — chamDiem dùng Date.now() tại lúc gọi nên
+  // không test được "đúng 15m" tuyệt đối; cặp 15m±30s kẹp biên đủ chặt)
+  const recBien = mkRec("T-BIEN", 15 - 0.5);
   lsStub.setItem("trade2026_signal_journal", JSON.stringify([recBien]));
   const rb = await JOURNAL.chamDiem(recBien);
-  ok(!rb.loi && rb.rec.trangThai === "dang_theo_doi", "4h - 1 phút chưa chạm TP/SL → vẫn theo dõi");
+  ok(!rb.loi && rb.rec.trangThai === "dang_theo_doi", "15m - 30s chưa chạm TP/SL → vẫn theo dõi");
 
-  // 4h + 1 phút → hết hạn
-  const recQua = mkRec("T-QUA", 4 + 1 / 60);
+  // 15m + 30 giây → hết hạn
+  const recQua = mkRec("T-QUA", 15 + 0.5);
   lsStub.setItem("trade2026_signal_journal", JSON.stringify([recQua]));
   const rq = await JOURNAL.chamDiem(recQua);
-  ok(!rq.loi && rq.rec.trangThai === "het_han", "quá 4h 1 phút chưa chạm TP/SL → hết hạn");
+  ok(!rq.loi && rq.rec.trangThai === "het_han", "quá 15m 30s chưa chạm TP/SL → hết hạn");
 
   // chamDiemTatCa: xử lý hàng loạt — cũ hết hạn, mới giữ nguyên, đã ngã ngũ không đụng
-  const recCu = mkRec("T-CU2", 5), recMoi = mkRec("T-MOI2", 1);
-  const recXong = { ...mkRec("T-XONG", 6), trangThai: "thua", ketQua: { r: -1 }, daDanhGiaDen: t0 };
+  const recCu = mkRec("T-CU2", 20), recMoi = mkRec("T-MOI2", 5);
+  const recXong = { ...mkRec("T-XONG", 25), trangThai: "thua", ketQua: { r: -1 }, daDanhGiaDen: t0 };
   lsStub.setItem("trade2026_signal_journal", JSON.stringify([recCu, recMoi, recXong]));
   const kq = await JOURNAL.chamDiemTatCa();
   const sau = JSON.parse(lsStub.getItem("trade2026_signal_journal"));
   const tim = id => sau.find(r => r.id === id);
   ok(kq.tong === 2 && kq.loi === 0, "chamDiemTatCa chỉ xử lý 2 bản ghi đang theo dõi");
-  ok(tim("T-CU2").trangThai === "het_han", "bản ghi 5h → hết hạn");
-  ok(tim("T-MOI2").trangThai === "dang_theo_doi", "bản ghi 1h → vẫn theo dõi");
+  ok(tim("T-CU2").trangThai === "het_han", "bản ghi 20 phút → hết hạn");
+  ok(tim("T-MOI2").trangThai === "dang_theo_doi", "bản ghi 5 phút → vẫn theo dõi");
   ok(tim("T-XONG").trangThai === "thua", "bản ghi đã ngã ngũ không bị đụng");
 
   // wiring trong app.js: tồn tại, gọi ở boot, interval 15 phút, throttle localStorage, vẽ lại màn hình sổ
@@ -2151,8 +2152,8 @@ console.log("\n[35] v2.14.1 — biên 4h + auto chấm điểm journal trình du
   ok(/SCREEN_HIENTAI === "sotinhieu"[^]*renderSoTinHieu/.test(app), "xong thì vẽ lại màn hình Sổ tín hiệu nếu đang mở");
 
   // version
-  ok(/Trade\.2026 v2\.16\.0/.test(read("index.html")), "index.html đã lên v2.16.0");
-  ok(/app\.js\?v=2\.16\.0/.test(read("index.html")), "index.html nạp app.js v2.16.0");
+  ok(/Trade\.2026 v2\.17\.0/.test(read("index.html")), "index.html đã lên v2.17.0");
+  ok(/app\.js\?v=2\.17\.0/.test(read("index.html")), "index.html nạp app.js v2.17.0");
 
   // phạm vi trạm AUTO (quyết định user 01/10/2026): tự chọn coin theo volume, không fix cứng
   const col = read("tools/collector-247.js");
@@ -2324,11 +2325,11 @@ console.log("\n[36] v2.15.0 — cầu nối trình duyệt → trạm → WhatsA
 // --- E. wiring: index.html + app.js + screens2.js + config.js + bridge-browser.js ---
 {
   const idx = fs.readFileSync("index.html", "utf8");
-  ok(/Trade\.2026 v2\.16\.0/.test(idx), "index.html đã lên v2.16.0");
+  ok(/Trade\.2026 v2\.17\.0/.test(idx), "index.html đã lên v2.17.0");
   ok(/assets\/js\/bridge\.js\?v=2\.15\.0/.test(idx), "index.html nạp bridge.js?v=2.15.0");
-  ok(/assets\/js\/config\.js\?v=2\.16\.0/.test(idx), "cache-bust config.js");
+  ok(/assets\/js\/config\.js\?v=2\.17\.0/.test(idx), "cache-bust config.js");
   ok(/assets\/js\/screens2\.js\?v=2\.15\.0/.test(idx), "cache-bust screens2.js");
-  ok(/assets\/js\/app\.js\?v=2\.16\.0/.test(idx), "cache-bust app.js");
+  ok(/assets\/js\/app\.js\?v=2\.17\.0/.test(idx), "cache-bust app.js");
   const app = fs.readFileSync("assets/js/app.js", "utf8");
   ok(/BRIDGE\.khoiDong\(\)/.test(app), "app.js boot gọi BRIDGE.khoiDong()");
   const s2 = fs.readFileSync("assets/js/screens2.js", "utf8");
@@ -2342,9 +2343,9 @@ console.log("[36] pass");
 };
 
 
-/* ---------- [37] v2.16.0 — outcome nhân quả (A07/A09), pivot xác nhận (A10), nến đóng (A11), PriceHub stop (A21), version sync (A22) ---------- */
+/* ---------- [37] v2.17.0 — outcome nhân quả (A07/A09), pivot xác nhận (A10), nến đóng (A11), PriceHub stop (A21), version sync (A22) ---------- */
 const _p37 = async () => {
-console.log("\n[37] v2.16.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
+console.log("\n[37] v2.17.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
 {
   const store = {};
   const lsStub = { getItem: k => k in store ? store[k] : null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
@@ -2382,9 +2383,9 @@ console.log("\n[37] v2.16.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
   dg = chamDiemLenh([nen(100, 101, 99, 100.5, 1000), nen(100.5, 106, 100, 105, 2000)], { side: "long", entry: 100, sl: 98, tp: 104 });
   ok(dg.ketQua === "thang" && dg.netR != null && dg.netR < dg.r, "thắng có netR < r (đã trừ chi phí)");
 
-  // --- A07/A09 journal-level: entry = open nến 15m KẾ TIẾP sau tsVao ---
+  // --- A07/A09 journal-level: entry = open nến 1m KẾ TIẾP sau tsVao ---
   const NOW = Date.now();
-  const tsVao = NOW - 5 * 3600e3;
+  const tsVao = NOW - 20 * 60e3;
   const tsEntry = tsVao + 60e3;
   const klA = [nen(101, 102, 100.5, 101.5, tsEntry)];
   const cA = makeCtx({ localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, fetchKlines: async () => klA });
@@ -2395,11 +2396,11 @@ console.log("\n[37] v2.16.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
   const rA = await JA.chamDiem(recA);
   ok(rA.rec.giaVao === 101 && rA.rec.giaVaoKeHoach === 100, "entry mô phỏng = open nến kế tiếp (101); giữ giá kế hoạch (100)");
   ok(rA.rec.tsEntryMoPhong === tsEntry, "lưu tsEntryMoPhong");
-  ok(rA.rec.trangThai === "het_han" && rA.rec.ketQua.giaKetThuc === 101.5, "quá 4h không chạm → het_han theo close nến cuối");
+  ok(rA.rec.trangThai === "het_han" && rA.rec.ketQua.giaKetThuc === 101.5, "quá 15m không chạm → het_han theo close nến cuối");
   ok(Math.abs(rA.rec.ketQua.r - 0.25) < 1e-9, "het_han r = (101.5-101)/2 = 0.25");
 
   // --- A07: KHÔNG xét nến sau deadline (TP chạm muộn → het_han, không thang) ---
-  const dl = tsEntry + 4 * 3600e3;
+  const dl = tsEntry + 0.25 * 3600e3;
   const klB = [nen(100, 101, 99.5, 100.5, tsEntry),
                nen(100.5, 106, 100, 105, dl + 60e3)]; // chạm TP nhưng SAU deadline
   const cB = makeCtx({ localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, fetchKlines: async () => klB });
@@ -2414,13 +2415,13 @@ console.log("\n[37] v2.16.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
   const cC = makeCtx({ localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, fetchKlines: async () => [] });
   cC.load("assets/js/utils.js"); cC.load("assets/js/journal.js");
   const JC = cC.get("JOURNAL");
-  const recC = { id: "A7-3", coin: "BTC", side: "long", loai: "that", tsVao: NOW - 30 * 60e3, giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
+  const recC = { id: "A7-3", coin: "BTC", side: "long", loai: "that", tsVao: NOW - 5 * 60e3, giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 };
   cC.evalIn(`localStorage.setItem("trade2026_signal_journal", '${JSON.stringify([recC])}')`);
   const rC = await JC.chamDiem(recC);
   ok(rC.rec.trangThai === "dang_theo_doi", "chưa có nến entry, chưa hết hạn → vẫn theo dõi");
 
   // --- A07: hết hạn mà không có nến đóng nào → thieu_du_lieu (không bịa nhãn) ---
-  const recD = { ...recC, id: "A7-4", tsVao: NOW - 5 * 3600e3 };
+  const recD = { ...recC, id: "A7-4", tsVao: NOW - 20 * 60e3 };
   cC.evalIn(`localStorage.setItem("trade2026_signal_journal", '${JSON.stringify([recD])}')`);
   const rD = await JC.chamDiem(recD);
   ok(rD.rec.trangThai === "thieu_du_lieu" && (rD.rec.ketQua.r === null), "hết hạn không nến → thieu_du_lieu, r null");
@@ -2482,10 +2483,10 @@ console.log("\n[37] v2.16.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
 
   // --- A22: version đồng bộ ---
   const cfg = read("assets/js/config.js");
-  ok(/const APP_VERSION = "2\.16\.0"/.test(cfg), "config.js APP_VERSION = 2.16.0");
-  ok(/Trade\.2026 v2\.16\.0/.test(idx), "index.html title/header v2.16.0");
+  ok(/const APP_VERSION = "2\.17\.0"/.test(cfg), "config.js APP_VERSION = 2.17.0");
+  ok(/Trade\.2026 v2\.17\.0/.test(idx), "index.html title/header v2.17.0");
   for (const f of ["config.js", "ta.js", "smc.js", "exchanges.js", "journal.js", "engine.js", "neural.js", "screens.js", "app.js"])
-    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.16\\.0").test(idx), `cache-bust ${f} = 2.16.0`);
+    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.0").test(idx), `cache-bust ${f} = 2.17.0`);
 
   // --- A04: chiaTheoThoiGian — sắp xếp theo asOf, cắt 60/20/20, purge 15m ---
   const srcTrain = read("tools/train-nn.js");

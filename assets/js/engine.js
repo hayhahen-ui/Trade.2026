@@ -411,7 +411,7 @@ async function phanTichCoin(coin) {
     fvg15: fvg15.filter(g => !g.filled).slice(-4),
   };
   SIGNAL_CACHE.set(coin, ketQua);
-  /* v2.16.0 (A03): chụp snapshot đặc trưng v2 + provenance TẠI THỜI ĐIỂM PHÁT
+  /* v2.17.0 (A03): chụp snapshot đặc trưng v2 + provenance TẠI THỜI ĐIỂM PHÁT
    * TÍN HIỆU — journal lưu copy, trainer chỉ đọc snapshot đã lưu. */
   try {
     if (typeof NN !== "undefined" && NN.taoSnapshotDacTrung) {

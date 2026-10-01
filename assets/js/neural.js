@@ -1,5 +1,5 @@
 /* ============================================================
- * Trade.2026 v2.16.0 — Mạng nơ-ron MLP dự đoán xác suất thắng tín hiệu
+ * Trade.2026 v2.17.0 — Mạng nơ-ron MLP dự đoán xác suất thắng tín hiệu
  * ----------------------------------------------------------------------------
  * Ý tưởng (từ tài liệu "Bản đồ kiến thức mạng nơ-ron trong AI"):
  *  - Bài toán = HỌC CÓ GIÁM SÁT: đầu vào là đặc trưng tín hiệu (đã có lúc phát
@@ -40,7 +40,7 @@ function mulberry32(seed) {
 }
 const clamp01 = (v) => Math.min(1, Math.max(0, +v || 0));
 
-/* ---------- 12 đặc trưng thô + 12 cờ thiếu = 24 đầu vào (v2.16.0, audit A02) ----------
+/* ---------- 12 đặc trưng thô + 12 cờ thiếu = 24 đầu vào (v2.17.0, audit A02) ----------
  * Mọi đặc trưng đều phải biết được TẠI THỜI ĐIỂM PHÁT TÍN HIỆU.
  * raw thiếu = null (KHÔNG dùng 0.5 trung tính như v1 — gây lệch train/serve);
  * vector[0..11] = giá trị chuẩn hóa 0..1 (thiếu → 0),
@@ -89,7 +89,7 @@ function trichDacTrung(f) {
     1 - Math.min(raw.obCham || 0, 4) / 4,                  // 8  OB còn tươi (ít chạm)
     clamp01((raw.nenDiem || 0) / 100),                     // 9  điểm chất lượng nến
     raw.nenXepLoai != null && NN_NEN_LOAI[raw.nenXepLoai] != null ? NN_NEN_LOAI[raw.nenXepLoai] : 0, // 10 loại nến
-    clamp01(Math.min(raw.checklistDat || 0, 6) / 6),       // 11 checklist ĐẠT (v2.16.0: /6, trước đây /8 sai)
+    clamp01(Math.min(raw.checklistDat || 0, 6) / 6),       // 11 checklist ĐẠT (v2.17.0: /6, trước đây /8 sai)
   ];
   const co = [
     thieu(raw.diem), thieu(raw.rr), thieu(raw.side), thieu(raw.bias),
@@ -99,14 +99,14 @@ function trichDacTrung(f) {
   ];
   return giaTri.concat(co);
 }
-const NN_SO_DAC_TRUNG = 24; // v2.16.0: 12 giá trị + 12 cờ thiếu
-const NN_KIEN_TRUC = [24, 8, 1]; // v2.16.0: 209 tham số
+const NN_SO_DAC_TRUNG = 24; // v2.17.0: 12 giá trị + 12 cờ thiếu
+const NN_KIEN_TRUC = [24, 8, 1]; // v2.17.0: 209 tham số
 const NN_PHEN_BAN_DAC_TRUNG = "dac-trung-v2-missing-mask";
 const NN_STRATEGY_VERSION = "closed-candle-v1";
 
 /* Adapter: kết quả engine (lúc phát tín hiệu) → đặc trưng thô (null-safe).
- * v2.16.0 (A01): checklist đếm mục ĐẠT (dat===true), không đếm tổng — khớp journal.
- * v2.16.0 (A02): killzone dùng boolean active, không suy từ tên. */
+ * v2.17.0 (A01): checklist đếm mục ĐẠT (dat===true), không đếm tổng — khớp journal.
+ * v2.17.0 (A02): killzone dùng boolean active, không suy từ tên. */
 function dacTrungTuEngine(kq) {
   if (!kq) return null;
   const ob = kq.chatLuongOB || {}, nen = kq.chatLuongNen || {}, ct = kq.cauTruc || {};
@@ -368,7 +368,7 @@ const NN = {
   cheDo() { return this._cheDo; },
   /* Kiểm tra tương thích artifact (audit A06): kiểm tra TỪNG HÀNG W/b hữu hạn,
    * phiên bản, kích thước, checksum — báo đúng phần hỏng thay vì chấp nhận mù.
-   * v2.16.0: legacy (thiếu phienBanDacTrung/checksum) BỊ TỪ CHỐI. */
+   * v2.17.0: legacy (thiếu phienBanDacTrung/checksum) BỊ TỪ CHỐI. */
   kiemTraTuongThich(obj) {
     if (!obj || obj.version !== 1 || !Array.isArray(obj.sizes)) return { ok: false, lyDo: "CAU_TRUC_FILE_SAI" };
     const sz = obj.sizes;
@@ -391,7 +391,7 @@ const NN = {
           return { ok: false, lyDo: "B_KHONG_HUU_HAN_L" + l };
     }
     const meta = obj.meta || {};
-    /* v2.16.0 (A06): legacy thiếu phiên bản ĐẶC TRƯNG BỊ TỪ CHỐI — không còn
+    /* v2.17.0 (A06): legacy thiếu phiên bản ĐẶC TRƯNG BỊ TỪ CHỐI — không còn
      * nhánh "cho qua". Weights v2.13.x–2.15.x (12 input) đã bị loại ở
      * KIEN_TRUC_KHAC_BIET; nhánh này chặn artifact 24-input không rõ nguồn gốc. */
     if (meta.phienBanDacTrung !== NN_PHEN_BAN_DAC_TRUNG)
@@ -460,7 +460,7 @@ const NN = {
     if (!this._mlp) return "Chưa huấn luyện (not_trained) — đang quan sát, chưa có dự báo.";
     return "Shadow: đã nạp mô hình (" + mau + " mẫu, valAcc " + val + ", chưa hiệu chuẩn) — chỉ quan sát, không ảnh hưởng tín hiệu.";
   },
-  /* v2.16.0 (A19): BỎ buChoCache — xác suất chỉ từ assessment hợp lệ tại thời
+  /* v2.17.0 (A19): BỎ buChoCache — xác suất chỉ từ assessment hợp lệ tại thời
    * điểm inference; không bù dự báo vào sự kiện cũ. */
 };
 

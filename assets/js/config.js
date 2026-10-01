@@ -3,7 +3,7 @@
  * ============================================================ */
 "use strict";
 
-const APP_VERSION = "2.16.0"; // v2.16.0 (A22): đồng bộ với index.html — đổi version thì bump cả hai
+const APP_VERSION = "2.17.0"; // v2.17.0 (A22): đồng bộ với index.html — đổi version thì bump cả hai
 const APP_NAME = "Trade.2026";
 const SIRO_VERSION = "1.0.0"; // giữ tương thích ngược với state cũ
 

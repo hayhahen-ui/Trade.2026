@@ -1,20 +1,25 @@
 /* ============================================================
  * Trade.2026 — Nhật ký tín hiệu & Tự học Kaizen (v2.2.1)
  * Mỗi cảnh báo LONG/SHORT được xác nhận → ghi nhận thời điểm, entry/SL/TP.
- * Dùng nến 15m thật sau đó để chấm điểm đúng/sai → thống kê → rút bài học.
+ * Dùng nến 1m thật sau đó để chấm điểm đúng/sai → thống kê → rút bài học.
  * Giả định: khớp entry tại giá tín hiệu (ghi rõ trong UI).
  * v2.2.1: bảng chi tiết thêm cột STOP / KẾT THÚC / ±(chênh lệch giá);
  *   fix chamDiemLenh nhận cả "giaVao" (record thật) lẫn "entry" (test cũ);
  *   kết quả chấm điểm lưu thêm giá kết thúc lệnh (giaKT/giaKetThuc).
  * v2.12.0: trade futures — rút cửa sổ đánh giá từ 48h xuống 4h (_hanGio):
- *   quá 4h chưa chạm TP/SL → đóng theo giá thị trường, chấm kết quả ngay.
+ *   quá 15 phút chưa chạm TP/SL → đóng theo giá thị trường, chấm kết quả ngay.
+ * v2.17.0: rút tiếp xuống 15 phút (_hanGio = 0.25) cho đánh futures ngắn;
+ *   chấm điểm chuyển sang nến 1m (_khungNenChamDiem) để có ~15 nến trong cửa sổ
+ *   (giữ nguyên phương pháp luận đa-nến thay vì 1 nến 15m đơn lẻ).
  * ============================================================ */
 "use strict";
 
 const JOURNAL = {
   _k: "trade2026_signal_journal",
   _max: 300,
-  _hanGio: 4, // v2.12.0: cửa sổ đánh giá 1 tín hiệu — futures: tối đa 4h (trước đây 48h)
+  _hanGio: 0.25, // v2.17.0: cửa sổ đánh giá 1 tín hiệu — futures ngắn: tối đa 15 phút (trước đây 4h)
+  _khungNenChamDiem: "1m", // v2.17.0: nến dùng để chấm điểm (trước đây 15m)
+  _nenMs: 60e3, // v2.17.0: độ dài 1 nến chấm điểm (1 phút)
 
   _doc() { try { return JSON.parse(localStorage.getItem(this._k) || "[]"); } catch (e) { return []; } },
   /* Chính sách bộ nhớ (user 26/09/2026): KHÔNG tự xóa.
@@ -60,7 +65,7 @@ const JOURNAL = {
         ob: kq.chatLuongOB ? { diem: kq.chatLuongOB.diem, xepLoai: kq.chatLuongOB.xepLoai, cham: kq.chatLuongOB.soLanCham } : null,
         nen: kq.chatLuongNen ? { diem: kq.chatLuongNen.diem, xepLoai: kq.chatLuongNen.xepLoai, mau: (kq.chatLuongNen.mau[0] || null), viTri: kq.chatLuongNen.viTri } : null,
         checklist: (kq.checklist || []).filter(c => c.dat).map(c => c.id),
-        // v2.16.0 (A03): snapshot đặc trưng v2 + assessment — trainer chỉ đọc snapshot đã lưu
+        // v2.17.0 (A03): snapshot đặc trưng v2 + assessment — trainer chỉ đọc snapshot đã lưu
         featureSnapshot: kq.featureSnapshot ? JSON.parse(JSON.stringify(kq.featureSnapshot)) : null,
         nnDanhGia: kq.nnDanhGia ? { mode: kq.nnDanhGia.mode, status: kq.nnDanhGia.status, p: kq.nnDanhGia.p, modelVersion: kq.nnDanhGia.modelVersion, calibrated: !!kq.nnDanhGia.calibrated } : null,
         trangThai: "dang_theo_doi",
@@ -109,7 +114,7 @@ const JOURNAL = {
         ob: kq.chatLuongOB ? { diem: kq.chatLuongOB.diem, xepLoai: kq.chatLuongOB.xepLoai, cham: kq.chatLuongOB.soLanCham } : null,
         nen: kq.chatLuongNen ? { diem: kq.chatLuongNen.diem, xepLoai: kq.chatLuongNen.xepLoai, mau: (kq.chatLuongNen.mau[0] || null), viTri: kq.chatLuongNen.viTri } : null,
         checklist: (kq.checklist || []).filter(c => c.dat).map(c => c.id),
-        // v2.16.0 (A03): snapshot đặc trưng v2 + assessment (giấy vẫn lưu để đối chiếu, không train)
+        // v2.17.0 (A03): snapshot đặc trưng v2 + assessment (giấy vẫn lưu để đối chiếu, không train)
         featureSnapshot: kq.featureSnapshot ? JSON.parse(JSON.stringify(kq.featureSnapshot)) : null,
         nnDanhGia: kq.nnDanhGia ? { mode: kq.nnDanhGia.mode, status: kq.nnDanhGia.status, p: kq.nnDanhGia.p, modelVersion: kq.nnDanhGia.modelVersion, calibrated: !!kq.nnDanhGia.calibrated } : null,
         lyDo: "Setup tốt nhất trong ngày — không đủ chuẩn vào lệnh thật, ghi nhận để Kaizen học",
@@ -136,11 +141,11 @@ const JOURNAL = {
     return dem;
   },
 
-  /* Chấm điểm 1 bản ghi bằng nến 15m thật. Trả về bản ghi đã cập nhật.
-   * v2.16.0 (A07/A09) — kịch bản mô phỏng Outcome v2:
-   *  - Entry mô phỏng = open của nến 15m KẾ TIẾP sau thời điểm tín hiệu
+  /* Chấm điểm 1 bản ghi bằng nến 1m thật. Trả về bản ghi đã cập nhật.
+   * v2.17.0 (A07/A09) — kịch bản mô phỏng Outcome v2:
+   *  - Entry mô phỏng = open của nến 1m KẾ TIẾP sau thời điểm tín hiệu
    *    (nến đầu tiên có openTime > tsVao). Chưa có nến này → chưa đủ dữ liệu.
-   *  - Horizon 4h TÍNH TỪ ENTRY MÔ PHỎNG (không phải từ tsVao).
+   *  - Horizon 15m TÍNH TỪ ENTRY MÔ PHỎNG (không phải từ tsVao).
    *  - Cửa sổ nhân quả: chỉ nến đã đóng, openTime trong [entry, deadline).
    *  - Hết hạn đầy đủ → close của nến cuối kết thúc đúng horizon;
    *    thiếu nến khi đã hết hạn → thieu_du_lieu (không bịa nhãn).
@@ -149,39 +154,39 @@ const JOURNAL = {
     const now = Date.now();
     let nen = [];
     try {
-      nen = await fetchKlines(rec.coin, "15m", 400);
+      nen = await fetchKlines(rec.coin, this._khungNenChamDiem, 400);
     } catch (e) { return { rec, loi: "Không tải được nến: " + e.message }; }
     const luu = () => {
       rec.daDanhGiaDen = now;
       const ds = this._doc().map(r => r.id === rec.id ? rec : r);
       this._luu(ds);
     };
-    // Nến entry: nến 15m kế tiếp SAU thời điểm tín hiệu
+    // Nến entry: nến 1m kế tiếp SAU thời điểm tín hiệu
     const nenEntry = nen.find(n => n.openTime > rec.tsVao);
     if (!nenEntry) {
       const hetHanSom = now >= rec.tsVao + this._hanGio * 3600e3;
       if (hetHanSom) {
         rec.trangThai = "thieu_du_lieu";
-        rec.ketQua = { ketQua: "thieu_du_lieu", at: null, r: null, netR: null, ghiChu: "Không có nến 15m nào sau thời điểm tín hiệu" };
+        rec.ketQua = { ketQua: "thieu_du_lieu", at: null, r: null, netR: null, ghiChu: "Không có nến 1m nào sau thời điểm tín hiệu" };
         luu();
       }
       return { rec }; // chưa có nến entry mà chưa hết hạn → giữ dang_theo_doi
     }
     const tsEntry = nenEntry.openTime;
     const entry = nenEntry.open;
-    const deadline = tsEntry + this._hanGio * 3600e3; // 4h từ entry mô phỏng
+    const deadline = tsEntry + this._hanGio * 3600e3; // 15m từ entry mô phỏng
     const hetHan = now >= deadline;
     const sau = nen.filter(n =>
       n.openTime >= tsEntry &&           // từ nến entry trở đi (gồm nến entry)
       n.openTime < deadline &&            // không xét nến sau deadline
-      n.openTime + 15 * 60e3 <= now       // chỉ nến đã đóng (bỏ nến đang hình thành)
+      n.openTime + this._nenMs <= now       // chỉ nến đã đóng (bỏ nến đang hình thành)
     );
     if (!sau.length) {
-      // v2.16.0 (A07/A09): chưa hết hạn → giữ theo dõi; hết hạn mà không có
+      // v2.17.0 (A07/A09): chưa hết hạn → giữ theo dõi; hết hạn mà không có
       // nến nào → thieu_du_lieu, không bịa nhãn có lợi nhuận giả
       if (hetHan) {
         rec.trangThai = "thieu_du_lieu";
-        rec.ketQua = { ketQua: "thieu_du_lieu", at: null, r: null, netR: null, ghiChu: "Không có nến 15m đã đóng trong cửa sổ 4h từ entry mô phỏng" };
+        rec.ketQua = { ketQua: "thieu_du_lieu", at: null, r: null, netR: null, ghiChu: "Không có nến 1m đã đóng trong cửa sổ 15m từ entry mô phỏng" };
         luu();
       }
       return { rec };
@@ -195,12 +200,12 @@ const JOURNAL = {
       rec.trangThai = dg.ketQua;
       rec.ketQua = { ...dg, gioDenKQ: dg.at != null ? +((dg.at - tsEntry) / 3600e3).toFixed(1) : null };
     } else if (hetHan) {
-      // v2.16.0 (A07/A09): hết hạn đầy đủ → close của nến cuối KẾT THÚC ĐÚNG
+      // v2.17.0 (A07/A09): hết hạn đầy đủ → close của nến cuối KẾT THÚC ĐÚNG
       // horizon; không có nến nào kết thúc trong horizon → thieu_du_lieu
-      const trongHan = sau.filter(n => n.openTime + 15 * 60e3 <= deadline);
+      const trongHan = sau.filter(n => n.openTime + this._nenMs <= deadline);
       if (!trongHan.length) {
         rec.trangThai = "thieu_du_lieu";
-        rec.ketQua = { ketQua: "thieu_du_lieu", at: null, r: null, netR: null, mfeR: dg.mfeR, maeR: dg.maeR, ghiChu: "Không có nến 15m nào kết thúc trong horizon 4h" };
+        rec.ketQua = { ketQua: "thieu_du_lieu", at: null, r: null, netR: null, mfeR: dg.mfeR, maeR: dg.maeR, ghiChu: "Không có nến 1m nào kết thúc trong horizon 15m" };
       } else {
         const nenCuoi = trongHan[trongHan.length - 1];
         const giaCuoi = nenCuoi.close;
@@ -233,9 +238,9 @@ const JOURNAL = {
  * nen: [{openTime, open, high, low, close}] tăng dần — nen[0] là nến entry,
  *   entry = open của nến entry (kịch bản mô phỏng Outcome v2).
  * lenh: {side, entry, sl, tp}.
- * v2.16.0 (A08): SL & TP cùng nến → "khong_ro" (không rõ thứ tự, r=null),
+ * v2.17.0 (A08): SL & TP cùng nến → "khong_ro" (không rõ thứ tự, r=null),
  *   KHÔNG tính thua, loại khỏi tập train.
- * v2.16.0 (A09):
+ * v2.17.0 (A09):
  *  - entry nằm ngoài bracket [SL, TP] → "khong_hop_le" (không vào được lệnh),
  *    loại khỏi train.
  *  - giá nhảy qua SL (open nến sau vượt SL) → lỗ mô phỏng tính theo giá open,
@@ -258,14 +263,14 @@ function chamDiemLenh(nen, lenh) {
   const risk = Math.abs(entry - sl);
   let mfe = 0, mae = 0;
   const r2 = (v) => +v.toFixed(2);
-  // v2.16.0 (A09): open ngoài bracket → khong_hop_le (lệnh không vào được)
+  // v2.17.0 (A09): open ngoài bracket → khong_hop_le (lệnh không vào được)
   const ngoaiBracket = isLong ? (entry <= sl || entry >= tp) : (entry >= sl || entry <= tp);
   if (ngoaiBracket)
     return { ketQua: "khong_hop_le", at: null, r: null, netR: null, mfeR: 0, maeR: 0, giaKT: null, ghiChu: "Giá entry mô phỏng nằm ngoài [SL, TP] — lệnh không vào được, loại khỏi train" };
   for (let i = 0; i < nen.length; i++) {
     const n = nen[i];
     if (!(n.high >= n.low)) continue;
-    // v2.16.0 (A09): giá nhảy qua SL — open nến sau vượt SL thì lỗ tính theo open
+    // v2.17.0 (A09): giá nhảy qua SL — open nến sau vượt SL thì lỗ tính theo open
     if (i > 0) {
       const gapQuaSL = isLong ? n.open < sl : n.open > sl;
       if (gapQuaSL) {
@@ -279,7 +284,7 @@ function chamDiemLenh(nen, lenh) {
     const chamSL = isLong ? n.low <= sl : n.high >= sl;
     const chamTP = isLong ? n.high >= tp : n.low <= tp;
     if (chamSL && chamTP)
-      return { ketQua: "khong_ro", at: n.openTime, r: null, netR: null, mfeR: r2(mfe), maeR: r2(mae), giaKT: null, ghiChu: "SL & TP cùng nến 15m — không rõ thứ tự, loại khỏi train" };
+      return { ketQua: "khong_ro", at: n.openTime, r: null, netR: null, mfeR: r2(mfe), maeR: r2(mae), giaKT: null, ghiChu: "SL & TP cùng nến — không rõ thứ tự, loại khỏi train" };
     if (chamSL) return { ketQua: "thua", at: n.openTime, r: -1, netR: tinhNetR(side, entry, sl, risk), mfeR: r2(mfe), maeR: r2(mae), giaKT: sl };
     if (chamTP) return { ketQua: "thang", at: n.openTime, r: r2(Math.abs(tp - entry) / (risk || 1)), netR: tinhNetR(side, entry, tp, risk), mfeR: r2(mfe), maeR: r2(mae), giaKT: tp };
   }
@@ -398,7 +403,7 @@ function rutBaiHocKaizen(st, ds) {
       muc: "ghi_nho", tieuDe: "⏱️ Bao lâu thì lệnh đúng?",
       chiTiet: `Lệnh thắng chạm TP1 trung bình sau ${st.tbGioDenTP} giờ; lệnh thua chạm SL sau ${st.tbGioDenSL} giờ.`,
       goiY: st.tbGioDenSL < st.tbGioDenTP
-        ? `Lệnh sai thường "chết" nhanh (${st.tbGioDenSL}h) — nếu sau ${Math.ceil(st.tbGioDenTP * 1.5)}h giá vẫn lình xình quanh entry, cân nhắc thoát sớm thay vì chờ đủ 4h.`
+        ? `Lệnh sai thường "chết" nhanh (${st.tbGioDenSL}h) — nếu sau ${Math.ceil(st.tbGioDenTP * 1.5)}h giá vẫn lình xình quanh entry, cân nhắc thoát sớm thay vì chờ đủ 15 phút.`
         : "Theo dõi thêm để có ngưỡng thời gian thoát sớm.",
     });
   // 6. Phiên giao dịch
@@ -526,9 +531,9 @@ const TRANG_THAI_JOURNAL = {
   dang_theo_doi: ["⏳ Đang theo dõi", "warn"],
   thang: ["✅ Thắng (chạm TP1)", "up"],
   thua: ["❌ Thua (chạm SL)", "down"],
-  het_han: ["⌛ Hết hạn 4h", "muted"],
-  khong_ro: ["❓ Không rõ (SL&TP cùng nến)", "muted"], // v2.16.0 (A08)
-  thieu_du_lieu: ["⚠️ Thiếu dữ liệu nến", "muted"], // v2.16.0 (A07)
+  het_han: ["⌛ Hết hạn 15m", "muted"],
+  khong_ro: ["❓ Không rõ (SL&TP cùng nến)", "muted"], // v2.17.0 (A08)
+  thieu_du_lieu: ["⚠️ Thiếu dữ liệu nến", "muted"], // v2.17.0 (A07)
 };
 function fmtNgayGio(ts) {
   try { return new Date(ts).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }
@@ -557,8 +562,8 @@ function renderSoTinHieu(root) {
   }
   root.appendChild(el("div", { class: "note-box" },
     "📝 Mỗi tín hiệu ", el("b", {}, "LONG/SHORT được xác nhận"), " tự ghi lại thời điểm, entry/SL/TP vào sổ này. ",
-    "Hệ thống dùng ", el("b", {}, "nến 15m thật"), " sau đó để chấm điểm đúng/sai → rút bài học Kaizen. ",
-    el("span", { class: "muted small" }, "Giả định: khớp entry tại giá tín hiệu; SL chạm trước TP trong cùng nến → tính thua (bảo thủ); quá 4h chưa chạm → hết hạn (đóng theo giá thị trường)."),
+    "Hệ thống dùng ", el("b", {}, "nến 1m thật"), " sau đó để chấm điểm đúng/sai → rút bài học Kaizen. ",
+    el("span", { class: "muted small" }, "Giả định: khớp entry tại giá tín hiệu; SL chạm trước TP trong cùng nến → tính thua (bảo thủ); quá 15 phút chưa chạm → hết hạn (đóng theo giá thị trường)."),
     el("br", {}),
     el("span", { class: "muted small" }, "Cột ", el("b", {}, "Stop"), ": giá SL khuyến nghị · ", el("b", {}, "Kết thúc"), ": giá TP/SL/giá cuối thực tế · ", el("b", {}, "±"), ": chênh lệch kết thúc − vào (", el("span", { class: "up" }, "xanh lãi"), "/", el("span", { class: "down" }, "đỏ lỗ"), ").")));
 
