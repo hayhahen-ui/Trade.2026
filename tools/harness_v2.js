@@ -2101,6 +2101,14 @@ console.log("\n[35] v2.14.1 — biên 4h + auto chấm điểm journal trình du
   // version
   ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
   ok(/app\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp app.js v2.14.1");
+
+  // phạm vi trạm (quyết định user 01/10/2026): SUI vào watchlist để tín hiệu SUI lên WhatsApp
+  const col = read("tools/collector-247.js");
+  const mCoins = col.match(/const COINS = \[([^\]]+)\]/);
+  ok(!!mCoins, "collector-247.js khai báo COINS");
+  const coins = mCoins[1].split(",").map(s => s.trim().replace(/["']/g, ""));
+  ok(coins.length === 7 && coins.includes("SUI"), "trạm quét 7 coin, có SUI (BTC/ETH/SOL/BNB/DOGE/DYDX/SUI)");
+  ok(/for \(const coin of COINS\)/.test(col), "vòng quét dùng COINS (SUI tự vào journal-247.json → WhatsApp)");
 }
 };
 

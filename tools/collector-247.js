@@ -1,9 +1,11 @@
 /* ============================================================
  * Trade.2026 — Trạm quan trắc 24/7 (collector-247)
  * Chạy trên server (cron 15 phút), KHÔNG cần mở web, KHÔNG cần máy user bật.
- * Mỗi vòng: engine phân tích 6 coin → ghi nhận tín hiệu LONG/SHORT →
+ * Mỗi vòng: engine phân tích 7 coin → ghi nhận tín hiệu LONG/SHORT →
  * chấm điểm bằng nến thật → rút bài học Kaizen → ghi data/journal-247.json
  * (đẩy lên nhánh `data` của GitHub mỗi giờ để web tải về hiển thị).
+ * 01/10/2026 (quyết định của user): thêm SUI vào phạm vi trạm để tín hiệu SUI
+ * cũng lên được kênh WhatsApp (trước đây SUI chỉ có ở journal browser-local).
  * ============================================================ */
 "use strict";
 const fs = require("fs");
@@ -15,7 +17,7 @@ const DATA_DIR = path.join(ROOT, "data");
 const PUBLIC_PATH = path.join(DATA_DIR, "journal-247.json"); // payload web tải về
 const STORE_PATH = path.join(DATA_DIR, ".journal-247-store.json"); // toàn bộ localStorage sandbox
 const PUSH_STAMP = path.join(DATA_DIR, ".journal-247-push.txt");
-const COINS = ["BTC", "ETH", "SOL", "BNB", "DOGE", "DYDX"];
+const COINS = ["BTC", "ETH", "SOL", "BNB", "DOGE", "DYDX", "SUI"]; // 01/10/2026: +SUI theo quyết định của user (WhatsApp)
 const PUSH_MOI_GIO_MS = 60 * 60 * 1000;
 
 /* ---------- Stub browser API ---------- */
