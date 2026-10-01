@@ -8,7 +8,7 @@
  *   kết quả chấm điểm lưu thêm giá kết thúc lệnh (giaKT/giaKetThuc).
  * v2.12.0: trade futures — rút cửa sổ đánh giá từ 48h xuống 4h (_hanGio):
  *   quá 15 phút chưa chạm TP/SL → đóng theo giá thị trường, chấm kết quả ngay.
- * v2.17.0: rút tiếp xuống 15 phút (_hanGio = 0.25) cho đánh futures ngắn;
+ * v2.17.1: rút tiếp xuống 15 phút (_hanGio = 0.25) cho đánh futures ngắn;
  *   chấm điểm chuyển sang nến 1m (_khungNenChamDiem) để có ~15 nến trong cửa sổ
  *   (giữ nguyên phương pháp luận đa-nến thay vì 1 nến 15m đơn lẻ).
  * ============================================================ */
@@ -17,9 +17,9 @@
 const JOURNAL = {
   _k: "trade2026_signal_journal",
   _max: 300,
-  _hanGio: 0.25, // v2.17.0: cửa sổ đánh giá 1 tín hiệu — futures ngắn: tối đa 15 phút (trước đây 4h)
-  _khungNenChamDiem: "1m", // v2.17.0: nến dùng để chấm điểm (trước đây 15m)
-  _nenMs: 60e3, // v2.17.0: độ dài 1 nến chấm điểm (1 phút)
+  _hanGio: 0.25, // v2.17.1: cửa sổ đánh giá 1 tín hiệu — futures ngắn: tối đa 15 phút (trước đây 4h)
+  _khungNenChamDiem: "1m", // v2.17.1: nến dùng để chấm điểm (trước đây 15m)
+  _nenMs: 60e3, // v2.17.1: độ dài 1 nến chấm điểm (1 phút)
 
   _doc() { try { return JSON.parse(localStorage.getItem(this._k) || "[]"); } catch (e) { return []; } },
   /* Chính sách bộ nhớ (user 26/09/2026): KHÔNG tự xóa.
@@ -65,7 +65,7 @@ const JOURNAL = {
         ob: kq.chatLuongOB ? { diem: kq.chatLuongOB.diem, xepLoai: kq.chatLuongOB.xepLoai, cham: kq.chatLuongOB.soLanCham } : null,
         nen: kq.chatLuongNen ? { diem: kq.chatLuongNen.diem, xepLoai: kq.chatLuongNen.xepLoai, mau: (kq.chatLuongNen.mau[0] || null), viTri: kq.chatLuongNen.viTri } : null,
         checklist: (kq.checklist || []).filter(c => c.dat).map(c => c.id),
-        // v2.17.0 (A03): snapshot đặc trưng v2 + assessment — trainer chỉ đọc snapshot đã lưu
+        // v2.17.1 (A03): snapshot đặc trưng v2 + assessment — trainer chỉ đọc snapshot đã lưu
         featureSnapshot: kq.featureSnapshot ? JSON.parse(JSON.stringify(kq.featureSnapshot)) : null,
         nnDanhGia: kq.nnDanhGia ? { mode: kq.nnDanhGia.mode, status: kq.nnDanhGia.status, p: kq.nnDanhGia.p, modelVersion: kq.nnDanhGia.modelVersion, calibrated: !!kq.nnDanhGia.calibrated } : null,
         trangThai: "dang_theo_doi",
@@ -114,7 +114,7 @@ const JOURNAL = {
         ob: kq.chatLuongOB ? { diem: kq.chatLuongOB.diem, xepLoai: kq.chatLuongOB.xepLoai, cham: kq.chatLuongOB.soLanCham } : null,
         nen: kq.chatLuongNen ? { diem: kq.chatLuongNen.diem, xepLoai: kq.chatLuongNen.xepLoai, mau: (kq.chatLuongNen.mau[0] || null), viTri: kq.chatLuongNen.viTri } : null,
         checklist: (kq.checklist || []).filter(c => c.dat).map(c => c.id),
-        // v2.17.0 (A03): snapshot đặc trưng v2 + assessment (giấy vẫn lưu để đối chiếu, không train)
+        // v2.17.1 (A03): snapshot đặc trưng v2 + assessment (giấy vẫn lưu để đối chiếu, không train)
         featureSnapshot: kq.featureSnapshot ? JSON.parse(JSON.stringify(kq.featureSnapshot)) : null,
         nnDanhGia: kq.nnDanhGia ? { mode: kq.nnDanhGia.mode, status: kq.nnDanhGia.status, p: kq.nnDanhGia.p, modelVersion: kq.nnDanhGia.modelVersion, calibrated: !!kq.nnDanhGia.calibrated } : null,
         lyDo: "Setup tốt nhất trong ngày — không đủ chuẩn vào lệnh thật, ghi nhận để Kaizen học",
@@ -142,7 +142,7 @@ const JOURNAL = {
   },
 
   /* Chấm điểm 1 bản ghi bằng nến 1m thật. Trả về bản ghi đã cập nhật.
-   * v2.17.0 (A07/A09) — kịch bản mô phỏng Outcome v2:
+   * v2.17.1 (A07/A09) — kịch bản mô phỏng Outcome v2:
    *  - Entry mô phỏng = open của nến 1m KẾ TIẾP sau thời điểm tín hiệu
    *    (nến đầu tiên có openTime > tsVao). Chưa có nến này → chưa đủ dữ liệu.
    *  - Horizon 15m TÍNH TỪ ENTRY MÔ PHỎNG (không phải từ tsVao).
@@ -182,7 +182,7 @@ const JOURNAL = {
       n.openTime + this._nenMs <= now       // chỉ nến đã đóng (bỏ nến đang hình thành)
     );
     if (!sau.length) {
-      // v2.17.0 (A07/A09): chưa hết hạn → giữ theo dõi; hết hạn mà không có
+      // v2.17.1 (A07/A09): chưa hết hạn → giữ theo dõi; hết hạn mà không có
       // nến nào → thieu_du_lieu, không bịa nhãn có lợi nhuận giả
       if (hetHan) {
         rec.trangThai = "thieu_du_lieu";
@@ -200,7 +200,7 @@ const JOURNAL = {
       rec.trangThai = dg.ketQua;
       rec.ketQua = { ...dg, gioDenKQ: dg.at != null ? +((dg.at - tsEntry) / 3600e3).toFixed(1) : null };
     } else if (hetHan) {
-      // v2.17.0 (A07/A09): hết hạn đầy đủ → close của nến cuối KẾT THÚC ĐÚNG
+      // v2.17.1 (A07/A09): hết hạn đầy đủ → close của nến cuối KẾT THÚC ĐÚNG
       // horizon; không có nến nào kết thúc trong horizon → thieu_du_lieu
       const trongHan = sau.filter(n => n.openTime + this._nenMs <= deadline);
       if (!trongHan.length) {
@@ -238,9 +238,9 @@ const JOURNAL = {
  * nen: [{openTime, open, high, low, close}] tăng dần — nen[0] là nến entry,
  *   entry = open của nến entry (kịch bản mô phỏng Outcome v2).
  * lenh: {side, entry, sl, tp}.
- * v2.17.0 (A08): SL & TP cùng nến → "khong_ro" (không rõ thứ tự, r=null),
+ * v2.17.1 (A08): SL & TP cùng nến → "khong_ro" (không rõ thứ tự, r=null),
  *   KHÔNG tính thua, loại khỏi tập train.
- * v2.17.0 (A09):
+ * v2.17.1 (A09):
  *  - entry nằm ngoài bracket [SL, TP] → "khong_hop_le" (không vào được lệnh),
  *    loại khỏi train.
  *  - giá nhảy qua SL (open nến sau vượt SL) → lỗ mô phỏng tính theo giá open,
@@ -263,14 +263,14 @@ function chamDiemLenh(nen, lenh) {
   const risk = Math.abs(entry - sl);
   let mfe = 0, mae = 0;
   const r2 = (v) => +v.toFixed(2);
-  // v2.17.0 (A09): open ngoài bracket → khong_hop_le (lệnh không vào được)
+  // v2.17.1 (A09): open ngoài bracket → khong_hop_le (lệnh không vào được)
   const ngoaiBracket = isLong ? (entry <= sl || entry >= tp) : (entry >= sl || entry <= tp);
   if (ngoaiBracket)
     return { ketQua: "khong_hop_le", at: null, r: null, netR: null, mfeR: 0, maeR: 0, giaKT: null, ghiChu: "Giá entry mô phỏng nằm ngoài [SL, TP] — lệnh không vào được, loại khỏi train" };
   for (let i = 0; i < nen.length; i++) {
     const n = nen[i];
     if (!(n.high >= n.low)) continue;
-    // v2.17.0 (A09): giá nhảy qua SL — open nến sau vượt SL thì lỗ tính theo open
+    // v2.17.1 (A09): giá nhảy qua SL — open nến sau vượt SL thì lỗ tính theo open
     if (i > 0) {
       const gapQuaSL = isLong ? n.open < sl : n.open > sl;
       if (gapQuaSL) {
@@ -332,9 +332,13 @@ function thongKeJournal(ds, opts = {}) {
   return st;
 }
 function _thongKeCore(ds) {
-  const xong = ds.filter(r => r.trangThai === "thang" || r.trangThai === "thua");
-  const thang = ds.filter(r => r.trangThai === "thang");
-  const thua = ds.filter(r => r.trangThai === "thua");
+  // v2.17.1: het_han có R thật (đóng theo giá nến cuối) → tính vào xong để Kaizen học.
+  // Thắng/thua xét theo R: R>0 = thắng, R<=0 = thua (R=0 vẫn là mẫu đã ngã ngũ).
+  const rCua = (r) => (r.ketQua && typeof r.ketQua.r === "number" && isFinite(r.ketQua.r)) ? r.ketQua.r
+    : (typeof r.r === "number" && isFinite(r.r)) ? r.r : null;
+  const xong = ds.filter(r => r.trangThai === "thang" || r.trangThai === "thua" || r.trangThai === "het_han");
+  const thang = xong.filter(r => (rCua(r) ?? (r.trangThai === "thang" ? 1 : -1)) > 0);
+  const thua = xong.filter(r => (rCua(r) ?? (r.trangThai === "thua" ? -1 : 1)) <= 0);
   const st = {
     tong: ds.length, xong: xong.length, thang: thang.length, thua: thua.length,
     hetHan: ds.filter(r => r.trangThai === "het_han").length,
@@ -532,8 +536,8 @@ const TRANG_THAI_JOURNAL = {
   thang: ["✅ Thắng (chạm TP1)", "up"],
   thua: ["❌ Thua (chạm SL)", "down"],
   het_han: ["⌛ Hết hạn 15m", "muted"],
-  khong_ro: ["❓ Không rõ (SL&TP cùng nến)", "muted"], // v2.17.0 (A08)
-  thieu_du_lieu: ["⚠️ Thiếu dữ liệu nến", "muted"], // v2.17.0 (A07)
+  khong_ro: ["❓ Không rõ (SL&TP cùng nến)", "muted"], // v2.17.1 (A08)
+  thieu_du_lieu: ["⚠️ Thiếu dữ liệu nến", "muted"], // v2.17.1 (A07)
 };
 function fmtNgayGio(ts) {
   try { return new Date(ts).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }

@@ -1,4 +1,4 @@
-/* Trade.2026 v2.17.0 — Huấn luyện MLP dự đoán xác suất thắng tín hiệu (audit A04/A05)
+/* Trade.2026 v2.17.1 — Huấn luyện MLP dự đoán xác suất thắng tín hiệu (audit A04/A05)
  * Chạy: node tools/train-nn.js [--file data/journal-247.json] [--out artifacts/nn-candidate.json]
  * Đọc bản ghi journal đã ngã ngũ → snapshot v2 → nhãn netR → chia train/val/test
  * THEO THỜI GIAN + purge overlap → train → so baseline (fit trên train) →
@@ -25,7 +25,7 @@ function layBanGhi(file) {
 /* Chia theo thời gian toàn bộ coin (A04): sắp xếp theo asOf, cắt 60/20/20,
  * purge các mẫu train/val có thời điểm kết thúc nhãn quá gần khối kế tiếp. */
 function chiaTheoThoiGian(ds) {
-  // v2.17.0: ds là object {asOf, ketQuaAt, X, Y, ids} — dựng chỉ số rồi sắp xếp theo asOf
+  // v2.17.1: ds là object {asOf, ketQuaAt, X, Y, ids} — dựng chỉ số rồi sắp xếp theo asOf
   const sx = Array.from({ length: ds.asOf.length }, (_, i) => i).sort((a, b) => ds.asOf[a] - ds.asOf[b]);
   const n = sx.length;
   let nTrain = Math.floor(n * TY_LE[0]), nVal = Math.floor(n * TY_LE[1]);
@@ -50,7 +50,7 @@ function metric(phan, duDoan) {
   const n = Y.length;
   let dung = 0, brier = 0, logloss = 0, tp = 0, tn = 0, fp = 0, fn = 0;
   for (let i = 0; i < n; i++) {
-    let p = duDoan(X[i], i); // v2.17.0: truyền index để baseline điểm≥75 tra đúng diem[i]
+    let p = duDoan(X[i], i); // v2.17.1: truyền index để baseline điểm≥75 tra đúng diem[i]
     p = Math.min(1 - 1e-9, Math.max(1e-9, +p));
     if ((p >= 0.5 ? 1 : 0) === Y[i]) dung++;
     brier += (p - Y[i]) ** 2;

@@ -851,7 +851,7 @@ function veTheTinHieu(kq) {
   card.appendChild(scoreBar);
   // v2.14.0: NN shadow theo assessment (MRBIT_NEURAL_CODING_01 §6.4, §11) —
   // chỉ hiện % khi san_sang; khong_tuong_thich thì cảnh báo; còn lại KHÔNG vẽ số giả
-  // v2.17.0 (A19): bỏ nhánh legacy nnXacSuat — chỉ assessment hợp lệ tại thời điểm inference
+  // v2.17.1 (A19): bỏ nhánh legacy nnXacSuat — chỉ assessment hợp lệ tại thời điểm inference
   const dg = kq.nnDanhGia;
   if (dg && dg.status === "san_sang" && dg.p != null) {
     const pnn = Math.round(dg.p * 100);

@@ -73,7 +73,7 @@ async function quetTatCa(force = false) {
   $("#last-scan") && ($("#last-scan").textContent = "Quét xong " + fmtGio(Date.now()));
 }
 
-/* ---------- Tự động chấm điểm hết hạn 15m (v2.14.1, v2.17.0 rút còn 15m) ----------
+/* ---------- Tự động chấm điểm hết hạn 15m (v2.14.1, v2.17.1 rút còn 15m) ----------
    Trước đây JOURNAL.chamDiemTatCa() chỉ chạy khi user bấm nút "Chấm điểm" thủ công
    (hoặc ở collector trạm), nên tín hiệu cũ trên trình duyệt vẫn "Đang theo dõi" mãi
    dù đã quá cửa sổ 15m. Chạy nền, giới hạn 15 phút/lần để nhẹ API nến. */
@@ -123,7 +123,7 @@ function boot() {
   // v2.14.0: feature flag NN off|shadow (MRBIT_NEURAL_CODING_01 §4 P0) — đọc từ SETTINGS
   try { if (typeof NN !== "undefined") NN.datCheDo((typeof SETTINGS !== "undefined" && SETTINGS.nnCheDo) || "shadow"); } catch (e) {}
   // v2.13.0: nạp trọng số NN (shadow mode — thiếu file thì bỏ qua)
-  // v2.17.0 (A19): BỎ buChoCache — xác suất chỉ từ assessment hợp lệ tại thời
+  // v2.17.1 (A19): BỎ buChoCache — xác suất chỉ từ assessment hợp lệ tại thời
   // điểm inference; không bù dự báo vào sự kiện cũ
   fetch("assets/nn-weights.json").then(r => r.ok ? r.json() : null).then(j => {
     if (j && typeof NN !== "undefined" && NN.napTrongSo(j)) {

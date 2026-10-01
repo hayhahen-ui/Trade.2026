@@ -92,9 +92,10 @@ async function napTinHieuTram(fetchFn) {
 /* Học từ lịch sử tín hiệu: cắt lát Hướng/Coin/Điểm/Phiên/Nguồn.
  * Thuần (nhận mảng, trả kết quả) — test được. */
 function hocTuTinHieu(ds) {
-  // het_han là outcome riêng — không tính vào win-rate
-  const ket = (ds || []).filter((h) => h.trangThai === "thang" || h.trangThai === "thua");
-  const hetHan = (ds || []).length - ket.length;
+  // v2.17.1: het_han có R thật (đóng theo giá nến cuối) → tính vào học.
+  // Thắng/thua xét theo R (pnl): R>0 = thắng, R<0 = thua, R=0 = hòa (vẫn đếm vào mẫu).
+  const ket = (ds || []).filter((h) => h.trangThai === "thang" || h.trangThai === "thua" || h.trangThai === "het_han");
+  const hetHan = (ds || []).filter((h) => h.trangThai === "het_han").length;
   const n = ket.length;
   const thang = ket.filter((h) => h.pnl > 0).length;
   const stats = {

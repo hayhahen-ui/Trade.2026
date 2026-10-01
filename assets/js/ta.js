@@ -103,7 +103,7 @@ function findPivots(candles, k) {
   const highs = candles.map(c => c.high), lows = candles.map(c => c.low);
   const ph = [], pl = [];
   for (let i = k; i < candles.length - k; i++) {
-    // v2.17.0 (A10): pivot tại i chỉ được XÁC NHẬN khi nến i+k đã đóng —
+    // v2.17.1 (A10): pivot tại i chỉ được XÁC NHẬN khi nến i+k đã đóng —
     // sweep/CHoCH chỉ được tham chiếu pivot đã xác nhận tại nến đang xét
     const confirmedIndex = i + k;
     const confirmedAt = candles[confirmedIndex] ? candles[confirmedIndex].openTime : null;
