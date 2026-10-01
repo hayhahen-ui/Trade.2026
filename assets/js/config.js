@@ -110,8 +110,11 @@ function loadSettings() {
       theme: s.theme || "dark",
       // v2.14.0: feature flag NN (MRBIT_NEURAL_CODING_01 §4 P0) — 'shadow' (mặc định) | 'off'
       nnCheDo: s.nnCheDo === "off" ? "off" : "shadow",
+      // v2.15.0: cầu nối trình duyệt → trạm 24/7 → WhatsApp (PAT do user nhập, lưu local)
+      bridgeBat: !!s.bridgeBat,
+      bridgePat: typeof s.bridgePat === "string" ? s.bridgePat : "",
     };
-  } catch { return { watchlist: [...WATCHLIST_CORE], watchlistPhu: [...WATCHLIST_PHU], tinHieuCoins: [...WATCHLIST_CORE], risk: { ...RISK_DEFAULTS }, refreshTinHieuSec: 180, theme: "dark", nnCheDo: "shadow" }; }
+  } catch { return { watchlist: [...WATCHLIST_CORE], watchlistPhu: [...WATCHLIST_PHU], tinHieuCoins: [...WATCHLIST_CORE], risk: { ...RISK_DEFAULTS }, refreshTinHieuSec: 180, theme: "dark", nnCheDo: "shadow", bridgeBat: false, bridgePat: "" }; }
 }
 function saveSettings(s) { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch {} }
 

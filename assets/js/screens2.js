@@ -632,6 +632,19 @@ function moCaiDat() {
   let nnStatus = "chưa tải mô-đun NN.";
   try { if (typeof NN !== "undefined") nnStatus = NN.moTaTrangThai(); } catch (e) {}
   box.appendChild(el("div", { class: "small muted", style: "margin:4px 0 8px" }, "Trạng thái: " + nnStatus));
+  // v2.15.0: cầu nối trình duyệt → trạm 24/7 → WhatsApp
+  box.appendChild(el("label", { class: "small muted" }, "🌉 Cầu nối trạm 24/7 → WhatsApp:"));
+  const chkBridge = el("input", { type: "checkbox", style: "margin-right:6px" });
+  try { chkBridge.checked = !!SETTINGS.bridgeBat; } catch (e) {}
+  box.appendChild(el("div", { class: "small" }, chkBridge, " Đẩy tín hiệu trên trình duyệt này lên trạm để gửi WhatsApp"));
+  box.appendChild(el("label", { class: "small muted" }, "GitHub PAT (fine-grained — chỉ repo Trade.2026, quyền Contents đọc/ghi):"));
+  const inpPat = el("input", { class: "input wide", type: "password", placeholder: "github_pat_..." });
+  try { inpPat.value = SETTINGS.bridgePat || ""; } catch (e) {}
+  box.appendChild(inpPat);
+  let bridgeStatus = "chưa tải mô-đun cầu nối.";
+  try { if (typeof BRIDGE !== "undefined") bridgeStatus = BRIDGE.trangThai(); } catch (e) {}
+  box.appendChild(el("div", { class: "small muted", style: "margin:4px 0 8px" },
+    "Trạng thái: " + bridgeStatus + " Tín hiệu mới trên máy này → GitHub → trạm (≤2 phút) → WhatsApp (≤1 phút)."));
   box.appendChild(el("div", { class: "row-gap", style: "margin-top:14px" },
     el("button", {
       class: "btn primary", onclick: () => {
@@ -640,6 +653,7 @@ function moCaiDat() {
         SETTINGS.risk.vonBanDau = Math.max(100, +inpVon.value || 10000);
         SETTINGS.refreshTinHieuSec = clamp(+inpRef.value || 180, 60, 900);
         SETTINGS.nnCheDo = selNN.value === "off" ? "off" : "shadow"; // v2.14.0
+        try { SETTINGS.bridgeBat = !!chkBridge.checked; SETTINGS.bridgePat = (inpPat.value || "").trim(); } catch (e) {} // v2.15.0
         saveSettings(SETTINGS);
         modal.remove();
         location.reload();

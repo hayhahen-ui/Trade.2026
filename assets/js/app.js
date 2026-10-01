@@ -118,6 +118,8 @@ function veDongHo() {
 
 /* ---------- Khởi động ---------- */
 function boot() {
+  // v2.15.0: cầu nối trình duyệt → trạm 24/7 → WhatsApp (bọc JOURNAL.ghiNhan)
+  try { if (typeof BRIDGE !== "undefined") BRIDGE.khoiDong(); } catch (e) {}
   // v2.14.0: feature flag NN off|shadow (MRBIT_NEURAL_CODING_01 §4 P0) — đọc từ SETTINGS
   try { if (typeof NN !== "undefined") NN.datCheDo((typeof SETTINGS !== "undefined" && SETTINGS.nnCheDo) || "shadow"); } catch (e) {}
   // v2.13.0: nạp trọng số NN (shadow mode — thiếu file thì bỏ qua)

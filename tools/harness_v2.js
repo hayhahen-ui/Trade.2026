@@ -21,7 +21,10 @@ const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 
 /* Context VM dùng chung: function/class khai báo đều truy cập được qua get() */
 function makeCtx(extra = {}) {
-  const ctx = vm.createContext({ console, ...extra });
+  // v2.15.0: shim btoa/atob cho bridge.js (browser thật đã có sẵn)
+  const btoaShim = (s) => Buffer.from(String(s), "binary").toString("base64");
+  const atobShim = (s) => Buffer.from(String(s), "base64").toString("binary");
+  const ctx = vm.createContext({ console, btoa: btoaShim, atob: atobShim, ...extra });
   return {
     load(rel) { vm.runInContext(read(rel), ctx, { filename: rel }); },
     get(name) { return vm.runInContext(name, ctx); },
@@ -1644,7 +1647,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.14\.1/.test(idx), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.15\.0/.test(idx), "index.html đã lên v2.14.1");
 }
 
 const _p30 = async () => {
@@ -1705,7 +1708,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.14\.1/.test(idx), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.15\.0/.test(idx), "index.html đã lên v2.14.1");
 };
 
 const _p31 = async () => {
@@ -1745,7 +1748,7 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
 }
 };
 
@@ -1802,7 +1805,7 @@ console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h")
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
 }
 };
 
@@ -1942,7 +1945,7 @@ console.log("\n[33] v2.13.0 — MLP neural.js: đặc trưng, backprop, shadow w
   ok(NN.buChoCache(null, veLai) === 0 && NN.buChoCache({}, veLai) === 0, "cache lỗi → trả 0, không crash");
 
   // 12. version
-  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
   ok(/neural\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp neural.js v2.14.1");
 }
 };
@@ -2037,7 +2040,7 @@ console.log("\n[34] v2.14.0 — MRBIT P0: flag off|shadow, assessment, tương t
   ok(!/sanSang\(\)\) ketQua\.nnXacSuat = NN\.duDoanChoEngine/.test(eng), "engine không còn đường ghi cũ");
 
   // 12. version
-  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
   ok(/neural\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp neural.js v2.14.1");
 }
 };
@@ -2100,8 +2103,8 @@ console.log("\n[35] v2.14.1 — biên 4h + auto chấm điểm journal trình du
   ok(/SCREEN_HIENTAI === "sotinhieu"[^]*renderSoTinHieu/.test(app), "xong thì vẽ lại màn hình Sổ tín hiệu nếu đang mở");
 
   // version
-  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
-  ok(/app\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp app.js v2.14.1");
+  ok(/Trade\.2026 v2\.15\.0/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/app\.js\?v=2\.15\.0/.test(read("index.html")), "index.html nạp app.js v2.15.0");
 
   // phạm vi trạm AUTO (quyết định user 01/10/2026): tự chọn coin theo volume, không fix cứng
   const col = read("tools/collector-247.js");
@@ -2141,7 +2144,156 @@ console.log("\n[35] v2.14.1 — biên 4h + auto chấm điểm journal trình du
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(_p34).then(_p35).then(() => {
+/* ---------- [36] v2.15.0 — cầu nối trình duyệt → trạm → WhatsApp ---------- */
+const _p36 = async () => {
+console.log("\n[36] v2.15.0 — cầu nối trình duyệt → trạm → WhatsApp");
+// --- A. bridge.js: banGhiGon trích trường gọn ---
+{
+  const cB = makeCtx({ SETTINGS: { bridgeBat: true, bridgePat: "tok" } });
+  cB.load("assets/js/bridge.js");
+  const gon = cB.evalIn(`BRIDGE.banGhiGon({
+    id: "SUI-long-123", coin: "sui", side: "long", loai: "that",
+    tsVao: 1700000000000, giaVao: 1.5, sl: 1.4, tp: 1.7, rr: 2, diem: 85,
+    phien: "Phiên Á", bias4h: "LONG", trangThai: "dang_theo_doi",
+    cauTruc: { htf: "up" }, ob: { diem: 8 }, nen: { diem: 7 },
+  })`);
+  ok(gon.coin === "SUI" && gon.side === "long" && gon.nguon === "browser", "banGhiGon giữ coin/side/nguồn");
+  ok(gon.loai === "that" && gon.giaVao === 1.5 && gon.cauTruc.htf === "up", "banGhiGon giữ giá + cấu trúc");
+  const giay = cB.evalIn(`BRIDGE.banGhiGon({ id: "x", coin: "BTC", side: "short", loai: "giay" })`);
+  ok(giay.loai === "giay", "banGhiGon giữ loai giay");
+  const macDinh = cB.evalIn(`BRIDGE.banGhiGon({ id: "x", coin: "BTC", side: "short" })`);
+  ok(macDinh.loai === "that", "banGhiGon mặc định loai=that");
+}
+// --- B. khoiDong bọc ghiNhan/ghiNhanGiay, tôn trọng công tắc ---
+{
+  const cB2 = makeCtx({
+    SETTINGS: { bridgeBat: true, bridgePat: "tok" },
+    JOURNAL: {
+      ghiNhan: (kq) => ({ id: "rec-that", coin: "SUI", side: "long" }),
+      ghiNhanGiay: (kq) => ({ id: "rec-giay", coin: "ETH", side: "short" }),
+    },
+  });
+  cB2.load("assets/js/bridge.js");
+  cB2.evalIn("BRIDGE.dayLen = function(rec) { globalThis._goi = (globalThis._goi || []).concat([rec.id]); };");
+  cB2.evalIn("BRIDGE.khoiDong();");
+  cB2.evalIn("JOURNAL.ghiNhan({}); JOURNAL.ghiNhanGiay({});");
+  const daGoi = cB2.evalIn("globalThis._goi || []");
+  ok(daGoi.length === 2 && daGoi[0] === "rec-that" && daGoi[1] === "rec-giay", "khoiDong bọc cả ghiNhan + ghiNhanGiay");
+  const cB2b = makeCtx({
+    SETTINGS: { bridgeBat: false, bridgePat: "tok" },
+    JOURNAL: { ghiNhan: () => ({ id: "z" }), ghiNhanGiay: () => ({ id: "z2" }) },
+  });
+  cB2b.load("assets/js/bridge.js");
+  cB2b.evalIn("BRIDGE.dayLen = function(rec) { globalThis._goi = (globalThis._goi || []).concat([rec.id]); };");
+  cB2b.evalIn("BRIDGE.khoiDong(); JOURNAL.ghiNhan({});");
+  ok((cB2b.evalIn("globalThis._goi || []")).length === 0, "tắt cầu nối → không đẩy");
+  const cB2c = makeCtx({
+    SETTINGS: { bridgeBat: true, bridgePat: "tok" },
+    JOURNAL: { ghiNhan: () => ({ id: "k" }) },
+  });
+  cB2c.load("assets/js/bridge.js");
+  cB2c.evalIn("BRIDGE.dayLen = function() {};");
+  cB2c.evalIn("BRIDGE.khoiDong(); BRIDGE.khoiDong(); JOURNAL.ghiNhan({});");
+  ok(cB2c.evalIn("BRIDGE._xong") === true, "khoiDong idempotent — không bọc kép");
+}
+// --- C. dayLen: GitHub Contents API (stub fetch) ---
+{
+  const cB3 = makeCtx({ SETTINGS: { bridgeBat: true, bridgePat: "tok123" } });
+  cB3.load("assets/js/bridge.js");
+  cB3.evalIn(`globalThis._calls = [];
+  globalThis.fetch = async (url, opt) => {
+    globalThis._calls.push({ url, method: (opt && opt.method) || "GET", body: opt && opt.body ? JSON.parse(opt.body) : null, auth: opt && opt.headers && opt.headers.Authorization });
+    if ((opt && opt.method) === "PUT") return { ok: true, status: 200, json: async () => ({}) };
+    return { ok: false, status: 404, json: async () => ({}) };
+  };`);
+  await cB3.evalIn(`BRIDGE.dayLen({ id: "SUI-long-1", coin: "SUI", side: "long", giaVao: 1.5, sl: 1.4, tp: 1.7 })`);
+  const calls = cB3.evalIn("globalThis._calls");
+  ok(calls.length === 2, "404 → GET rồi PUT tạo mới");
+  ok(calls[0].url.includes("?ref=data"), "GET đúng nhánh data");
+  ok(calls[1].method === "PUT" && calls[1].body.branch === "data" && !("sha" in calls[1].body), "PUT nhánh data, chưa có file → không sha");
+  ok(calls[1].auth === "Bearer tok123", "gửi PAT qua Authorization");
+  const noiDung = JSON.parse(Buffer.from(calls[1].body.content, "base64").toString("utf8"));
+  ok(noiDung.tinHieu.length === 1 && noiDung.tinHieu[0].id === "SUI-long-1", "content chứa bản ghi mới");
+  ok(/bridge: tín hiệu SUI long/.test(calls[1].body.message), "commit message rõ ràng");
+  const cuB64 = Buffer.from(JSON.stringify({ tinHieu: [{ id: "cu-1", coin: "BTC", side: "long" }] })).toString("base64");
+  const cB4 = makeCtx({ SETTINGS: { bridgeBat: true, bridgePat: "t" } });
+  cB4.load("assets/js/bridge.js");
+  cB4.evalIn(`globalThis._calls = []; const CU = ${JSON.stringify(cuB64)};
+  globalThis.fetch = async (url, opt) => {
+    globalThis._calls.push({ url, method: (opt && opt.method) || "GET", body: opt && opt.body ? JSON.parse(opt.body) : null });
+    if ((opt && opt.method) === "PUT") return { ok: true, status: 200, json: async () => ({}) };
+    return { ok: true, status: 200, json: async () => ({ sha: "sha-cu", content: CU }) };
+  };`);
+  await cB4.evalIn(`BRIDGE.dayLen({ id: "moi-2", coin: "ETH", side: "short", giaVao: 3000, sl: 2950, tp: 3100 })`);
+  const calls4 = cB4.evalIn("globalThis._calls");
+  ok(calls4[1].body.sha === "sha-cu", "PUT kèm sha khi file đã có");
+  const nd4 = JSON.parse(Buffer.from(calls4[1].body.content, "base64").toString("utf8"));
+  ok(nd4.tinHieu.length === 2 && nd4.tinHieu[0].id === "moi-2" && nd4.tinHieu[1].id === "cu-1", "bản mới unshift lên đầu");
+  const trB64 = Buffer.from(JSON.stringify({ tinHieu: [{ id: "dup-1", coin: "SUI", side: "long" }] })).toString("base64");
+  const cB5 = makeCtx({ SETTINGS: { bridgeBat: true, bridgePat: "t" } });
+  cB5.load("assets/js/bridge.js");
+  cB5.evalIn(`globalThis._calls = []; const TR = ${JSON.stringify(trB64)};
+  globalThis.fetch = async (url, opt) => {
+    globalThis._calls.push({ method: (opt && opt.method) || "GET" });
+    if ((opt && opt.method) === "PUT") return { ok: true, status: 200, json: async () => ({}) };
+    return { ok: true, status: 200, json: async () => ({ sha: "s", content: TR }) };
+  };`);
+  await cB5.evalIn(`BRIDGE.dayLen({ id: "dup-1", coin: "SUI", side: "long", giaVao: 1, sl: 0.9, tp: 1.2 })`);
+  ok(cB5.evalIn("globalThis._calls").length === 1, "trùng id → chỉ GET, không PUT");
+  const cB6 = makeCtx({ SETTINGS: { bridgeBat: true, bridgePat: "t" } });
+  cB6.load("assets/js/bridge.js");
+  cB6.evalIn(`globalThis.fetch = async () => { throw new Error("network down"); };`);
+  await cB6.evalIn(`BRIDGE.dayLen({ id: "e1", coin: "SUI", side: "long", giaVao: 1, sl: 0.9, tp: 1.2 })`);
+  ok(/network down/.test(cB6.evalIn("BRIDGE._loiCuoi")), "lỗi mạng → _loiCuoi, không ném exception");
+}
+// --- D. bridge-browser.js: hopLe / tronVaoStore / tronVaoPayload ---
+{
+  const BB = require("./bridge-browser.js");
+  const hop = (r) => BB.hopLe(r);
+  const hopOk = hop({ id: "a1", coin: "sui", side: "long", loai: "giay", tsVao: 1700000000000, giaVao: 1.5, sl: 1.4, tp: 1.7, rr: 2, diem: 85, phien: "Phiên Á", bias4h: "SHORT", cauTruc: { htf: "up" } });
+  ok(hopOk && hopOk.coin === "SUI" && hopOk.loai === "giay" && hopOk.nguon === "browser", "hopLe chuẩn hóa coin/loai/nguồn");
+  ok(hopOk.cauTruc.htf === "up" && hopOk.trangThai === "dang_theo_doi" && hopOk.ketQua === null, "hopLe giữ cấu trúc + trạng thái theo dõi");
+  ok(hop({ coin: "SUI", side: "long", giaVao: 1, sl: 0.9, tp: 1.2 }) === null, "thiếu id → loại");
+  ok(hop({ id: "a", coin: "SUI", side: "WAIT", giaVao: 1, sl: 0.9, tp: 1.2 }) === null, "side không long/short → loại");
+  ok(hop({ id: "a", coin: "SUI", side: "long", giaVao: 0, sl: 0.9, tp: 1.2 }) === null, "giá vào 0 → loại");
+  ok(hop(null) === null && hop("x") === null, "đầu vào rác → loại");
+  ok(hop({ id: "a", coin: "SUI", side: "long", giaVao: 1, sl: 0.9, tp: 1.2 }).loai === "that", "loai mặc định that");
+  const cu = [{ id: "cu-1" }, { id: "cu-2" }];
+  const t1 = BB.tronVaoStore(cu, [{ id: "cu-2" }, { id: "moi-1" }, { id: "moi-2" }], 10);
+  ok(t1.journal.length === 4 && t1.daThem.size === 2 && !t1.dungViDay, "trộn mới + khử trùng id");
+  ok(cu.length === 2, "không mutate mảng cũ");
+  const t2 = BB.tronVaoStore([{ id: "x1" }, { id: "x2" }], [{ id: "n1" }, { id: "n2" }], 3);
+  ok(t2.journal.length === 3 && t2.daThem.size === 1 && t2.dungViDay === true, "đầy kho → dừng, KHÔNG xóa bản cũ");
+  const recMoi = { id: "moi-1", coin: "SUI", side: "short", tsVao: 1, giaVao: 1, sl: 0.9, tp: 1.2, rr: 1, diem: 80, phien: "A", bias4h: "B", trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0, nn: null, loai: "that", ngay: null, cauTruc: null, ob: null, nen: null };
+  const p1 = BB.tronVaoPayload([{ id: "cu-1", coin: "BTC" }], [{ id: "cu-1", coin: "BTC", side: "long" }, recMoi], new Set(["moi-1"]), 120);
+  ok(p1.length === 2 && p1[0].id === "moi-1" && p1[0].coin === "SUI", "payload: bản mới lên đầu, không trùng");
+  const p2 = BB.tronVaoPayload([], [{ id: "a" }], new Set(), 120);
+  ok(p2.length === 0, "payload: không đưa bản chưa vào store");
+  const nhieu = Array.from({ length: 130 }, (_, i) => ({ id: "i" + i }));
+  const p3 = BB.tronVaoPayload([], nhieu, new Set(nhieu.map(r => r.id)), 120);
+  ok(p3.length === 120, "payload: cắt ở giới hạn 120");
+}
+// --- E. wiring: index.html + app.js + screens2.js + config.js + bridge-browser.js ---
+{
+  const idx = fs.readFileSync("index.html", "utf8");
+  ok(/Trade\.2026 v2\.15\.0/.test(idx), "index.html đã lên v2.15.0");
+  ok(/assets\/js\/bridge\.js\?v=2\.15\.0/.test(idx), "index.html nạp bridge.js?v=2.15.0");
+  ok(/assets\/js\/config\.js\?v=2\.15\.0/.test(idx), "cache-bust config.js");
+  ok(/assets\/js\/screens2\.js\?v=2\.15\.0/.test(idx), "cache-bust screens2.js");
+  ok(/assets\/js\/app\.js\?v=2\.15\.0/.test(idx), "cache-bust app.js");
+  const app = fs.readFileSync("assets/js/app.js", "utf8");
+  ok(/BRIDGE\.khoiDong\(\)/.test(app), "app.js boot gọi BRIDGE.khoiDong()");
+  const s2 = fs.readFileSync("assets/js/screens2.js", "utf8");
+  ok(/bridgeBat/.test(s2) && /Cầu nối trạm 24\/7/.test(s2), "screens2.js có UI cầu nối trong Cài đặt");
+  const cfg = fs.readFileSync("assets/js/config.js", "utf8");
+  ok(/bridgeBat: !!s\.bridgeBat/.test(cfg) && /bridgePat/.test(cfg), "config.js có SETTINGS.bridgeBat/bridgePat");
+  const bb = fs.readFileSync("tools/bridge-browser.js", "utf8");
+  ok(/raw\.githubusercontent\.com\/hayhahen-ui\/Trade\.2026\/data\/data\/browser-signals\.json/.test(bb), "bridge-browser.js kéo đúng raw URL nhánh data");
+}
+console.log("[36] pass");
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(_p34).then(_p35).then(_p36).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });
