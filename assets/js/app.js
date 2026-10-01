@@ -73,6 +73,29 @@ async function quetTatCa(force = false) {
   $("#last-scan") && ($("#last-scan").textContent = "Quét xong " + fmtGio(Date.now()));
 }
 
+/* ---------- Tự động chấm điểm hết hạn 4h (v2.14.1) ----------
+   Trước đây JOURNAL.chamDiemTatCa() chỉ chạy khi user bấm nút "Chấm điểm" thủ công
+   (hoặc ở collector trạm), nên tín hiệu cũ trên trình duyệt vẫn "Đang theo dõi" mãi
+   dù đã quá cửa sổ 4h. Chạy nền, giới hạn 15 phút/lần để nhẹ API nến. */
+const JOURNAL_TUCHAM_KEY = "siro_journal_tucham";
+function coTheTuChamJournal(now) {
+  try {
+    if (typeof JOURNAL === "undefined" || !JOURNAL.all) return false;
+    const cho = JOURNAL.all().filter(r => r.trangThai === "dang_theo_doi");
+    if (!cho.length) return false;
+    const lanCuoi = +(localStorage.getItem(JOURNAL_TUCHAM_KEY) || 0);
+    return (now || Date.now()) - lanCuoi >= 15 * 60e3;
+  } catch (e) { return false; }
+}
+async function tuDongChamDiem() {
+  if (!coTheTuChamJournal()) return;
+  try { localStorage.setItem(JOURNAL_TUCHAM_KEY, String(Date.now())); } catch (e) {}
+  try {
+    await JOURNAL.chamDiemTatCa();
+    if (SCREEN_HIENTAI === "sotinhieu" && typeof renderSoTinHieu === "function") renderSoTinHieu($("#screen-root"));
+  } catch (e) { console.warn("[journal] tự chấm điểm lỗi:", (e && e.message) || e); }
+}
+
 /* ---------- Header trạng thái ---------- */
 function veHeaderStatus() {
   const box = $("#conn-status");
@@ -167,6 +190,9 @@ function boot() {
   // Quét tín hiệu ngay và định kỳ
   quetTatCa();
   setInterval(quetTatCa, SETTINGS.refreshTinHieuSec * 1000);
+  // v2.14.1: tự chấm điểm hết hạn 4h cho journal trình duyệt (không chờ bấm nút thủ công)
+  tuDongChamDiem();
+  setInterval(tuDongChamDiem, 15 * 60e3);
   // Whale score BTC nền cho bot (nếu bật xác nhận cá mập)
   setInterval(() => {
     if (PAPER_BOT?.config?.whaleXacNhan) {

@@ -1643,7 +1643,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.14\.0/.test(idx), "index.html đã lên v2.14.0");
+  ok(/Trade\.2026 v2\.14\.1/.test(idx), "index.html đã lên v2.14.1");
 }
 
 const _p30 = async () => {
@@ -1704,7 +1704,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.14\.0/.test(idx), "index.html đã lên v2.14.0");
+  ok(/Trade\.2026 v2\.14\.1/.test(idx), "index.html đã lên v2.14.1");
 };
 
 const _p31 = async () => {
@@ -1744,7 +1744,7 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.14\.0/.test(read("index.html")), "index.html đã lên v2.14.0");
+  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
 }
 };
 
@@ -1762,7 +1762,7 @@ console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h")
   const klines = [];
   for (let i = 0; i < 20; i++)
     klines.push({ openTime: t0 - 5 * 3600e3 + i * 15 * 60e3, open: 100, high: 101, low: 99.5, close: 100.5, volume: 1 });
-  const c = makeCtx({ localStorage: lsStub, fetchKlines: async () => klines });
+  const c = makeCtx({ localStorage: lsStub, fetchKlines: async () => klines }); // _p32 giữ nguyên
   c.load("assets/js/utils.js"); // fmtGia thật
   c.load("assets/js/journal.js");
   const JOURNAL = c.get("JOURNAL");
@@ -1801,7 +1801,7 @@ console.log("\n[32] v2.12.0 — futures: cửa sổ đánh giá tín hiệu 4h")
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.14\.0/.test(read("index.html")), "index.html đã lên v2.14.0");
+  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
 }
 };
 
@@ -1941,8 +1941,8 @@ console.log("\n[33] v2.13.0 — MLP neural.js: đặc trưng, backprop, shadow w
   ok(NN.buChoCache(null, veLai) === 0 && NN.buChoCache({}, veLai) === 0, "cache lỗi → trả 0, không crash");
 
   // 12. version
-  ok(/Trade\.2026 v2\.14\.0/.test(read("index.html")), "index.html đã lên v2.14.0");
-  ok(/neural\.js\?v=2\.14\.0/.test(read("index.html")), "index.html nạp neural.js v2.13.1");
+  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/neural\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp neural.js v2.14.1");
 }
 };
 
@@ -2036,12 +2036,75 @@ console.log("\n[34] v2.14.0 — MRBIT P0: flag off|shadow, assessment, tương t
   ok(!/sanSang\(\)\) ketQua\.nnXacSuat = NN\.duDoanChoEngine/.test(eng), "engine không còn đường ghi cũ");
 
   // 12. version
-  ok(/Trade\.2026 v2\.14\.0/.test(read("index.html")), "index.html đã lên v2.14.0");
-  ok(/neural\.js\?v=2\.14\.0/.test(read("index.html")), "index.html nạp neural.js v2.14.0");
+  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/neural\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp neural.js v2.14.1");
 }
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(_p34).then(() => {
+/* ---------- [35] v2.14.1 — tự động chấm điểm hết hạn 4h (không chờ bấm nút thủ công) ---------- */
+const _p35 = async () => {
+console.log("\n[35] v2.14.1 — biên 4h + auto chấm điểm journal trình duyệt");
+{
+  const store = {};
+  const lsStub = {
+    getItem: (k) => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v); },
+    removeItem: (k) => { delete store[k]; },
+  };
+  const t0 = Date.now();
+  // 30 nến 15m trung tính phủ 7.5h gần nhất: không chạm TP/SL
+  const klines = [];
+  for (let i = 0; i < 30; i++)
+    klines.push({ openTime: t0 - 7.5 * 3600e3 + i * 15 * 60e3, open: 100, high: 101, low: 99.5, close: 100.5, volume: 1 });
+  const c = makeCtx({ localStorage: lsStub, fetchKlines: async () => klines,
+    setTimeout: (fn) => Promise.resolve().then(fn) }); // _p35: bỏ delay 250ms cho test nhanh
+  c.load("assets/js/utils.js");
+  c.load("assets/js/journal.js");
+  const JOURNAL = c.get("JOURNAL");
+  const mkRec = (id, gioTruoc) => ({ id, coin: "BTC", side: "long", loai: "that", tsVao: t0 - gioTruoc * 3600e3,
+    giaVao: 100, sl: 98, tp: 105, rr: 2.5, diem: 80, trangThai: "dang_theo_doi", ketQua: null, daDanhGiaDen: 0 });
+
+  // 4h - 1 phút (sát biên nhưng chưa quá — chamDiem dùng Date.now() tại lúc gọi nên
+  // không test được "đúng 4h" tuyệt đối; cặp 4h±1 phút kẹp biên đủ chặt)
+  const recBien = mkRec("T-BIEN", 4 - 1 / 60);
+  lsStub.setItem("trade2026_signal_journal", JSON.stringify([recBien]));
+  const rb = await JOURNAL.chamDiem(recBien);
+  ok(!rb.loi && rb.rec.trangThai === "dang_theo_doi", "4h - 1 phút chưa chạm TP/SL → vẫn theo dõi");
+
+  // 4h + 1 phút → hết hạn
+  const recQua = mkRec("T-QUA", 4 + 1 / 60);
+  lsStub.setItem("trade2026_signal_journal", JSON.stringify([recQua]));
+  const rq = await JOURNAL.chamDiem(recQua);
+  ok(!rq.loi && rq.rec.trangThai === "het_han", "quá 4h 1 phút chưa chạm TP/SL → hết hạn");
+
+  // chamDiemTatCa: xử lý hàng loạt — cũ hết hạn, mới giữ nguyên, đã ngã ngũ không đụng
+  const recCu = mkRec("T-CU2", 5), recMoi = mkRec("T-MOI2", 1);
+  const recXong = { ...mkRec("T-XONG", 6), trangThai: "thua", ketQua: { r: -1 }, daDanhGiaDen: t0 };
+  lsStub.setItem("trade2026_signal_journal", JSON.stringify([recCu, recMoi, recXong]));
+  const kq = await JOURNAL.chamDiemTatCa();
+  const sau = JSON.parse(lsStub.getItem("trade2026_signal_journal"));
+  const tim = id => sau.find(r => r.id === id);
+  ok(kq.tong === 2 && kq.loi === 0, "chamDiemTatCa chỉ xử lý 2 bản ghi đang theo dõi");
+  ok(tim("T-CU2").trangThai === "het_han", "bản ghi 5h → hết hạn");
+  ok(tim("T-MOI2").trangThai === "dang_theo_doi", "bản ghi 1h → vẫn theo dõi");
+  ok(tim("T-XONG").trangThai === "thua", "bản ghi đã ngã ngũ không bị đụng");
+
+  // wiring trong app.js: tồn tại, gọi ở boot, interval 15 phút, throttle localStorage, vẽ lại màn hình sổ
+  const app = read("assets/js/app.js");
+  ok(/function tuDongChamDiem\(\)/.test(app), "app.js có tuDongChamDiem()");
+  ok(/function coTheTuChamJournal\(/.test(app), "app.js có coTheTuChamJournal() (throttle)");
+  ok(/siro_journal_tucham/.test(app), "throttle bằng localStorage siro_journal_tucham");
+  ok(/15 \* 60e3/.test(app), "giới hạn 15 phút/lần");
+  ok(/tuDongChamDiem\(\);\s*\n\s*setInterval\(tuDongChamDiem, 15 \* 60e3\)/.test(app), "boot gọi ngay + lặp 15 phút");
+  ok(/SCREEN_HIENTAI === "sotinhieu"[^]*renderSoTinHieu/.test(app), "xong thì vẽ lại màn hình Sổ tín hiệu nếu đang mở");
+
+  // version
+  ok(/Trade\.2026 v2\.14\.1/.test(read("index.html")), "index.html đã lên v2.14.1");
+  ok(/app\.js\?v=2\.14\.1/.test(read("index.html")), "index.html nạp app.js v2.14.1");
+}
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(_p34).then(_p35).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });
