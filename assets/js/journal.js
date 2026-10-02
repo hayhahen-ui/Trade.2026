@@ -37,7 +37,8 @@ const JOURNAL = {
   xoaHet() { try { localStorage.removeItem(this._k); } catch (e) {} this._hetBoNho = false; },
 
   /* Ghi nhận 1 tín hiệu đã xác nhận từ engine (tự động).
-   * Chống trùng: cùng coin+hướng đang theo dõi trong 6h → bỏ qua. */
+   * Chống trùng: cùng coin+hướng trong 6h → bỏ qua (kể cả tín hiệu đã đóng,
+   * vì cửa sổ đánh giá 15m khiến tín hiệu đóng nhanh — 02/10/2026 fix v2.17.2). */
   ghiNhan(kq) {
     try {
       if (!kq || (kq.verdict !== "LONG" && kq.verdict !== "SHORT")) return null;
@@ -48,7 +49,7 @@ const JOURNAL = {
       const now = Date.now();
       const ds = this._doc();
       const trung = ds.find(r => r.coin === coin && r.side === side &&
-        r.trangThai === "dang_theo_doi" && now - r.tsVao < 6 * 3600e3);
+        now - r.tsVao < 6 * 3600e3);
       if (trung) return null;
       const rec = {
         id: `${coin}-${side}-${now}`,
@@ -677,7 +678,6 @@ function renderSoTinHieu(root) {
   })();
 
   const ve = () => {
-    const ds = JOURNAL.all().slice().reverse();
     const st = thongKeJournal(JOURNAL.all());
     // dọn stat cũ
     root.querySelectorAll(".journal-dong").forEach(n => n.remove());
@@ -711,40 +711,8 @@ function renderSoTinHieu(root) {
     }
     khoi.appendChild(cL);
 
-    // Bảng chi tiết
-    const cT = el("div", { class: "card" }, el("div", { class: "card-title" }, `📋 Chi tiết tín hiệu (${ds.length})`));
-    if (!ds.length) {
-      cT.appendChild(el("p", { class: "muted" }, "Chưa có tín hiệu nào được ghi nhận. Mỗi khi màn hình Tín hiệu cho ra LONG/SHORT xác nhận, hệ thống tự lưu vào đây."));
-    } else {
-      const tbl = el("table", { class: "mini-table" });
-      tbl.appendChild(el("tr", {},
-        el("th", {}, "Giờ vào"), el("th", {}, "Coin"), el("th", {}, "Hướng"),
-        el("th", {}, "Entry"), el("th", {}, "SL"), el("th", {}, "TP1"),
-        el("th", {}, "Kết thúc"), el("th", {}, "±"),
-        el("th", {}, "Điểm"), el("th", {}, "Trạng thái"), el("th", {}, "R"), el("th", {}, "Giờ tới KQ")));
-      for (const r of ds.slice(0, 100)) {
-        const [nhan, cls] = TRANG_THAI_JOURNAL[r.trangThai] || ["?", ""];
-        const kq = r.ketQua;
-        const gkt = giaKetThuc(r), cl = chenhLechGia(r);
-        tbl.appendChild(el("tr", {},
-          el("td", {}, fmtNgayGio(r.tsVao)),
-          el("td", { class: "strong" }, r.coin),
-          el("td", { class: r.side === "long" ? "up" : "down" }, r.side === "long" ? "🟢 LONG" : "🔴 SHORT"),
-          el("td", {}, fmtGia(r.giaVao)),
-          el("td", {}, fmtGia(r.sl)),
-          el("td", {}, fmtGia(r.tp)),
-          el("td", {}, gkt != null ? fmtGia(gkt) : "—"),
-          el("td", { class: cl ? (cl.gia >= 0 ? "up" : "down") : "" }, fmtChenhLech(cl)),
-          el("td", {}, String(r.diem)),
-          el("td", { class: cls }, nhan),
-          el("td", { class: kq && kq.r != null ? (kq.r >= 0 ? "up" : "down") : "" },
-            kq && kq.r != null ? (kq.r >= 0 ? "+" : "") + kq.r + "R" : "—"),
-          el("td", {}, kq?.gioDenKQ != null ? kq.gioDenKQ + "h" : "—")));
-      }
-      cT.appendChild(tbl);
-      if (ds.length > 100) cT.appendChild(el("p", { class: "muted small" }, `Hiện 100/${ds.length} tín hiệu mới nhất.`));
-    }
-    khoi.appendChild(cT);
+    // v2.17.2: Bỏ bảng "Chi tiết tín hiệu" local trùng lặp — dùng duy nhất bảng "Tín hiệu thật từ trạm"
+    // ở phần trạm phía trên (dữ liệu 24/7 đầy đủ hơn). Tránh hiển thị 2 bảng gây nhầm lẫn.
     root.appendChild(khoi);
   };
   ve();
