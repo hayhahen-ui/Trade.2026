@@ -12,8 +12,12 @@ function fmtGia(v) {
   if (Math.abs(n) >= 1)    return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
   return n.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 8 });
 }
-function fmtPct(v, daux = true) {
-  if (v == null || !isFinite(v)) return "—";
+/* A' 15/10: giá vào hiển thị — ưu tiên giá kế hoạch, fallback giá mô phỏng sau chấm điểm */
+function giaVaoHienThi(r) {
+  if (!r) return null;
+  return r.giaVaoKeHoach != null ? r.giaVaoKeHoach : r.giaVao;
+}
+function fmtPct(v, daux = true) {  if (v == null || !isFinite(v)) return "—";
   const s = (v > 0 && daux ? "+" : "") + Number(v).toFixed(2) + "%";
   return s;
 }

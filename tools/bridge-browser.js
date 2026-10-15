@@ -76,6 +76,8 @@ function tronVaoPayload(tinHieuCu, moi, daThem, gioiHan) {
   const mapPayload = (rec) => ({
     id: rec.id, coin: rec.coin, side: rec.side, tsVao: rec.tsVao,
     giaVao: rec.giaVao, sl: rec.sl, tp: rec.tp, rr: rec.rr, diem: rec.diem,
+    // A' 15/10: giữ giá vào kế hoạch khi trộn tín hiệu browser vào journal public
+    giaVaoKeHoach: rec.giaVaoKeHoach != null ? rec.giaVaoKeHoach : null,
     phien: rec.phien, bias4h: rec.bias4h, trangThai: rec.trangThai,
     ketQua: rec.ketQua, daDanhGiaDen: rec.daDanhGiaDen,
     nn: rec.nn, loai: rec.loai, ngay: rec.ngay,

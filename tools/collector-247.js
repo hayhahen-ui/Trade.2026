@@ -210,6 +210,8 @@ async function main() {
     tinHieu: ds.slice(-120).reverse().map((r) => ({
       id: r.id, coin: r.coin, side: r.side, tsVao: r.tsVao,
       giaVao: r.giaVao, sl: r.sl, tp: r.tp, rr: r.rr, diem: r.diem,
+      // A' 15/10: đưa giá vào kế hoạch ra journal public để UI/tin đọc trước, fallback giaVao
+      giaVaoKeHoach: r.giaVaoKeHoach != null ? r.giaVaoKeHoach : null,
       phien: r.phien, bias4h: r.bias4h, trangThai: r.trangThai,
       ketQua: r.ketQua, daDanhGiaDen: r.daDanhGiaDen,
       nn: r.nn != null ? r.nn : null, // v2.13.0: xác suất thắng do NN shadow dự đoán
