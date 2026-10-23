@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-10-23T17:02:14+0000",
+ "generatedAt": "2026-10-23T21:21:23+0000",
  "source": "https://tradingeconomics.com/calendar",
  "timezone": "UTC",
  "impact": "1, 2, and 3 stars",
@@ -6867,6 +6867,22 @@
     "Impact": "★★",
     "EventKey": "fed goolsbee speech",
     "DetailURL": "https://tradingeconomics.com/united-states/interest-rate",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-02",
+    "Time": "08:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Treasury Refunding Financing Estimates",
+    "Actual": "",
+    "Previous": "",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "treasury refunding financing estimates",
+    "DetailURL": "https://tradingeconomics.com/united-states/government-bond-yield",
     "Timezone": "UTC"
    }
   ],
@@ -19854,6 +19870,22 @@
     "Impact": "★★",
     "EventKey": "fed goolsbee speech",
     "DetailURL": "https://tradingeconomics.com/united-states/interest-rate",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Next Month",
+    "Date": "2026-11-02",
+    "Time": "08:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Treasury Refunding Financing Estimates",
+    "Actual": "",
+    "Previous": "",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "treasury refunding financing estimates",
+    "DetailURL": "https://tradingeconomics.com/united-states/government-bond-yield",
     "Timezone": "UTC"
    }
   ],
