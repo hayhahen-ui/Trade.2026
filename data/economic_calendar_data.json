@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-10-31T12:18:09+0000",
+ "generatedAt": "2026-10-31T21:29:07+0000",
  "source": "https://tradingeconomics.com/calendar",
  "timezone": "UTC",
  "impact": "1, 2, and 3 stars",
@@ -1886,7 +1886,7 @@
     "Event": "Unemployment Change",
     "Actual": "",
     "Previous": "23.587K",
-    "Consensus": "",
+    "Consensus": "25.3K",
     "Forecast": "35.0K",
     "Impact": "★★",
     "EventKey": "unemployment change",
@@ -2126,7 +2126,7 @@
     "Event": "Core Inflation Rate YoY Flash",
     "Actual": "",
     "Previous": "2.5%",
-    "Consensus": "",
+    "Consensus": "2.5%",
     "Forecast": "2.6%",
     "Impact": "★★",
     "EventKey": "core inflation rate yoy flash",
@@ -5839,7 +5839,7 @@
     "Actual": "",
     "Previous": "-23.5%",
     "Consensus": "",
-    "Forecast": "-10%",
+    "Forecast": "-14.0%",
     "Impact": "★",
     "EventKey": "industrial production yoy",
     "DetailURL": "https://tradingeconomics.com/saudi-arabia/industrial-production",
@@ -6036,61 +6036,203 @@
     "EventKey": "nfib business optimism index",
     "DetailURL": "https://tradingeconomics.com/united-states/nfib-business-optimism-index",
     "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "01:15 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "ADP Employment Change Weekly",
+    "Actual": "",
+    "Previous": "16.75K",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★",
+    "EventKey": "adp employment change weekly",
+    "DetailURL": "https://tradingeconomics.com/united-states/adp-employment-change-weekly",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Core Inflation Rate MoM",
+    "Actual": "",
+    "Previous": "0.3%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★★",
+    "EventKey": "core inflation rate mom",
+    "DetailURL": "https://tradingeconomics.com/united-states/core-inflation-rate-mom",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Core Inflation Rate YoY",
+    "Actual": "",
+    "Previous": "2.6%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★★",
+    "EventKey": "core inflation rate yoy",
+    "DetailURL": "https://tradingeconomics.com/united-states/core-inflation-rate",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Inflation Rate MoM",
+    "Actual": "",
+    "Previous": "0.6%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★★",
+    "EventKey": "inflation rate mom",
+    "DetailURL": "https://tradingeconomics.com/united-states/inflation-rate-mom",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Inflation Rate YoY",
+    "Actual": "",
+    "Previous": "3.7%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★★",
+    "EventKey": "inflation rate yoy",
+    "DetailURL": "https://tradingeconomics.com/united-states/inflation-cpi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "CPI",
+    "Actual": "",
+    "Previous": "336.94",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★",
+    "EventKey": "cpi",
+    "DetailURL": "https://tradingeconomics.com/united-states/consumer-price-index-cpi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "CPI s.a",
+    "Actual": "",
+    "Previous": "336.30",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★",
+    "EventKey": "cpi s.a",
+    "DetailURL": "https://tradingeconomics.com/united-states/cpi-seasonally-adjusted",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "01:55 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Redbook YoY",
+    "Actual": "",
+    "Previous": "",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "redbook yoy",
+    "DetailURL": "https://tradingeconomics.com/united-states/redbook-index",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "04:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Total Household Debt",
+    "Actual": "",
+    "Previous": "$18.8T",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "total household debt",
+    "DetailURL": "https://tradingeconomics.com/united-states/debt-balance-total",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "04:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Wasde Report",
+    "Actual": "",
+    "Previous": "",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "wasde report",
+    "DetailURL": "https://tradingeconomics.com/united-states/calendar",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "05:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Eia Short-Term Energy Outlook",
+    "Actual": "",
+    "Previous": "",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★",
+    "EventKey": "eia short-term energy outlook",
+    "DetailURL": "https://tradingeconomics.com/united-states/calendar",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Recent",
+    "Date": "2026-11-10",
+    "Time": "06:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "10-Year Note Auction",
+    "Actual": "",
+    "Previous": "5.300%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "10-year note auction",
+    "DetailURL": "https://tradingeconomics.com/united-states/government-bond-yield",
+    "Timezone": "UTC"
    }
   ],
   "Today": [
    {
     "Sheet": "Today",
-    "Date": "2026-10-31",
-    "Time": "01:30 AM",
-    "Country": "China",
-    "CountryCode": "CN",
-    "Event": "NBS Manufacturing PMI",
-    "Actual": "49.3",
-    "Previous": "50.1",
-    "Consensus": "50",
-    "Forecast": "50.1",
-    "Impact": "★★★",
-    "EventKey": "nbs manufacturing pmi",
-    "DetailURL": "https://tradingeconomics.com/china/business-confidence",
-    "Timezone": "UTC"
-   },
-   {
-    "Sheet": "Today",
-    "Date": "2026-10-31",
-    "Time": "01:30 AM",
-    "Country": "China",
-    "CountryCode": "CN",
-    "Event": "NBS Non Manufacturing PMI",
-    "Actual": "49.7",
-    "Previous": "50.2",
-    "Consensus": "50.5",
-    "Forecast": "50.6",
-    "Impact": "★★",
-    "EventKey": "nbs non manufacturing pmi",
-    "DetailURL": "https://tradingeconomics.com/china/non-manufacturing-pmi",
-    "Timezone": "UTC"
-   },
-   {
-    "Sheet": "Today",
-    "Date": "2026-10-31",
-    "Time": "01:30 AM",
-    "Country": "China",
-    "CountryCode": "CN",
-    "Event": "NBS General PMI",
-    "Actual": "49.7",
-    "Previous": "50.7",
-    "Consensus": "",
-    "Forecast": "51",
-    "Impact": "★",
-    "EventKey": "nbs general pmi",
-    "DetailURL": "https://tradingeconomics.com/china/nbs-general-pmi",
-    "Timezone": "UTC"
-   }
-  ],
-  "Tomorrow": [
-   {
-    "Sheet": "Tomorrow",
     "Date": "2026-11-01",
     "Time": "12:00 AM",
     "Country": "South Korea",
@@ -6106,7 +6248,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Tomorrow",
+    "Sheet": "Today",
     "Date": "2026-11-01",
     "Time": "12:00 AM",
     "Country": "South Korea",
@@ -6122,7 +6264,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Tomorrow",
+    "Sheet": "Today",
     "Date": "2026-11-01",
     "Time": "12:00 AM",
     "Country": "South Korea",
@@ -6138,7 +6280,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Tomorrow",
+    "Sheet": "Today",
     "Date": "2026-11-01",
     "Time": "06:00 AM",
     "Country": "Saudi Arabia",
@@ -6151,6 +6293,808 @@
     "Impact": "★★",
     "EventKey": "gdp growth rate yoy prel",
     "DetailURL": "https://tradingeconomics.com/saudi-arabia/gdp-growth-annual",
+    "Timezone": "UTC"
+   }
+  ],
+  "Tomorrow": [
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-01",
+    "Time": "10:00 PM",
+    "Country": "Australia",
+    "CountryCode": "AU",
+    "Event": "S&P Global Manufacturing PMI Final",
+    "Actual": "",
+    "Previous": "49.6",
+    "Consensus": "49.7",
+    "Forecast": "49.7",
+    "Impact": "★",
+    "EventKey": "s&p global manufacturing pmi final",
+    "DetailURL": "https://tradingeconomics.com/australia/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "12:00 AM",
+    "Country": "Australia",
+    "CountryCode": "AU",
+    "Event": "TD-MI Inflation Gauge MoM",
+    "Actual": "",
+    "Previous": "0.3%",
+    "Consensus": "",
+    "Forecast": "0.3%",
+    "Impact": "★",
+    "EventKey": "td-mi inflation gauge mom",
+    "DetailURL": "https://tradingeconomics.com/australia/mi-inflation-gauge-mom",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "12:30 AM",
+    "Country": "Australia",
+    "CountryCode": "AU",
+    "Event": "Building Permits MoM Prel",
+    "Actual": "",
+    "Previous": "-6.1%",
+    "Consensus": "2.1%",
+    "Forecast": "1.5%",
+    "Impact": "★★",
+    "EventKey": "building permits mom prel",
+    "DetailURL": "https://tradingeconomics.com/australia/building-permits-mom",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "12:30 AM",
+    "Country": "Australia",
+    "CountryCode": "AU",
+    "Event": "Building Permits YoY Prel",
+    "Actual": "",
+    "Previous": "10.3%",
+    "Consensus": "",
+    "Forecast": "-4.7%",
+    "Impact": "★",
+    "EventKey": "building permits yoy prel",
+    "DetailURL": "https://tradingeconomics.com/australia/building-permits-yoy",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "12:30 AM",
+    "Country": "Australia",
+    "CountryCode": "AU",
+    "Event": "Private House Approvals MoM Prel",
+    "Actual": "",
+    "Previous": "3.7%",
+    "Consensus": "",
+    "Forecast": "-1.2%",
+    "Impact": "★",
+    "EventKey": "private house approvals mom prel",
+    "DetailURL": "https://tradingeconomics.com/australia/private-house-approvals",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "12:30 AM",
+    "Country": "Indonesia",
+    "CountryCode": "ID",
+    "Event": "S&P Global Manufacturing PMI",
+    "Actual": "",
+    "Previous": "52.4",
+    "Consensus": "",
+    "Forecast": "51.9",
+    "Impact": "★",
+    "EventKey": "s&p global manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/indonesia/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "12:30 AM",
+    "Country": "Japan",
+    "CountryCode": "JP",
+    "Event": "S&P Global Manufacturing PMI Final",
+    "Actual": "",
+    "Previous": "54.1",
+    "Consensus": "53.3",
+    "Forecast": "53.3",
+    "Impact": "★",
+    "EventKey": "s&p global manufacturing pmi final",
+    "DetailURL": "https://tradingeconomics.com/japan/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "12:30 AM",
+    "Country": "South Korea",
+    "CountryCode": "KR",
+    "Event": "S&P Global Manufacturing PMI",
+    "Actual": "",
+    "Previous": "53.9",
+    "Consensus": "",
+    "Forecast": "54.2",
+    "Impact": "★★",
+    "EventKey": "s&p global manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/south-korea/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "01:45 AM",
+    "Country": "China",
+    "CountryCode": "CN",
+    "Event": "RatingDog Manufacturing PMI",
+    "Actual": "",
+    "Previous": "52.1",
+    "Consensus": "51.6",
+    "Forecast": "51.7",
+    "Impact": "★★★",
+    "EventKey": "ratingdog manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/china/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "02:30 AM",
+    "Country": "South Korea",
+    "CountryCode": "KR",
+    "Event": "2-Year KTB Auction",
+    "Actual": "",
+    "Previous": "3.895%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "2-year ktb auction",
+    "DetailURL": "https://tradingeconomics.com/south-korea/2-year-note-yield",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "03:35 AM",
+    "Country": "Japan",
+    "CountryCode": "JP",
+    "Event": "5-Year Climate Transition Jgb Auction",
+    "Actual": "",
+    "Previous": "1.941%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "5-year climate transition jgb auction",
+    "DetailURL": "https://tradingeconomics.com/japan/calendar",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "04:00 AM",
+    "Country": "Indonesia",
+    "CountryCode": "ID",
+    "Event": "Balance of Trade",
+    "Actual": "",
+    "Previous": "$3.55B",
+    "Consensus": "",
+    "Forecast": "$3.7B",
+    "Impact": "★★",
+    "EventKey": "balance of trade",
+    "DetailURL": "https://tradingeconomics.com/indonesia/balance-of-trade",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "04:00 AM",
+    "Country": "Indonesia",
+    "CountryCode": "ID",
+    "Event": "Inflation Rate YoY",
+    "Actual": "",
+    "Previous": "3.28%",
+    "Consensus": "",
+    "Forecast": "3.3%",
+    "Impact": "★★",
+    "EventKey": "inflation rate yoy",
+    "DetailURL": "https://tradingeconomics.com/indonesia/inflation-cpi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "04:00 AM",
+    "Country": "Indonesia",
+    "CountryCode": "ID",
+    "Event": "Core Inflation Rate YoY",
+    "Actual": "",
+    "Previous": "2.84%",
+    "Consensus": "",
+    "Forecast": "2.8%",
+    "Impact": "★",
+    "EventKey": "core inflation rate yoy",
+    "DetailURL": "https://tradingeconomics.com/indonesia/core-inflation-rate",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "04:00 AM",
+    "Country": "Indonesia",
+    "CountryCode": "ID",
+    "Event": "Exports YoY",
+    "Actual": "",
+    "Previous": "6.72%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "exports yoy",
+    "DetailURL": "https://tradingeconomics.com/indonesia/exports-yoy",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "04:00 AM",
+    "Country": "Indonesia",
+    "CountryCode": "ID",
+    "Event": "Imports YoY",
+    "Actual": "",
+    "Previous": "19.09%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "imports yoy",
+    "DetailURL": "https://tradingeconomics.com/indonesia/imports-yoy",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "04:00 AM",
+    "Country": "Indonesia",
+    "CountryCode": "ID",
+    "Event": "Inflation Rate MoM",
+    "Actual": "",
+    "Previous": "0.3%",
+    "Consensus": "",
+    "Forecast": "0.3%",
+    "Impact": "★",
+    "EventKey": "inflation rate mom",
+    "DetailURL": "https://tradingeconomics.com/indonesia/inflation-rate-mom",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "05:00 AM",
+    "Country": "India",
+    "CountryCode": "IN",
+    "Event": "HSBC Manufacturing PMI Final",
+    "Actual": "",
+    "Previous": "55.1",
+    "Consensus": "54.7",
+    "Forecast": "54.9",
+    "Impact": "★",
+    "EventKey": "hsbc manufacturing pmi final",
+    "DetailURL": "https://tradingeconomics.com/india/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "05:00 AM",
+    "Country": "Indonesia",
+    "CountryCode": "ID",
+    "Event": "Tourist Arrivals YoY",
+    "Actual": "",
+    "Previous": "6.27%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "tourist arrivals yoy",
+    "DetailURL": "https://tradingeconomics.com/indonesia/tourist-arrivals",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "05:00 AM",
+    "Country": "Singapore",
+    "CountryCode": "SG",
+    "Event": "Business Confidence",
+    "Actual": "",
+    "Previous": "12.00",
+    "Consensus": "",
+    "Forecast": "14",
+    "Impact": "★",
+    "EventKey": "business confidence",
+    "DetailURL": "https://tradingeconomics.com/singapore/business-confidence",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "05:30 AM",
+    "Country": "Australia",
+    "CountryCode": "AU",
+    "Event": "Commodity Prices YoY",
+    "Actual": "",
+    "Previous": "15.5%",
+    "Consensus": "",
+    "Forecast": "15.1%",
+    "Impact": "★",
+    "EventKey": "commodity prices yoy",
+    "DetailURL": "https://tradingeconomics.com/australia/commodity-prices-yoy",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "06:00 AM",
+    "Country": "Russia",
+    "CountryCode": "RU",
+    "Event": "S&P Global Manufacturing PMI",
+    "Actual": "",
+    "Previous": "49.8",
+    "Consensus": "",
+    "Forecast": "50",
+    "Impact": "★★",
+    "EventKey": "s&p global manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/russia/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "07:00 AM",
+    "Country": "Germany",
+    "CountryCode": "DE",
+    "Event": "Retail Sales MoM",
+    "Actual": "",
+    "Previous": "1.3%",
+    "Consensus": "0.5%",
+    "Forecast": "0.1%",
+    "Impact": "★★",
+    "EventKey": "retail sales mom",
+    "DetailURL": "https://tradingeconomics.com/germany/retail-sales",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "07:00 AM",
+    "Country": "Germany",
+    "CountryCode": "DE",
+    "Event": "Retail Sales YoY",
+    "Actual": "",
+    "Previous": "-0.4%",
+    "Consensus": "",
+    "Forecast": "-0.3%",
+    "Impact": "★★",
+    "EventKey": "retail sales yoy",
+    "DetailURL": "https://tradingeconomics.com/germany/retail-sales-annual",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "07:00 AM",
+    "Country": "Turkey",
+    "CountryCode": "TR",
+    "Event": "Istanbul Chamber of Industry Manufacturing PMI",
+    "Actual": "",
+    "Previous": "47.9",
+    "Consensus": "",
+    "Forecast": "48",
+    "Impact": "★",
+    "EventKey": "istanbul chamber of industry manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/turkey/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "08:15 AM",
+    "Country": "Spain",
+    "CountryCode": "ES",
+    "Event": "S&P Global Manufacturing PMI",
+    "Actual": "",
+    "Previous": "51.0",
+    "Consensus": "50.6",
+    "Forecast": "50.7",
+    "Impact": "★★",
+    "EventKey": "s&p global manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/spain/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "08:45 AM",
+    "Country": "Italy",
+    "CountryCode": "IT",
+    "Event": "S&P Global Manufacturing PMI",
+    "Actual": "",
+    "Previous": "50.4",
+    "Consensus": "49.7",
+    "Forecast": "49.9",
+    "Impact": "★★",
+    "EventKey": "s&p global manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/italy/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "08:50 AM",
+    "Country": "France",
+    "CountryCode": "FR",
+    "Event": "S&P Global Manufacturing PMI Final",
+    "Actual": "",
+    "Previous": "50.6",
+    "Consensus": "49.3",
+    "Forecast": "49.3",
+    "Impact": "★",
+    "EventKey": "s&p global manufacturing pmi final",
+    "DetailURL": "https://tradingeconomics.com/france/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "08:55 AM",
+    "Country": "Germany",
+    "CountryCode": "DE",
+    "Event": "S&P Global Manufacturing PMI Final",
+    "Actual": "",
+    "Previous": "53.9",
+    "Consensus": "54.2",
+    "Forecast": "54.2",
+    "Impact": "★",
+    "EventKey": "s&p global manufacturing pmi final",
+    "DetailURL": "https://tradingeconomics.com/germany/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "09:00 AM",
+    "Country": "Euro Area",
+    "CountryCode": "EA",
+    "Event": "S&P Global Manufacturing PMI Final",
+    "Actual": "",
+    "Previous": "52.9",
+    "Consensus": "52.4",
+    "Forecast": "52.4",
+    "Impact": "★",
+    "EventKey": "s&p global manufacturing pmi final",
+    "DetailURL": "https://tradingeconomics.com/euro-area/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "09:00 AM",
+    "Country": "South Africa",
+    "CountryCode": "ZA",
+    "Event": "ABSA Manufacturing PMI",
+    "Actual": "",
+    "Previous": "50.7",
+    "Consensus": "",
+    "Forecast": "50.5",
+    "Impact": "★",
+    "EventKey": "absa manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/south-africa/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "09:30 AM",
+    "Country": "South Africa",
+    "CountryCode": "ZA",
+    "Event": "182-Day T-Bill Auction",
+    "Actual": "",
+    "Previous": "7.69%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "182-day t-bill auction",
+    "DetailURL": "https://tradingeconomics.com/south-africa/calendar",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "09:30 AM",
+    "Country": "South Africa",
+    "CountryCode": "ZA",
+    "Event": "273-Day T-Bill Auction",
+    "Actual": "",
+    "Previous": "7.89%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "273-day t-bill auction",
+    "DetailURL": "https://tradingeconomics.com/south-africa/calendar",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "09:30 AM",
+    "Country": "South Africa",
+    "CountryCode": "ZA",
+    "Event": "364-Day T-Bill Auction",
+    "Actual": "",
+    "Previous": "8.06%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "364-day t-bill auction",
+    "DetailURL": "https://tradingeconomics.com/south-africa/calendar",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "09:30 AM",
+    "Country": "South Africa",
+    "CountryCode": "ZA",
+    "Event": "91-Day T-Bill Auction",
+    "Actual": "",
+    "Previous": "7.29%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "91-day t-bill auction",
+    "DetailURL": "https://tradingeconomics.com/south-africa/calendar",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "09:30 AM",
+    "Country": "United Kingdom",
+    "CountryCode": "GB",
+    "Event": "S&P Global Manufacturing PMI Final",
+    "Actual": "",
+    "Previous": "51.9",
+    "Consensus": "52.8",
+    "Forecast": "52.8",
+    "Impact": "★",
+    "EventKey": "s&p global manufacturing pmi final",
+    "DetailURL": "https://tradingeconomics.com/united-kingdom/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "01:00 PM",
+    "Country": "Singapore",
+    "CountryCode": "SG",
+    "Event": "SIPMM Manufacturing PMI",
+    "Actual": "",
+    "Previous": "51.7",
+    "Consensus": "",
+    "Forecast": "51.8",
+    "Impact": "★",
+    "EventKey": "sipmm manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/singapore/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "02:00 PM",
+    "Country": "France",
+    "CountryCode": "FR",
+    "Event": "12-Month BTF Auction",
+    "Actual": "",
+    "Previous": "3.365%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "12-month btf auction",
+    "DetailURL": "https://tradingeconomics.com/france/52-week-bill-yield",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "02:00 PM",
+    "Country": "France",
+    "CountryCode": "FR",
+    "Event": "3-Month BTF Auction",
+    "Actual": "",
+    "Previous": "2.787%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "3-month btf auction",
+    "DetailURL": "https://tradingeconomics.com/france/3-month-bill-yield",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "02:00 PM",
+    "Country": "France",
+    "CountryCode": "FR",
+    "Event": "6-Month BTF Auction",
+    "Actual": "",
+    "Previous": "3.025%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "6-month btf auction",
+    "DetailURL": "https://tradingeconomics.com/france/6-month-bill-yield",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "02:30 PM",
+    "Country": "Canada",
+    "CountryCode": "CA",
+    "Event": "S&P Global Manufacturing PMI",
+    "Actual": "",
+    "Previous": "51.5",
+    "Consensus": "",
+    "Forecast": "51",
+    "Impact": "★★",
+    "EventKey": "s&p global manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/canada/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "02:45 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "S&P Global Manufacturing PMI Final",
+    "Actual": "",
+    "Previous": "55.9",
+    "Consensus": "56",
+    "Forecast": "56",
+    "Impact": "★",
+    "EventKey": "s&p global manufacturing pmi final",
+    "DetailURL": "https://tradingeconomics.com/united-states/manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "03:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "ISM Manufacturing PMI",
+    "Actual": "",
+    "Previous": "54.5",
+    "Consensus": "54.7",
+    "Forecast": "54.7",
+    "Impact": "★★★",
+    "EventKey": "ism manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/united-states/business-confidence",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "03:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "ISM Manufacturing Employment",
+    "Actual": "",
+    "Previous": "52.7",
+    "Consensus": "",
+    "Forecast": "53",
+    "Impact": "★★",
+    "EventKey": "ism manufacturing employment",
+    "DetailURL": "https://tradingeconomics.com/united-states/ism-manufacturing-employment",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "03:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Construction Spending MoM",
+    "Actual": "",
+    "Previous": "0.9%",
+    "Consensus": "0.6%",
+    "Forecast": "0.2%",
+    "Impact": "★",
+    "EventKey": "construction spending mom",
+    "DetailURL": "https://tradingeconomics.com/united-states/construction-spending",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "03:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "ISM Manufacturing New Orders",
+    "Actual": "",
+    "Previous": "55.3",
+    "Consensus": "",
+    "Forecast": "55.4",
+    "Impact": "★",
+    "EventKey": "ism manufacturing new orders",
+    "DetailURL": "https://tradingeconomics.com/united-states/ism-manufacturing-new-orders",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "03:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "ISM Manufacturing Prices",
+    "Actual": "",
+    "Previous": "77.9",
+    "Consensus": "77.5",
+    "Forecast": "78",
+    "Impact": "★",
+    "EventKey": "ism manufacturing prices",
+    "DetailURL": "https://tradingeconomics.com/united-states/ism-manufacturing-prices",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "04:15 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Fed Goolsbee Speech",
+    "Actual": "",
+    "Previous": "",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★",
+    "EventKey": "fed goolsbee speech",
+    "DetailURL": "https://tradingeconomics.com/united-states/interest-rate",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "04:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "3-Month Bill Auction",
+    "Actual": "",
+    "Previous": "4.050%",
+    "Consensus": "",
+    "Forecast": "4.0999%",
+    "Impact": "★",
+    "EventKey": "3-month bill auction",
+    "DetailURL": "https://tradingeconomics.com/united-states/3-month-bill-yield",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Tomorrow",
+    "Date": "2026-11-02",
+    "Time": "04:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "6-Month Bill Auction",
+    "Actual": "",
+    "Previous": "4.210%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "6-month bill auction",
+    "DetailURL": "https://tradingeconomics.com/united-states/6-month-bill-yield",
     "Timezone": "UTC"
    }
   ],
@@ -8038,7 +8982,7 @@
     "Event": "Unemployment Change",
     "Actual": "",
     "Previous": "23.587K",
-    "Consensus": "",
+    "Consensus": "25.3K",
     "Forecast": "35.0K",
     "Impact": "★★",
     "EventKey": "unemployment change",
@@ -8278,7 +9222,7 @@
     "Event": "Core Inflation Rate YoY Flash",
     "Actual": "",
     "Previous": "2.5%",
-    "Consensus": "",
+    "Consensus": "2.5%",
     "Forecast": "2.6%",
     "Impact": "★★",
     "EventKey": "core inflation rate yoy flash",
@@ -11041,56 +11985,6 @@
   "This Month": [
    {
     "Sheet": "This Month",
-    "Date": "2026-10-31",
-    "Time": "01:30 AM",
-    "Country": "China",
-    "CountryCode": "CN",
-    "Event": "NBS Manufacturing PMI",
-    "Actual": "49.3",
-    "Previous": "50.1",
-    "Consensus": "50",
-    "Forecast": "50.1",
-    "Impact": "★★★",
-    "EventKey": "nbs manufacturing pmi",
-    "DetailURL": "https://tradingeconomics.com/china/business-confidence",
-    "Timezone": "UTC"
-   },
-   {
-    "Sheet": "This Month",
-    "Date": "2026-10-31",
-    "Time": "01:30 AM",
-    "Country": "China",
-    "CountryCode": "CN",
-    "Event": "NBS Non Manufacturing PMI",
-    "Actual": "49.7",
-    "Previous": "50.2",
-    "Consensus": "50.5",
-    "Forecast": "50.6",
-    "Impact": "★★",
-    "EventKey": "nbs non manufacturing pmi",
-    "DetailURL": "https://tradingeconomics.com/china/non-manufacturing-pmi",
-    "Timezone": "UTC"
-   },
-   {
-    "Sheet": "This Month",
-    "Date": "2026-10-31",
-    "Time": "01:30 AM",
-    "Country": "China",
-    "CountryCode": "CN",
-    "Event": "NBS General PMI",
-    "Actual": "49.7",
-    "Previous": "50.7",
-    "Consensus": "",
-    "Forecast": "51",
-    "Impact": "★",
-    "EventKey": "nbs general pmi",
-    "DetailURL": "https://tradingeconomics.com/china/nbs-general-pmi",
-    "Timezone": "UTC"
-   }
-  ],
-  "Next Month": [
-   {
-    "Sheet": "Next Month",
     "Date": "2026-11-01",
     "Time": "12:00 AM",
     "Country": "South Korea",
@@ -11106,7 +12000,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-01",
     "Time": "12:00 AM",
     "Country": "South Korea",
@@ -11122,7 +12016,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-01",
     "Time": "12:00 AM",
     "Country": "South Korea",
@@ -11138,7 +12032,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-01",
     "Time": "06:00 AM",
     "Country": "Saudi Arabia",
@@ -11154,7 +12048,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-01",
     "Time": "10:00 PM",
     "Country": "Australia",
@@ -11170,7 +12064,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "12:00 AM",
     "Country": "Australia",
@@ -11186,7 +12080,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -11202,7 +12096,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -11218,7 +12112,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -11234,7 +12128,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "12:30 AM",
     "Country": "Indonesia",
@@ -11250,7 +12144,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "12:30 AM",
     "Country": "Japan",
@@ -11266,7 +12160,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "12:30 AM",
     "Country": "South Korea",
@@ -11282,7 +12176,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "01:45 AM",
     "Country": "China",
@@ -11298,7 +12192,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "02:30 AM",
     "Country": "South Korea",
@@ -11314,7 +12208,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "03:35 AM",
     "Country": "Japan",
@@ -11330,7 +12224,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "04:00 AM",
     "Country": "Indonesia",
@@ -11346,7 +12240,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "04:00 AM",
     "Country": "Indonesia",
@@ -11362,7 +12256,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "04:00 AM",
     "Country": "Indonesia",
@@ -11378,7 +12272,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "04:00 AM",
     "Country": "Indonesia",
@@ -11394,7 +12288,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "04:00 AM",
     "Country": "Indonesia",
@@ -11410,7 +12304,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "04:00 AM",
     "Country": "Indonesia",
@@ -11426,7 +12320,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "05:00 AM",
     "Country": "India",
@@ -11442,7 +12336,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "05:00 AM",
     "Country": "Indonesia",
@@ -11458,7 +12352,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "05:00 AM",
     "Country": "Singapore",
@@ -11474,7 +12368,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "05:30 AM",
     "Country": "Australia",
@@ -11490,7 +12384,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "06:00 AM",
     "Country": "Russia",
@@ -11506,7 +12400,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "07:00 AM",
     "Country": "Germany",
@@ -11522,7 +12416,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "07:00 AM",
     "Country": "Germany",
@@ -11538,7 +12432,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "07:00 AM",
     "Country": "Turkey",
@@ -11554,7 +12448,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "08:15 AM",
     "Country": "Spain",
@@ -11570,7 +12464,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "08:45 AM",
     "Country": "Italy",
@@ -11586,7 +12480,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "08:50 AM",
     "Country": "France",
@@ -11602,7 +12496,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "08:55 AM",
     "Country": "Germany",
@@ -11618,7 +12512,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "09:00 AM",
     "Country": "Euro Area",
@@ -11634,7 +12528,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "09:00 AM",
     "Country": "South Africa",
@@ -11650,7 +12544,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -11666,7 +12560,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -11682,7 +12576,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -11698,7 +12592,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -11714,7 +12608,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "09:30 AM",
     "Country": "United Kingdom",
@@ -11730,7 +12624,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "01:00 PM",
     "Country": "Singapore",
@@ -11746,7 +12640,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "02:00 PM",
     "Country": "France",
@@ -11762,7 +12656,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "02:00 PM",
     "Country": "France",
@@ -11778,7 +12672,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "02:00 PM",
     "Country": "France",
@@ -11794,7 +12688,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "02:30 PM",
     "Country": "Canada",
@@ -11810,7 +12704,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "02:45 PM",
     "Country": "United States",
@@ -11826,7 +12720,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -11842,7 +12736,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -11858,7 +12752,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -11874,7 +12768,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -11890,7 +12784,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -11906,7 +12800,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "04:15 PM",
     "Country": "United States",
@@ -11922,7 +12816,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "04:30 PM",
     "Country": "United States",
@@ -11938,7 +12832,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "04:30 PM",
     "Country": "United States",
@@ -11954,7 +12848,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "07:00 PM",
     "Country": "United States",
@@ -11970,7 +12864,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "08:00 PM",
     "Country": "United States",
@@ -11986,7 +12880,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "11:00 PM",
     "Country": "South Korea",
@@ -12002,7 +12896,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-02",
     "Time": "11:00 PM",
     "Country": "South Korea",
@@ -12018,7 +12912,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "02:30 AM",
     "Country": "South Korea",
@@ -12034,7 +12928,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "03:30 AM",
     "Country": "Australia",
@@ -12050,7 +12944,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "03:30 AM",
     "Country": "Australia",
@@ -12066,7 +12960,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "03:30 AM",
     "Country": "Australia",
@@ -12082,7 +12976,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "04:15 AM",
     "Country": "Saudi Arabia",
@@ -12098,7 +12992,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "04:30 AM",
     "Country": "Australia",
@@ -12114,7 +13008,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "05:00 AM",
     "Country": "Singapore",
@@ -12130,7 +13024,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "05:00 AM",
     "Country": "Singapore",
@@ -12146,7 +13040,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "07:00 AM",
     "Country": "Turkey",
@@ -12162,7 +13056,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "07:00 AM",
     "Country": "Turkey",
@@ -12178,7 +13072,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "07:00 AM",
     "Country": "Turkey",
@@ -12194,7 +13088,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "07:00 AM",
     "Country": "Turkey",
@@ -12210,7 +13104,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "07:00 AM",
     "Country": "Turkey",
@@ -12226,7 +13120,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "07:00 AM",
     "Country": "Turkey",
@@ -12242,7 +13136,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "07:45 AM",
     "Country": "France",
@@ -12258,7 +13152,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "08:45 AM",
     "Country": "Euro Area",
@@ -12274,7 +13168,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -12290,7 +13184,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -12306,7 +13200,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -12322,7 +13216,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "09:40 AM",
     "Country": "Spain",
@@ -12338,7 +13232,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "09:40 AM",
     "Country": "Spain",
@@ -12354,7 +13248,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "10:00 AM",
     "Country": "United Kingdom",
@@ -12370,7 +13264,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "10:30 AM",
     "Country": "Germany",
@@ -12386,7 +13280,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "11:00 AM",
     "Country": "United States",
@@ -12402,7 +13296,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "11:30 AM",
     "Country": "Brazil",
@@ -12418,7 +13312,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -12434,7 +13328,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "01:00 PM",
     "Country": "Brazil",
@@ -12450,7 +13344,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "01:55 PM",
     "Country": "United States",
@@ -12466,7 +13360,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "02:00 PM",
     "Country": "Euro Area",
@@ -12482,7 +13376,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "03:00 PM",
     "Country": "Mexico",
@@ -12498,7 +13392,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -12514,7 +13408,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -12530,7 +13424,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -12546,7 +13440,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -12562,7 +13456,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -12578,7 +13472,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "04:30 PM",
     "Country": "United States",
@@ -12594,7 +13488,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "09:00 PM",
     "Country": "South Korea",
@@ -12610,7 +13504,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "09:30 PM",
     "Country": "United States",
@@ -12626,7 +13520,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "10:00 PM",
     "Country": "Australia",
@@ -12642,7 +13536,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "10:00 PM",
     "Country": "Australia",
@@ -12658,7 +13552,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "10:00 PM",
     "Country": "Australia",
@@ -12674,7 +13568,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "10:00 PM",
     "Country": "Australia",
@@ -12690,7 +13584,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "10:00 PM",
     "Country": "Australia",
@@ -12706,7 +13600,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-03",
     "Time": "11:50 PM",
     "Country": "Japan",
@@ -12722,7 +13616,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -12738,7 +13632,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -12754,7 +13648,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -12770,7 +13664,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:30 AM",
     "Country": "Singapore",
@@ -12786,7 +13680,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:45 AM",
     "Country": "China",
@@ -12802,7 +13696,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:45 AM",
     "Country": "China",
@@ -12818,7 +13712,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:35 AM",
     "Country": "Japan",
@@ -12834,7 +13728,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "05:00 AM",
     "Country": "India",
@@ -12850,7 +13744,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "05:00 AM",
     "Country": "India",
@@ -12866,7 +13760,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "05:00 AM",
     "Country": "Singapore",
@@ -12882,7 +13776,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "07:15 AM",
     "Country": "South Africa",
@@ -12898,7 +13792,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:00 AM",
     "Country": "Brazil",
@@ -12914,7 +13808,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:00 AM",
     "Country": "Spain",
@@ -12922,7 +13816,7 @@
     "Event": "Unemployment Change",
     "Actual": "",
     "Previous": "23.587K",
-    "Consensus": "",
+    "Consensus": "25.3K",
     "Forecast": "35.0K",
     "Impact": "★★",
     "EventKey": "unemployment change",
@@ -12930,7 +13824,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:00 AM",
     "Country": "Spain",
@@ -12946,7 +13840,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:15 AM",
     "Country": "Spain",
@@ -12962,7 +13856,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:15 AM",
     "Country": "Spain",
@@ -12978,7 +13872,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:45 AM",
     "Country": "Italy",
@@ -12994,7 +13888,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:45 AM",
     "Country": "Italy",
@@ -13010,7 +13904,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:50 AM",
     "Country": "France",
@@ -13026,7 +13920,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:50 AM",
     "Country": "France",
@@ -13042,7 +13936,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:55 AM",
     "Country": "Germany",
@@ -13058,7 +13952,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "08:55 AM",
     "Country": "Germany",
@@ -13074,7 +13968,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "09:00 AM",
     "Country": "Euro Area",
@@ -13090,7 +13984,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "09:00 AM",
     "Country": "Euro Area",
@@ -13106,7 +14000,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "09:30 AM",
     "Country": "United Kingdom",
@@ -13122,7 +14016,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "09:30 AM",
     "Country": "United Kingdom",
@@ -13138,7 +14032,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "10:00 AM",
     "Country": "Euro Area",
@@ -13154,7 +14048,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "10:00 AM",
     "Country": "Euro Area",
@@ -13162,7 +14056,7 @@
     "Event": "Core Inflation Rate YoY Flash",
     "Actual": "",
     "Previous": "2.5%",
-    "Consensus": "",
+    "Consensus": "2.5%",
     "Forecast": "2.6%",
     "Impact": "★★",
     "EventKey": "core inflation rate yoy flash",
@@ -13170,7 +14064,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "10:00 AM",
     "Country": "Euro Area",
@@ -13186,7 +14080,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "10:00 AM",
     "Country": "Euro Area",
@@ -13202,7 +14096,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "10:30 AM",
     "Country": "Germany",
@@ -13218,7 +14112,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "10:30 AM",
     "Country": "Germany",
@@ -13234,7 +14128,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "11:10 AM",
     "Country": "European Union",
@@ -13250,7 +14144,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "11:10 AM",
     "Country": "European Union",
@@ -13266,7 +14160,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "11:10 AM",
     "Country": "European Union",
@@ -13282,7 +14176,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -13298,7 +14192,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:00 PM",
     "Country": "United States",
@@ -13314,7 +14208,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:00 PM",
     "Country": "United States",
@@ -13330,7 +14224,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:00 PM",
     "Country": "United States",
@@ -13346,7 +14240,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:00 PM",
     "Country": "United States",
@@ -13362,7 +14256,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "12:00 PM",
     "Country": "United States",
@@ -13378,7 +14272,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:15 PM",
     "Country": "United States",
@@ -13394,7 +14288,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:20 PM",
     "Country": "Euro Area",
@@ -13410,7 +14304,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:30 PM",
     "Country": "Canada",
@@ -13426,7 +14320,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:30 PM",
     "Country": "Canada",
@@ -13442,7 +14336,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:30 PM",
     "Country": "Canada",
@@ -13458,7 +14352,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -13474,7 +14368,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -13490,7 +14384,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -13506,7 +14400,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -13522,7 +14416,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "02:30 PM",
     "Country": "Canada",
@@ -13538,7 +14432,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "02:30 PM",
     "Country": "Canada",
@@ -13554,7 +14448,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "02:45 PM",
     "Country": "United States",
@@ -13570,7 +14464,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "02:45 PM",
     "Country": "United States",
@@ -13586,7 +14480,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -13602,7 +14496,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -13618,7 +14512,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -13634,7 +14528,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -13650,7 +14544,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -13666,7 +14560,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -13682,7 +14576,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -13698,7 +14592,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -13714,7 +14608,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -13730,7 +14624,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -13746,7 +14640,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -13762,7 +14656,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -13778,7 +14672,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -13794,7 +14688,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -13810,7 +14704,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "04:30 PM",
     "Country": "United States",
@@ -13826,7 +14720,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "05:00 PM",
     "Country": "Canada",
@@ -13842,7 +14736,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "05:30 PM",
     "Country": "Brazil",
@@ -13858,7 +14752,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "09:30 PM",
     "Country": "Brazil",
@@ -13874,7 +14768,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "11:00 PM",
     "Country": "South Korea",
@@ -13890,7 +14784,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-04",
     "Time": "11:50 PM",
     "Country": "Japan",
@@ -13906,7 +14800,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -13922,7 +14816,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -13938,7 +14832,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -13954,7 +14848,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:30 AM",
     "Country": "Japan",
@@ -13970,7 +14864,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:30 AM",
     "Country": "Japan",
@@ -13986,7 +14880,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "03:35 AM",
     "Country": "Japan",
@@ -14002,7 +14896,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "04:00 AM",
     "Country": "Indonesia",
@@ -14018,7 +14912,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "04:00 AM",
     "Country": "Indonesia",
@@ -14034,7 +14928,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "05:00 AM",
     "Country": "Singapore",
@@ -14050,7 +14944,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "05:00 AM",
     "Country": "Singapore",
@@ -14066,7 +14960,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "06:00 AM",
     "Country": "Russia",
@@ -14082,7 +14976,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "06:00 AM",
     "Country": "Russia",
@@ -14098,7 +14992,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "07:00 AM",
     "Country": "Germany",
@@ -14114,7 +15008,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "07:45 AM",
     "Country": "France",
@@ -14130,7 +15024,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "08:05 AM",
     "Country": "Euro Area",
@@ -14146,7 +15040,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "08:30 AM",
     "Country": "Euro Area",
@@ -14162,7 +15056,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "08:30 AM",
     "Country": "France",
@@ -14178,7 +15072,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "08:30 AM",
     "Country": "Germany",
@@ -14194,7 +15088,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "08:30 AM",
     "Country": "Italy",
@@ -14210,7 +15104,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:00 AM",
     "Country": "Italy",
@@ -14226,7 +15120,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:00 AM",
     "Country": "Italy",
@@ -14242,7 +15136,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:00 AM",
     "Country": "Russia",
@@ -14258,7 +15152,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:00 AM",
     "Country": "United Kingdom",
@@ -14274,7 +15168,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:30 AM",
     "Country": "United Kingdom",
@@ -14290,7 +15184,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:40 AM",
     "Country": "Spain",
@@ -14306,7 +15200,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:40 AM",
     "Country": "Spain",
@@ -14322,7 +15216,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:40 AM",
     "Country": "Spain",
@@ -14338,7 +15232,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:40 AM",
     "Country": "Spain",
@@ -14354,7 +15248,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "10:00 AM",
     "Country": "Euro Area",
@@ -14370,7 +15264,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "10:00 AM",
     "Country": "Euro Area",
@@ -14386,7 +15280,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "10:00 AM",
     "Country": "France",
@@ -14402,7 +15296,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "10:00 AM",
     "Country": "France",
@@ -14418,7 +15312,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "10:00 AM",
     "Country": "France",
@@ -14434,7 +15328,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "10:00 AM",
     "Country": "France",
@@ -14450,7 +15344,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "10:30 AM",
     "Country": "Russia",
@@ -14466,7 +15360,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "10:30 AM",
     "Country": "United States",
@@ -14482,7 +15376,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "11:00 AM",
     "Country": "Germany",
@@ -14498,7 +15392,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "11:30 AM",
     "Country": "Turkey",
@@ -14514,7 +15408,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "Brazil",
@@ -14530,7 +15424,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "Brazil",
@@ -14546,7 +15440,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -14562,7 +15456,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -14578,7 +15472,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "United Kingdom",
@@ -14594,7 +15488,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "United Kingdom",
@@ -14610,7 +15504,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "United Kingdom",
@@ -14626,7 +15520,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "United Kingdom",
@@ -14642,7 +15536,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "United Kingdom",
@@ -14658,7 +15552,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "12:00 PM",
     "Country": "United Kingdom",
@@ -14674,7 +15568,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "01:00 PM",
     "Country": "Brazil",
@@ -14690,7 +15584,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "01:00 PM",
     "Country": "Brazil",
@@ -14706,7 +15600,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -14722,7 +15616,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -14738,7 +15632,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -14754,7 +15648,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -14770,7 +15664,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -14786,7 +15680,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "01:50 PM",
     "Country": "United States",
@@ -14802,7 +15696,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "02:10 PM",
     "Country": "United States",
@@ -14818,7 +15712,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "03:00 PM",
     "Country": "Euro Area",
@@ -14834,7 +15728,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "03:20 PM",
     "Country": "United States",
@@ -14850,7 +15744,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "03:30 PM",
     "Country": "United States",
@@ -14866,7 +15760,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "03:40 PM",
     "Country": "Euro Area",
@@ -14882,7 +15776,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "04:30 PM",
     "Country": "United States",
@@ -14898,7 +15792,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "04:30 PM",
     "Country": "United States",
@@ -14914,7 +15808,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "05:00 PM",
     "Country": "United States",
@@ -14930,7 +15824,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "05:00 PM",
     "Country": "United States",
@@ -14946,7 +15840,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "07:00 PM",
     "Country": "Mexico",
@@ -14962,7 +15856,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:30 PM",
     "Country": "United States",
@@ -14978,7 +15872,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "09:30 PM",
     "Country": "United States",
@@ -14994,7 +15888,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "11:30 PM",
     "Country": "Japan",
@@ -15010,7 +15904,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "11:30 PM",
     "Country": "Japan",
@@ -15026,7 +15920,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "11:50 PM",
     "Country": "Japan",
@@ -15042,7 +15936,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-05",
     "Time": "11:50 PM",
     "Country": "Japan",
@@ -15058,7 +15952,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "12:00 AM",
     "Country": "United States",
@@ -15074,7 +15968,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "03:00 AM",
     "Country": "Indonesia",
@@ -15090,7 +15984,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "03:00 AM",
     "Country": "Indonesia",
@@ -15106,7 +16000,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "03:35 AM",
     "Country": "Japan",
@@ -15122,7 +16016,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "07:00 AM",
     "Country": "Germany",
@@ -15138,7 +16032,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "07:00 AM",
     "Country": "United Kingdom",
@@ -15154,7 +16048,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "07:00 AM",
     "Country": "United Kingdom",
@@ -15170,7 +16064,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "07:45 AM",
     "Country": "France",
@@ -15186,7 +16080,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "07:45 AM",
     "Country": "France",
@@ -15202,7 +16096,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "07:45 AM",
     "Country": "France",
@@ -15218,7 +16112,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "07:45 AM",
     "Country": "France",
@@ -15234,7 +16128,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "07:45 AM",
     "Country": "France",
@@ -15250,7 +16144,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "08:00 AM",
     "Country": "Spain",
@@ -15266,7 +16160,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "09:00 AM",
     "Country": "Euro Area",
@@ -15282,7 +16176,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "09:00 AM",
     "Country": "Singapore",
@@ -15298,7 +16192,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "09:00 AM",
     "Country": "World",
@@ -15314,7 +16208,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "09:30 AM",
     "Country": "United States",
@@ -15330,7 +16224,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "10:00 AM",
     "Country": "Euro Area",
@@ -15346,7 +16240,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "10:00 AM",
     "Country": "Euro Area",
@@ -15362,7 +16256,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "10:00 AM",
     "Country": "United Kingdom",
@@ -15378,7 +16272,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "11:30 AM",
     "Country": "India",
@@ -15394,7 +16288,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "12:15 PM",
     "Country": "United Kingdom",
@@ -15410,7 +16304,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "Canada",
@@ -15426,7 +16320,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "Canada",
@@ -15442,7 +16336,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "Canada",
@@ -15458,7 +16352,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "Canada",
@@ -15474,7 +16368,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "Canada",
@@ -15490,7 +16384,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "Canada",
@@ -15506,7 +16400,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15522,7 +16416,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15538,7 +16432,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15554,7 +16448,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15570,7 +16464,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15586,7 +16480,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15602,7 +16496,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15618,7 +16512,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15634,7 +16528,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15650,7 +16544,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "01:30 PM",
     "Country": "United States",
@@ -15666,7 +16560,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "02:00 PM",
     "Country": "United States",
@@ -15682,7 +16576,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "02:00 PM",
     "Country": "United States",
@@ -15698,7 +16592,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "02:10 PM",
     "Country": "United States",
@@ -15714,7 +16608,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "02:30 PM",
     "Country": "Turkey",
@@ -15730,7 +16624,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "03:00 PM",
     "Country": "Canada",
@@ -15746,7 +16640,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -15762,7 +16656,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -15778,7 +16672,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -15794,7 +16688,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -15810,7 +16704,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -15826,7 +16720,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "05:15 PM",
     "Country": "United States",
@@ -15842,7 +16736,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "06:00 PM",
     "Country": "Brazil",
@@ -15858,7 +16752,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "06:00 PM",
     "Country": "United States",
@@ -15874,7 +16768,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "06:00 PM",
     "Country": "United States",
@@ -15890,7 +16784,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "07:00 PM",
     "Country": "Argentina",
@@ -15906,7 +16800,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-06",
     "Time": "08:00 PM",
     "Country": "United States",
@@ -15922,7 +16816,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-08",
     "Time": "11:50 PM",
     "Country": "Japan",
@@ -15938,7 +16832,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -15954,7 +16848,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -15970,7 +16864,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -15986,7 +16880,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "01:30 AM",
     "Country": "China",
@@ -16002,7 +16896,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "01:30 AM",
     "Country": "China",
@@ -16018,7 +16912,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "01:30 AM",
     "Country": "China",
@@ -16034,7 +16928,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "02:30 AM",
     "Country": "South Korea",
@@ -16050,7 +16944,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "03:00 AM",
     "Country": "Indonesia",
@@ -16066,7 +16960,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "03:35 AM",
     "Country": "Japan",
@@ -16082,7 +16976,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "05:00 AM",
     "Country": "Japan",
@@ -16098,7 +16992,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "05:00 AM",
     "Country": "Japan",
@@ -16114,7 +17008,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "06:00 AM",
     "Country": "South Africa",
@@ -16130,7 +17024,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "07:00 AM",
     "Country": "Germany",
@@ -16146,7 +17040,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "07:00 AM",
     "Country": "Germany",
@@ -16162,7 +17056,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "07:00 AM",
     "Country": "Germany",
@@ -16178,7 +17072,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -16194,7 +17088,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -16210,7 +17104,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -16226,7 +17120,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -16242,7 +17136,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "11:30 AM",
     "Country": "Brazil",
@@ -16258,7 +17152,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -16274,7 +17168,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -16290,7 +17184,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -16306,7 +17200,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -16322,7 +17216,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -16338,7 +17232,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -16354,7 +17248,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -16370,7 +17264,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "12:00 PM",
     "Country": "Mexico",
@@ -16386,7 +17280,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "01:00 PM",
     "Country": "Russia",
@@ -16402,7 +17296,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "02:00 PM",
     "Country": "France",
@@ -16418,7 +17312,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "02:00 PM",
     "Country": "France",
@@ -16434,7 +17328,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "02:00 PM",
     "Country": "France",
@@ -16450,7 +17344,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -16466,7 +17360,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "03:00 PM",
     "Country": "United States",
@@ -16482,7 +17376,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "03:20 PM",
     "Country": "United States",
@@ -16498,7 +17392,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "04:00 PM",
     "Country": "United States",
@@ -16514,7 +17408,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "04:30 PM",
     "Country": "United States",
@@ -16530,7 +17424,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "04:30 PM",
     "Country": "United States",
@@ -16546,7 +17440,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "04:30 PM",
     "Country": "United States",
@@ -16562,7 +17456,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "05:00 PM",
     "Country": "Canada",
@@ -16578,7 +17472,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "06:00 PM",
     "Country": "United States",
@@ -16594,7 +17488,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "11:30 PM",
     "Country": "Australia",
@@ -16610,7 +17504,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "11:30 PM",
     "Country": "Australia",
@@ -16626,7 +17520,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "11:30 PM",
     "Country": "Japan",
@@ -16642,7 +17536,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "11:30 PM",
     "Country": "Japan",
@@ -16658,7 +17552,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "11:50 PM",
     "Country": "Japan",
@@ -16674,7 +17568,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "11:50 PM",
     "Country": "Japan",
@@ -16690,7 +17584,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-09",
     "Time": "11:50 PM",
     "Country": "Japan",
@@ -16706,7 +17600,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "12:01 AM",
     "Country": "United Kingdom",
@@ -16722,7 +17616,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "12:30 AM",
     "Country": "Australia",
@@ -16738,7 +17632,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "03:00 AM",
     "Country": "China",
@@ -16754,7 +17648,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "03:00 AM",
     "Country": "China",
@@ -16770,7 +17664,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "03:00 AM",
     "Country": "China",
@@ -16786,7 +17680,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "03:00 AM",
     "Country": "China",
@@ -16802,7 +17696,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "03:00 AM",
     "Country": "Indonesia",
@@ -16818,7 +17712,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "03:35 AM",
     "Country": "Japan",
@@ -16834,7 +17728,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "05:00 AM",
     "Country": "Japan",
@@ -16850,7 +17744,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "05:00 AM",
     "Country": "Japan",
@@ -16866,7 +17760,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "06:00 AM",
     "Country": "Saudi Arabia",
@@ -16875,14 +17769,14 @@
     "Actual": "",
     "Previous": "-23.5%",
     "Consensus": "",
-    "Forecast": "-10%",
+    "Forecast": "-14.0%",
     "Impact": "★",
     "EventKey": "industrial production yoy",
     "DetailURL": "https://tradingeconomics.com/saudi-arabia/industrial-production",
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "06:30 AM",
     "Country": "France",
@@ -16898,7 +17792,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "07:00 AM",
     "Country": "Turkey",
@@ -16914,7 +17808,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "07:00 AM",
     "Country": "Turkey",
@@ -16930,7 +17824,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -16946,7 +17840,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "09:30 AM",
     "Country": "South Africa",
@@ -16962,7 +17856,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "09:40 AM",
     "Country": "Spain",
@@ -16978,7 +17872,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "09:40 AM",
     "Country": "Spain",
@@ -16994,7 +17888,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "10:00 AM",
     "Country": "United Kingdom",
@@ -17010,7 +17904,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "11:00 AM",
     "Country": "Brazil",
@@ -17026,7 +17920,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "11:00 AM",
     "Country": "South Africa",
@@ -17042,7 +17936,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "11:00 AM",
     "Country": "South Africa",
@@ -17058,7 +17952,7 @@
     "Timezone": "UTC"
    },
    {
-    "Sheet": "Next Month",
+    "Sheet": "This Month",
     "Date": "2026-11-10",
     "Time": "11:00 AM",
     "Country": "United States",
@@ -17072,10 +17966,301 @@
     "EventKey": "nfib business optimism index",
     "DetailURL": "https://tradingeconomics.com/united-states/nfib-business-optimism-index",
     "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "01:15 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "ADP Employment Change Weekly",
+    "Actual": "",
+    "Previous": "16.75K",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★",
+    "EventKey": "adp employment change weekly",
+    "DetailURL": "https://tradingeconomics.com/united-states/adp-employment-change-weekly",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Core Inflation Rate MoM",
+    "Actual": "",
+    "Previous": "0.3%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★★",
+    "EventKey": "core inflation rate mom",
+    "DetailURL": "https://tradingeconomics.com/united-states/core-inflation-rate-mom",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Core Inflation Rate YoY",
+    "Actual": "",
+    "Previous": "2.6%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★★",
+    "EventKey": "core inflation rate yoy",
+    "DetailURL": "https://tradingeconomics.com/united-states/core-inflation-rate",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Inflation Rate MoM",
+    "Actual": "",
+    "Previous": "0.6%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★★",
+    "EventKey": "inflation rate mom",
+    "DetailURL": "https://tradingeconomics.com/united-states/inflation-rate-mom",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Inflation Rate YoY",
+    "Actual": "",
+    "Previous": "3.7%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★★",
+    "EventKey": "inflation rate yoy",
+    "DetailURL": "https://tradingeconomics.com/united-states/inflation-cpi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "CPI",
+    "Actual": "",
+    "Previous": "336.94",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★",
+    "EventKey": "cpi",
+    "DetailURL": "https://tradingeconomics.com/united-states/consumer-price-index-cpi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "01:30 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "CPI s.a",
+    "Actual": "",
+    "Previous": "336.30",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★",
+    "EventKey": "cpi s.a",
+    "DetailURL": "https://tradingeconomics.com/united-states/cpi-seasonally-adjusted",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "01:55 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Redbook YoY",
+    "Actual": "",
+    "Previous": "",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "redbook yoy",
+    "DetailURL": "https://tradingeconomics.com/united-states/redbook-index",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "04:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Total Household Debt",
+    "Actual": "",
+    "Previous": "$18.8T",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "total household debt",
+    "DetailURL": "https://tradingeconomics.com/united-states/debt-balance-total",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "04:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Wasde Report",
+    "Actual": "",
+    "Previous": "",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "wasde report",
+    "DetailURL": "https://tradingeconomics.com/united-states/calendar",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "05:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "Eia Short-Term Energy Outlook",
+    "Actual": "",
+    "Previous": "",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★★",
+    "EventKey": "eia short-term energy outlook",
+    "DetailURL": "https://tradingeconomics.com/united-states/calendar",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "This Month",
+    "Date": "2026-11-10",
+    "Time": "06:00 PM",
+    "Country": "United States",
+    "CountryCode": "US",
+    "Event": "10-Year Note Auction",
+    "Actual": "",
+    "Previous": "5.300%",
+    "Consensus": "",
+    "Forecast": "",
+    "Impact": "★",
+    "EventKey": "10-year note auction",
+    "DetailURL": "https://tradingeconomics.com/united-states/government-bond-yield",
+    "Timezone": "UTC"
    }
   ],
-  "Yesterday": [],
+  "Next Month": [],
+  "Yesterday": [
+   {
+    "Sheet": "Yesterday",
+    "Date": "2026-10-31",
+    "Time": "01:30 AM",
+    "Country": "China",
+    "CountryCode": "CN",
+    "Event": "NBS Manufacturing PMI",
+    "Actual": "49.3",
+    "Previous": "50.1",
+    "Consensus": "50",
+    "Forecast": "50.1",
+    "Impact": "★★★",
+    "EventKey": "nbs manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/china/business-confidence",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Yesterday",
+    "Date": "2026-10-31",
+    "Time": "01:30 AM",
+    "Country": "China",
+    "CountryCode": "CN",
+    "Event": "NBS Non Manufacturing PMI",
+    "Actual": "49.7",
+    "Previous": "50.2",
+    "Consensus": "50.5",
+    "Forecast": "50.6",
+    "Impact": "★★",
+    "EventKey": "nbs non manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/china/non-manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Yesterday",
+    "Date": "2026-10-31",
+    "Time": "01:30 AM",
+    "Country": "China",
+    "CountryCode": "CN",
+    "Event": "NBS General PMI",
+    "Actual": "49.7",
+    "Previous": "50.7",
+    "Consensus": "",
+    "Forecast": "51",
+    "Impact": "★",
+    "EventKey": "nbs general pmi",
+    "DetailURL": "https://tradingeconomics.com/china/nbs-general-pmi",
+    "Timezone": "UTC"
+   }
+  ],
   "Previous Week": [],
-  "Previous Month": []
+  "Previous Month": [
+   {
+    "Sheet": "Previous Month",
+    "Date": "2026-10-31",
+    "Time": "01:30 AM",
+    "Country": "China",
+    "CountryCode": "CN",
+    "Event": "NBS Manufacturing PMI",
+    "Actual": "49.3",
+    "Previous": "50.1",
+    "Consensus": "50",
+    "Forecast": "50.1",
+    "Impact": "★★★",
+    "EventKey": "nbs manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/china/business-confidence",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Previous Month",
+    "Date": "2026-10-31",
+    "Time": "01:30 AM",
+    "Country": "China",
+    "CountryCode": "CN",
+    "Event": "NBS Non Manufacturing PMI",
+    "Actual": "49.7",
+    "Previous": "50.2",
+    "Consensus": "50.5",
+    "Forecast": "50.6",
+    "Impact": "★★",
+    "EventKey": "nbs non manufacturing pmi",
+    "DetailURL": "https://tradingeconomics.com/china/non-manufacturing-pmi",
+    "Timezone": "UTC"
+   },
+   {
+    "Sheet": "Previous Month",
+    "Date": "2026-10-31",
+    "Time": "01:30 AM",
+    "Country": "China",
+    "CountryCode": "CN",
+    "Event": "NBS General PMI",
+    "Actual": "49.7",
+    "Previous": "50.7",
+    "Consensus": "",
+    "Forecast": "51",
+    "Impact": "★",
+    "EventKey": "nbs general pmi",
+    "DetailURL": "https://tradingeconomics.com/china/nbs-general-pmi",
+    "Timezone": "UTC"
+   }
+  ]
  }
 }
