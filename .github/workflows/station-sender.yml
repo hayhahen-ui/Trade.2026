@@ -1,0 +1,48 @@
+# Trade.2026 — Gửi tín hiệu Telegram (mỗi 5 phút)
+# Đọc bảng signals, gửi tín hiệu mới đủ điểm (>=70, alert_ready hoặc
+# retest_in_progress, loại "that") qua bot @trademrbit_bot.
+# Chống gửi trùng bằng danh sách id đã gửi trong station_heartbeat
+# (tram = 'telegram-sender'). Không chạm code gốc của dự án.
+name: Gui tin hieu Telegram (Supabase)
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Chay thu (khong gui Telegram, chi log)"
+        type: boolean
+        default: false
+      test_message:
+        description: "Gui 1 tin test co dinh ve Telegram"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: station-sender
+  cancel-in-progress: false
+
+jobs:
+  sender:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+      SEND_TEST: ${{ inputs.test_message && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Gui tin hieu moi qua Telegram
+        run: node tools/telegram-sender.js
