@@ -1,8 +1,18 @@
-# Trade.2026 — Gửi tín hiệu Telegram (mỗi 5 phút)
-# Đọc bảng signals, gửi tín hiệu mới đủ điểm (>=70, alert_ready hoặc
-# retest_in_progress, loại "that") qua bot @trademrbit_bot.
+# Trade.2026 — Gửi tín hiệu coin qua RELAY Flask (mỗi 5 phút)
+# Đọc bảng signals, với mỗi tín hiệu mới đủ điểm (>=70, alert_ready hoặc
+# retest_in_progress, loại "that") thì POST về relay của web bot-tele-2026
+# (https://bot-tele-2026.vercel.app/api/signal-relay, header X-Signal-Key).
+# Flask định tuyến theo kind="coin": ngưỡng 70, chống trùng 60 phút/coin,
+# chat + token bot coin lấy từ bảng bots -> gửi tin giàu (chart Pillow +
+# thẻ chi tiết + nút bấm) về Telegram qua @trademrbit_bot.
 # Chống gửi trùng bằng danh sách id đã gửi trong station_heartbeat
 # (tram = 'telegram-sender'). Không chạm code gốc của dự án.
+#
+# Secret cần thêm (repo Trade.2026 -> Settings -> Secrets and variables):
+#   SIGNAL_KEY — giá trị PHẢI GIỐNG hệt biến SIGNAL_KEY trên Vercel
+#   của bot-tele-2026 (xem HUONG_DAN_MULTI_BOT.md).
+# TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID không còn dùng ở đây nữa
+# (chat + token do Flask lấy từ bảng bots / Vercel env).
 name: Gui tin hieu Telegram (Supabase)
 
 on:
@@ -11,11 +21,11 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Chay thu (khong gui Telegram, chi log)"
+        description: "Chay thu (khong relay, chi log)"
         type: boolean
         default: false
       test_message:
-        description: "Gui 1 tin test co dinh ve Telegram"
+        description: "Relay 1 tin hieu demo coin (BTC long 78) qua relay"
         type: boolean
         default: false
 
@@ -33,8 +43,7 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      SIGNAL_KEY: ${{ secrets.SIGNAL_KEY }}
       DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
       SEND_TEST: ${{ inputs.test_message && '1' || '0' }}
     steps:
@@ -44,5 +53,5 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Gui tin hieu moi qua Telegram
+      - name: Relay tin hieu moi qua Flask
         run: node tools/telegram-sender.js
