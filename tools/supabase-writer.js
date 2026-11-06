@@ -69,7 +69,7 @@ function create({ url, anonKey, serviceKey }) {
         const text = await res.text();
         if (res.status === 401) {
           throw new Error(
-            `[supabase-writer] HTTP 401 khi gọi ${method} ${path.split("?")[0]} — key sai hoặc hết hạn, kiểm tra lại GitHub Secrets SUPABASE_ANON_KEY / SUPABASE_SERVICE_KEY`
+            `[supabase-writer] HTTP 401 khi gọi ${method} ${path.split("?")[0]}: ${text.slice(0, 300)} — kiểm tra lại GitHub Secrets SUPABASE_ANON_KEY / SUPABASE_SERVICE_KEY`
           );
         }
         if (!res.ok) {
