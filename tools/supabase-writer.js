@@ -3,14 +3,22 @@
  * Lớp ghi Supabase (PostgREST) cho trạm 24/7, KHÔNG dùng dependency ngoài
  * (dùng fetch có sẵn của Node 18+).
  *
- * Auth — Supabase REST cần CẢ 2 key trên mọi request:
- *   header `apikey`            = SUPABASE_ANON_KEY    (key publishable sb_publishable_...)
- *   header `Authorization`     = Bearer SUPABASE_SERVICE_KEY (key secret sb_secret_...)
- * Trên GitHub Actions cả 2 key lấy từ GitHub Secrets (xem HUONG_DAN.md).
- * CHÚ Ý: test từ sandbox chỉ dùng được 1 key/request (kênh bảo mật chặn
- * request mang 2 key khác nhau — lỗi 403 credential_ambiguity), nên đường
- * ghi bằng service key KHÔNG test được từ sandbox; máy chạy Actions gọi
- * trực tiếp nên không vướng giới hạn này.
+ * Auth — key mới của Supabase (sb_publishable_... / sb_secret_...) KHÔNG phải
+ * JWT (chỉ có 1 đoạn, không có dấu chấm). PostgREST giải mã header
+ * `Authorization: Bearer ...` như một JWT nên gửi secret key vào đó sẽ bị
+ * 401 PGRST301 "Expected 3 parts in JWT; got 1" — đúng lỗi trạm gặp ở lần
+ * chạy #4 (06/11). Cách đúng (theo docs Supabase + supabase-js): CHỈ gửi
+ * header `apikey` = key SECRET (sb_secret_...) — gateway gán vai trò
+ * service_role, bỏ qua RLS. KHÔNG gửi header Authorization (chỉ dùng cho
+ * JWT phiên đăng nhập của user). Key publishable chỉ dùng cho đọc phía
+ * client; trạm ghi bằng secret key nên không cần tới nó.
+ *
+ * LƯU Ý về test: secret key KHÔNG test được từ sandbox — connector lưu key
+ * này đặt placement bearer_header nên kênh bảo mật chỉ thay surrogate bằng
+ * key thật ở header Authorization; đặt surrogate vào header apikey thì
+ * Supabase nhận đúng chuỗi surrogate và trả "Invalid API key" (đây là lỗi
+ * của kênh test, KHÔNG phải lỗi của key). Máy chạy Actions dùng key thật
+ * từ GitHub Secrets nên không vướng giới hạn này.
  *
  * Quy tắc an toàn: KHÔNG BAO GIỜ in key/token ra log — chỉ log tên bảng,
  * số dòng và HTTP status.
@@ -33,21 +41,19 @@ function env(name) {
 function createFromEnv() {
   return create({
     url: env("SUPABASE_URL"),
-    anonKey: env("SUPABASE_ANON_KEY"),
     serviceKey: env("SUPABASE_SERVICE_KEY"),
   });
 }
 
-function create({ url, anonKey, serviceKey }) {
-  if (!url || !anonKey || !serviceKey) {
-    throw new Error("[supabase-writer] cần đủ SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY");
+function create({ url, serviceKey }) {
+  if (!url || !serviceKey) {
+    throw new Error("[supabase-writer] cần đủ SUPABASE_URL, SUPABASE_SERVICE_KEY");
   }
   const base = String(url).replace(/\/+$/, "") + "/rest/v1";
 
   function headers(extra) {
     return {
-      apikey: anonKey,
-      Authorization: `Bearer ${serviceKey}`,
+      apikey: serviceKey,
       "Content-Type": "application/json",
       ...(extra || {}),
     };
@@ -69,7 +75,7 @@ function create({ url, anonKey, serviceKey }) {
         const text = await res.text();
         if (res.status === 401) {
           throw new Error(
-            `[supabase-writer] HTTP 401 khi gọi ${method} ${path.split("?")[0]}: ${text.slice(0, 300)} — kiểm tra lại GitHub Secrets SUPABASE_ANON_KEY / SUPABASE_SERVICE_KEY`
+            `[supabase-writer] HTTP 401 khi gọi ${method} ${path.split("?")[0]}: ${text.slice(0, 300)} — kiểm tra lại GitHub Secret SUPABASE_SERVICE_KEY (phải là key secret sb_secret_...) và SUPABASE_URL`
           );
         }
         if (!res.ok) {
