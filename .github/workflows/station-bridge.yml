@@ -1,0 +1,45 @@
+# Trade.2026 — Cầu nối trình duyệt -> Supabase (mỗi 5 phút)
+# Kéo data/browser-signals.json (nhánh data) rồi upsert tín hiệu mới vào bảng signals.
+# Cron tối thiểu của GitHub Actions là 5 phút (bản gốc chạy 2 phút trên server).
+# Không chạm vào file journal-247.json: tín hiệu trình duyệt sẽ vào payload web
+# ở vòng collector 15 phút tiếp theo; sender Telegram đọc thẳng bảng signals
+# nên thấy tin trong tối đa 5 phút.
+# LƯU Ý: file browser-signals.json đã ngừng cập nhật từ 12/10/2026 nên workflow
+# này sẽ chạy no-op cho tới khi cầu nối trình duyệt được bật lại trong app.
+name: Cau noi trinh duyet (Supabase)
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Chay thu (khong ghi Supabase)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: station-bridge
+  cancel-in-progress: false
+
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Chay cau noi
+        run: node tools/bridge-supabase.js

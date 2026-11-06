@@ -1,0 +1,72 @@
+# Trade.2026 — Trạm 24/7 chạy trên GitHub Actions (ghi Supabase + dual-write GitHub)
+# Chạy collector + flow-collector mỗi 15 phút. Mỗi lần chạy là máy mới nên
+# state (journal, con trỏ flow, best-setup) được nạp từ Supabase trước khi chạy
+# và đẩy lại Supabase sau khi chạy (xem tools/station-run.js).
+# Dual-write: web vẫn đọc file JSON nhánh data nên workflow đẩy file lên
+# nhánh data mỗi giờ 1 lần (giữ nhịp cũ của push-247.js); dữ liệu live nằm ở Supabase.
+name: Tram 24/7 (Supabase)
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Chay thu (khong ghi Supabase, khong day GitHub)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: station-247
+  cancel-in-progress: false
+
+jobs:
+  station:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Chay tram (collector + flow)
+        run: node tools/station-run.js
+
+      # Dual-write: day file JSON len nhanh data (web dang doc o do).
+      # Chi day moi gio 1 lan (giong push-247.js cu) de khong dot het
+      # han muc deploy cua Vercel (100 deploy/ngay o goi Hobby).
+      - name: Day JSON len nhanh data (moi gio 1 lan)
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name "trade2026-station-bot"
+          git config user.email "actions@github.com"
+          git fetch origin data --depth=1
+          LAST_PUSH=$(git log -1 --format=%ct origin/data 2>/dev/null || echo 0)
+          NOW=$(date +%s)
+          AGE=$((NOW - LAST_PUSH))
+          echo "Lan day data gan nhat: ${AGE}s truoc"
+          if [ "$AGE" -lt 3600 ]; then
+            echo "Chua den gio day (moi gio 1 lan) — bo qua"
+            exit 0
+          fi
+          git worktree add /tmp/data-branch origin/data
+          cp data/journal-247.json data/flow-247.json /tmp/data-branch/data/
+          cp data/flow-history-12h.json /tmp/data-branch/data/ 2>/dev/null || true
+          cd /tmp/data-branch
+          git add data/journal-247.json data/flow-247.json data/flow-history-12h.json
+          if git diff --cached --quiet; then
+            echo "Khong co thay doi — khong commit"
+            exit 0
+          fi
+          git commit -m "trạm 24/7: cập nhật journal + flow"
+          git push origin HEAD:data

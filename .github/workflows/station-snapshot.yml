@@ -1,0 +1,58 @@
+# Trade.2026 — Snapshot dòng tiền 12h (2 lần/ngày)
+# 05:07 và 17:07 UTC = 12:07 và 00:07 giờ VN. Tổng hợp cửa sổ 12h vừa kết thúc
+# từ bảng whale_events + liquidations rồi upsert vào flow_buckets_12h,
+# đồng thời nối vào file data/flow-history-12h.json để dual-write cho web.
+name: Snapshot dong tien 12h (Supabase)
+
+on:
+  schedule:
+    - cron: "7 5,17 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Chay thu (khong ghi Supabase, khong day GitHub)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: station-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Chay snapshot 12h
+        run: node tools/snapshot-12h-supabase.js
+
+      - name: Day file lich su len nhanh data
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name "trade2026-station-bot"
+          git config user.email "actions@github.com"
+          git fetch origin data --depth=1
+          git worktree add /tmp/data-branch origin/data
+          cp data/flow-history-12h.json /tmp/data-branch/data/
+          cd /tmp/data-branch
+          git add data/flow-history-12h.json
+          if git diff --cached --quiet; then
+            echo "Khong co thay doi — khong commit"
+            exit 0
+          fi
+          git commit -m "trạm 24/7: snapshot dòng tiền 12h"
+          git push origin HEAD:data
