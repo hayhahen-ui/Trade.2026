@@ -29,6 +29,9 @@ function renderTongQuan(root) {
     else clearInterval(window._skTimer);
   }, 2000);
 
+  // Panel Skill Auto Run — chạy mỗi 5 phút, thấy được trên Tổng quan (v2.17.4)
+  if (typeof ganPanelAutoRun === "function") ganPanelAutoRun(root);
+
   // Cố vấn lệnh — gõ text / import ảnh / dán
   root.appendChild(el("div", { id: "advisor-panel" }));
   veAdvisorPanel();
