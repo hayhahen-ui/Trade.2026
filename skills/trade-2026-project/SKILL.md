@@ -68,15 +68,15 @@ Work on the Trade.2026 coin trading project the right way, from its real code an
 
 - Review every signal younger than 10 minutes with the review-trade-signal skill: REPORT only at score 70 or above with phase alert ready or retest in progress, PREPARE at 50 to 69, REJECT when stale, duplicate within 60 minutes per coin, or SL/TP on the wrong side. A signal with no phase in the row is NOT VERIFIED, never REPORT.
 
-- Use a free AI key only for one optional job: a 2 line Vietnamese summary of a new REPORT worthy signal, for the advisor. Call the AI at most once per run, only when at least one REPORT worthy signal exists, and with a 20 second timeout. When the call fails for any reason, skip the summary and keep the run green. The deterministic verdict never waits for the AI.
+- Use a free AI key only for one optional job: a 2 line Vietnamese summary of a new REPORT worthy signal, for the advisor. Call the AI at most once per run for a success, only when at least one REPORT worthy signal exists, and with a 20 second timeout. When a provider fails for any reason, try the next provider in the chain. A failed call costs no token. When every provider fails, skip the summary and keep the run green. The deterministic verdict never waits for the AI.
 
-- Pick the AI provider in this order: Novita first, UTIM second, APINEX third. Novita uses https://api.novita.ai/v3/openai with model deepseek/deepseek-v4.1-flash. UTIM uses https://api.utim.dev/v1 with the model from the UTIM_MODEL variable, and APINEX uses https://api.apinex.bond/v1 with the model from the APINEX_MODEL variable. When a model variable is unset, skip that provider and log the reason. Never invent a model id.
+- Pick the AI provider in this order: Novita first, UTIM second, APINEX third, River fourth. Novita uses https://api.novita.ai/v3/openai with model deepseek/deepseek-v4.1-flash. UTIM uses https://api.utim.dev/v1 with the model from the UTIM_MODEL variable, and APINEX uses https://api.apinex.bond/v1 with the model from the APINEX_MODEL variable. River uses https://api.river.ai/v1 with the model from the RIVER_MODEL variable, default moonshotai/Kimi-K3.1-Pro, chosen by hay on 2026-11-08, priced at 2 dollars input and 10 dollars output per 1M tokens. River is a paid service, so it sits last and only spends when the three free providers fail or have no key. When a model variable is unset, skip that provider and log the reason, except River which falls back to its default model. Never invent a model id.
 
-- Read every key from the environment only: NOVITA_API_KEY, UTIM_API_KEY, APINEX_API_KEY. When no key is set, run in deterministic mode with no AI call. That mode is a full run, not a failure.
+- Read every key from the environment only: NOVITA_API_KEY, UTIM_API_KEY, APINEX_API_KEY, RIVER_API_KEY. When no key is set, run in deterministic mode with no AI call. That mode is a full run, not a failure.
 
 - Write one run record per cycle as skill-run-<UTC timestamp>.json, with the heartbeat age, the signals reviewed, each verdict with its reason, the AI provider used or the reason it was skipped, and the run exit code. The workflow uploads the record as an artifact kept for 7 days.
 
-- Show the run on the web: the panel in assets/js/autorun-panel.js sits on the Tong quan screen under the data health card. It reads the station journal from the data branch and the latest workflow run from the public GitHub API, and it reviews new signals with the same rules as the runner. It never needs a key and never writes anything. When the workflow file is missing, the panel says so plainly instead of showing a fake green state.
+- Show the run on the web: the panel in assets/js/autorun-panel.js sits on the Tong quan screen under the data health card. It reads the station journal from the data branch and the latest workflow run from the public GitHub API, and it reviews new signals with the same rules as the runner. It never needs a key and never writes anything. When the workflow file is missing, the panel says so plainly instead of showing a fake green state. A GitHub API 404 for the workflow means the file is missing, which is a waiting state, never an error.
 
 - Exit 0 when the Supabase read worked, even when the station is STALE or no signal is new. Exit 1 only when the runner itself fails, such as Supabase unreachable after one retry, or a required variable missing outside dry run. A dry run uses mock data and makes no network call except the optional AI test call.
 
@@ -116,7 +116,7 @@ Work on the Trade.2026 coin trading project the right way, from its real code an
 
 - No price or level invented. No live win rate quoted as a promise. Disclaimer not investment advice present on any signal or advice text.
 
-- Auto Run: the heartbeat age is in the run record, every new signal has a verdict with a reason, the AI call count is at most one per run, a failed AI call never turns the run red, and the run record file exists as an artifact.
+- Auto Run: the heartbeat age is in the run record, every new signal has a verdict with a reason, the AI call count is at most one success per run, a failed AI call falls through to the next provider and never turns the run red, River is last because it is paid, and the run record file exists as an artifact.
 
 - Auto Run panel: visible on Tong quan, shows the workflow last run, the station heartbeat age, and verdicts for signals newer than 10 minutes, with the same review rules as the runner.
 
@@ -136,7 +136,7 @@ Work on the Trade.2026 coin trading project the right way, from its real code an
 
 ## Learn
 
-- Latest change: v1.1.1 on 2026-11-08, Auto Run panel on the Tong quan screen added (assets/js/autorun-panel.js, app v2.17.4, harness section 39, 657 pass 0 fail). See CHANGELOG.md.
+- Latest change: v1.1.3 on 2026-11-08, panel fix for the GitHub API 404 (missing workflow file is a waiting state, not an error), app v2.17.5, harness 663 pass 0 fail. See CHANGELOG.md.
 
 - Known lessons already baked in: check the live data branch not a zip of main, GitHub cron is best effort, Supabase auth is apikey only, NN weights mismatch 12 8 1 versus 24 8 1, harness dirties data files, and the withdrawn 57 out of 63 figure must never be reused.
 

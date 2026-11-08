@@ -844,7 +844,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.4"') >= 0, "APP_VERSION = 2.17.4");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.5"') >= 0, "APP_VERSION = 2.17.5");
 }
 };
 
@@ -895,7 +895,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.4"') >= 0, "APP_VERSION = 2.17.4");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.5"') >= 0, "APP_VERSION = 2.17.5");
 }
 };
 
@@ -925,7 +925,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.4"') >= 0, "APP_VERSION = 2.17.4");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.5"') >= 0, "APP_VERSION = 2.17.5");
 }
 };
 
@@ -968,7 +968,7 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.4"') >= 0, "APP_VERSION = 2.17.4");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.5"') >= 0, "APP_VERSION = 2.17.5");
 }
 };
 
@@ -1658,7 +1658,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.17\.4/.test(idx), "index.html đã lên v2.17.4");
+  ok(/Trade\.2026 v2\.17\.5/.test(idx), "index.html đã lên v2.17.5");
 }
 
 const _p30 = async () => {
@@ -1719,7 +1719,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.17\.4/.test(idx), "index.html đã lên v2.17.4");
+  ok(/Trade\.2026 v2\.17\.5/.test(idx), "index.html đã lên v2.17.5");
 };
 
 const _p31 = async () => {
@@ -1759,7 +1759,7 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
+  ok(/Trade\.2026 v2\.17\.5/.test(read("index.html")), "index.html đã lên v2.17.5");
 }
 };
 
@@ -1817,7 +1817,7 @@ console.log("\n[32] v2.17.0 — futures: cửa sổ đánh giá tín hiệu 15m 
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
+  ok(/Trade\.2026 v2\.17\.5/.test(read("index.html")), "index.html đã lên v2.17.5");
 }
 };
 
@@ -2000,7 +2000,7 @@ console.log("\n[33] v2.17.0 — NN v2: missing-mask, snapshot contract, nhãn ne
   ok(!bh2.some(b => /NN thử nghiệm/.test(b.tieuDe)), "chưa có dự đoán NN → không có mục NN");
 
   // 13. version
-  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
+  ok(/Trade\.2026 v2\.17\.5/.test(read("index.html")), "index.html đã lên v2.17.5");
   ok(/neural\.js\?v=2\.17\.2/.test(read("index.html")), "index.html nạp neural.js v2.17.2");
 }
 };
@@ -2092,7 +2092,7 @@ console.log("\n[34] v2.17.0 — A06: từ chối artifact hỏng/legacy, báo đ
   // 11. wiring: config + UI + engine
   const cfg = read("assets/js/config.js");
   ok(/nnCheDo/.test(cfg), "config.js có SETTINGS.nnCheDo");
-  ok(/2\.17\.4/.test(cfg), "config.js APP_VERSION 2.17.4");
+  ok(/2\.17\.5/.test(cfg), "config.js APP_VERSION 2.17.5");
   const s2 = read("assets/js/screens2.js");
   ok(/Mạng nơ-ron/.test(s2) && /moTaTrangThai/.test(s2), "modal Cài đặt có công tắc NN + trạng thái");
   const eng = read("assets/js/engine.js");
@@ -2100,7 +2100,7 @@ console.log("\n[34] v2.17.0 — A06: từ chối artifact hỏng/legacy, báo đ
   ok(!/NN\.duDoanChoEngine\(/.test(eng) && !/buChoCache\(/.test(read("assets/js/app.js")), "không còn đường ghi/backfill cũ (A19)");
 
   // 12. version
-  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
+  ok(/Trade\.2026 v2\.17\.5/.test(read("index.html")), "index.html đã lên v2.17.5");
   ok(/neural\.js\?v=2\.17\.2/.test(read("index.html")), "index.html nạp neural.js v2.17.2");
 }
 };
@@ -2163,7 +2163,7 @@ console.log("\n[35] v2.17.0 — biên 15m + auto chấm điểm journal trình d
   ok(/SCREEN_HIENTAI === "sotinhieu"[^]*renderSoTinHieu/.test(app), "xong thì vẽ lại màn hình Sổ tín hiệu nếu đang mở");
 
   // version
-  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
+  ok(/Trade\.2026 v2\.17\.5/.test(read("index.html")), "index.html đã lên v2.17.5");
   ok(/app\.js\?v=2\.17\.2/.test(read("index.html")), "index.html nạp app.js v2.17.2");
 
   // phạm vi trạm AUTO (quyết định user 01/10/2026): tự chọn coin theo volume, không fix cứng
@@ -2336,9 +2336,9 @@ console.log("\n[36] v2.15.0 — cầu nối trình duyệt → trạm → WhatsA
 // --- E. wiring: index.html + app.js + screens2.js + config.js + bridge-browser.js ---
 {
   const idx = fs.readFileSync("index.html", "utf8");
-  ok(/Trade\.2026 v2\.17\.4/.test(idx), "index.html đã lên v2.17.4");
+  ok(/Trade\.2026 v2\.17\.5/.test(idx), "index.html đã lên v2.17.5");
   ok(/assets\/js\/bridge\.js\?v=2\.15\.0/.test(idx), "index.html nạp bridge.js?v=2.15.0");
-  ok(/assets\/js\/config\.js\?v=2\.17\.4/.test(idx), "cache-bust config.js");
+  ok(/assets\/js\/config\.js\?v=2\.17\.5/.test(idx), "cache-bust config.js");
   ok(/assets\/js\/screens2\.js\?v=2\.17\.3/.test(idx), "cache-bust screens2.js");
   ok(/assets\/js\/app\.js\?v=2\.17\.2/.test(idx), "cache-bust app.js");
   const app = fs.readFileSync("assets/js/app.js", "utf8");
@@ -2494,10 +2494,10 @@ console.log("\n[37] v2.17.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
 
   // --- A22: version đồng bộ ---
   const cfg = read("assets/js/config.js");
-  ok(/const APP_VERSION = "2\.17\.4"/.test(cfg), "config.js APP_VERSION = 2.17.4");
-  ok(/Trade\.2026 v2\.17\.4/.test(idx), "index.html title/header v2.17.4");
+  ok(/const APP_VERSION = "2\.17\.5"/.test(cfg), "config.js APP_VERSION = 2.17.5");
+  ok(/Trade\.2026 v2\.17\.5/.test(idx), "index.html title/header v2.17.5");
   for (const f of ["config.js", "smc.js", "exchanges.js", "journal.js", "engine.js", "screens.js", "autorun-panel.js"])
-    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.4").test(idx), `cache-bust ${f} = 2.17.4`);
+    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.5").test(idx), `cache-bust ${f} = 2.17.5`);
   for (const f of ["ta.js", "neural.js", "app.js"])
     ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.2").test(idx), `cache-bust ${f} = 2.17.2 (không sửa đợt này)`);
 
@@ -2550,12 +2550,13 @@ const _p38 = async () => {
   console.log("[38] pass");
 };
 
-/* ---------- [39] v2.17.4 — Panel Skill Auto Run (Tổng quan) ---------- */
+/* ---------- [39] v2.17.5 — Panel Skill Auto Run + fix 404 workflow ---------- */
 const _p39 = async () => {
-  console.log("\n[39] v2.17.4 — Panel Skill Auto Run");
+  console.log("\n[39] v2.17.5 — Panel Skill Auto Run");
   const srcAR = read("assets/js/autorun-panel.js");
   const c = makeCtx({ Map, Date, AbortController, fetch: async () => { throw new Error("no fetch in test"); } });
-  for (const n of ["arTuoiPhut", "arSlTpOk", "arReviewTinHieu", "arFmtTuoi"]) {
+  c.evalIn(`const AR_GH_ACTIONS_URL = "https://github.com/hayhahen-ui/Trade.2026/actions/workflows/station-skill-5m.yml"; const AR_GH_FOLDER_URL = "https://github.com/hayhahen-ui/Trade.2026/tree/main/.github/workflows";`);
+  for (const n of ["arTuoiPhut", "arSlTpOk", "arReviewTinHieu", "arFmtTuoi", "arFmtGio", "arTrangThaiWorkflow"]) {
     try { c.evalIn(extractFunction(srcAR, n) + `\n;globalThis.__${n} = ${n};`); }
     catch (e) { console.log("  ⚠ không trích được " + n + ": " + e.message); }
   }
@@ -2580,14 +2581,27 @@ const _p39 = async () => {
   ok(out[4].verdict === "REJECT" && /trùng/.test(out[4].lyDo), "panel: ETH 81 trùng 60 phút/coin → REJECT");
   ok(fmtTuoi(500) === "vừa xong", "panel: arFmtTuoi <1.5s → 'vừa xong'");
   ok(fmtTuoi(null) === "chưa có", "panel: arFmtTuoi null → 'chưa có'");
+  // v2.17.5: 404 = chưa có file workflow (trạng thái chờ), không phải lỗi
+  const ttWf = c.get("__arTrangThaiWorkflow");
+  const r404 = ttWf({ _loi: "HTTP 404", status: 404 });
+  ok(/chưa có file station-skill-5m\.yml/.test(r404.giaTri) && r404.cls === "neutral", "panel: GH 404 → 'chưa có file', badge neutral");
+  ok(/\.github\/workflows$/.test(r404.link), "panel: GH 404 → link tới thư mục workflows để upload file");
+  const r500 = ttWf({ _loi: "HTTP 500", status: 500 });
+  ok(/không tải được/.test(r500.giaTri) && r500.cls === "warn", "panel: GH 500 → vẫn báo lỗi thật");
+  const rChua = ttWf({ total_count: 0, workflow_runs: [] });
+  ok(/chưa chạy lần nào/.test(rChua.giaTri), "panel: workflow có rồi, chưa chạy → 'chưa chạy lần nào'");
+  const rOk = ttWf({ workflow_runs: [{ status: "completed", conclusion: "success", created_at: new Date(nowMs - 300000).toISOString(), html_url: "https://github.com/x/y/1" }] });
+  ok(/thành công/.test(rOk.giaTri) && rOk.cls === "ok", "panel: lần chạy success → 'thành công', badge ok");
+  const rFail = ttWf({ workflow_runs: [{ status: "completed", conclusion: "failure", created_at: new Date(nowMs - 300000).toISOString(), html_url: "https://github.com/x/y/2" }] });
+  ok(/thất bại/.test(rFail.giaTri) && rFail.cls === "warn", "panel: lần chạy failure → 'thất bại', badge warn");
   // Gắn panel vào Tổng quan + nạp script
   const srcScreens = read("assets/js/screens.js");
   ok(/ganPanelAutoRun\(root\)/.test(srcScreens), "screens.js: renderTongQuan gọi ganPanelAutoRun(root)");
   const srcIndex = read("index.html");
-  ok(/assets\/js\/autorun-panel\.js\?v=2\.17\.4/.test(srcIndex), "index.html: nạp autorun-panel.js?v=2.17.4");
-  ok(/assets\/js\/screens\.js\?v=2\.17\.4/.test(srcIndex), "index.html: screens.js bump ?v=2.17.4 (cache-busting)");
+  ok(/assets\/js\/autorun-panel\.js\?v=2\.17\.5/.test(srcIndex), "index.html: nạp autorun-panel.js?v=2.17.5");
+  ok(/assets\/js\/screens\.js\?v=2\.17\.5/.test(srcIndex), "index.html: screens.js bump ?v=2.17.5 (cache-busting)");
   const srcConfig = read("assets/js/config.js");
-  ok(/APP_VERSION = "2\.17\.4"/.test(srcConfig), "config.js: APP_VERSION 2.17.4");
+  ok(/APP_VERSION = "2\.17\.5"/.test(srcConfig), "config.js: APP_VERSION 2.17.5");
   console.log("[39] pass");
 };
 
