@@ -4,12 +4,16 @@
  * moi, review theo luat review-trade-signal, ghi 1 run record, roi dung.
  * CHI DOC Supabase, khong ghi Supabase, khong gui Telegram, khong trade.
  *
- * Key AI free (tuy chon, doc tu env, thu theo thu tu):
+ * Key AI (tuy chon, doc tu env, thu theo thu tu):
  *   1. NOVITA_API_KEY  -> https://api.novita.ai/v3/openai, model deepseek/deepseek-v4.1-flash
  *   2. UTIM_API_KEY    -> https://api.utim.dev/v1, model lay tu UTIM_MODEL (khong co thi bo qua)
  *   3. APINEX_API_KEY  -> https://api.apinex.bond/v1, model lay tu APINEX_MODEL (khong co thi bo qua)
- * Chi goi AI toi da 1 lan moi run, chi khi co it nhat 1 tin hieu REPORT moi.
- * AI hong -> bo qua tom tat, run van xanh. Khong co key -> chay deterministic.
+ *   4. RIVER_API_KEY   -> https://api.river.ai/v1, model lay tu RIVER_MODEL
+ *      (mac dinh moonshotai/Kimi-K3.1-Pro, hay chon 08/11, $2/$10 1M token)
+ *      River la dich vu TRA PHI, de cuoi chuoi nen chi ton tien khi 3 free deu hong.
+ * Chi goi AI toi da 1 lan THANH CONG moi run, chi khi co it nhat 1 tin hieu REPORT moi.
+ * Neu provider hong (sai key, het han, timeout) thi thu provider tiep theo trong
+ * chuoi — cuoc goi hong khong ton token. AI hong het -> bo qua tom tat, run van xanh.
  *
  * Env bat buoc (tru dry-run): SUPABASE_URL, SUPABASE_SERVICE_KEY.
  * Co: node tools/skill-autorun-5m.js [--dry-run] [--help]
@@ -45,6 +49,13 @@ const PROVIDERS = [
     base: "https://api.apinex.bond/v1",
     keyEnv: "APINEX_API_KEY",
     modelEnv: "APINEX_MODEL",
+  },
+  {
+    name: "river",
+    base: "https://api.river.ai/v1",
+    keyEnv: "RIVER_API_KEY",
+    modelEnv: "RIVER_MODEL",
+    model: "moonshotai/Kimi-K3.1-Pro",
   },
 ];
 
@@ -129,20 +140,22 @@ async function callAi(provider, model, reports) {
 }
 
 async function runAi(reports) {
+  let lastFail = null;
   for (const p of PROVIDERS) {
     const key = process.env[p.keyEnv];
     if (!key) continue;
-    const model = p.model || process.env[p.modelEnv];
+    const model = (p.modelEnv ? process.env[p.modelEnv] : null) || p.model;
     if (!model) {
       log(`AI: bo qua ${p.name} (co key nhung chua dat ${p.modelEnv})`);
       continue;
     }
-    log(`AI: goi ${p.name} model ${model} (1 lan duy nhat)`);
+    log(`AI: goi ${p.name} model ${model}`);
     const res = await callAi(p, model, reports);
     if (res.ok) return { provider: p.name, model, status: "ok", summary: res.text };
-    log(`AI: ${p.name} hong (${res.reason}), bo qua tom tat`);
-    return { provider: p.name, model, status: "skipped", reason: res.reason };
+    log(`AI: ${p.name} hong (${res.reason}), thu provider tiep theo`);
+    lastFail = { provider: p.name, model, reason: res.reason };
   }
+  if (lastFail) return { provider: lastFail.provider, model: lastFail.model, status: "skipped", reason: lastFail.reason };
   return { provider: null, status: "skipped", reason: "khong co key AI nao" };
 }
 
@@ -151,7 +164,7 @@ async function main() {
   if (argv.includes("--help")) {
     console.log("Dung: node tools/skill-autorun-5m.js [--dry-run] [--help]");
     console.log("Env: SUPABASE_URL, SUPABASE_SERVICE_KEY (bat buoc tru dry-run).");
-    console.log("Key AI tuy chon: NOVITA_API_KEY, UTIM_API_KEY (+UTIM_MODEL), APINEX_API_KEY (+APINEX_MODEL).");
+    console.log("Key AI tuy chon: NOVITA_API_KEY, UTIM_API_KEY (+UTIM_MODEL), APINEX_API_KEY (+APINEX_MODEL), RIVER_API_KEY (+RIVER_MODEL, mac dinh moonshotai/Kimi-K3.1-Pro).");
     return 0;
   }
   const dryRun = argv.includes("--dry-run") || process.env.DRY_RUN === "1";
