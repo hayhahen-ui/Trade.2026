@@ -147,6 +147,17 @@ console.log("\n[3] exchanges.js — PriceHub tách slot spot/perp");
   hub.prices.BYBIT_PERP.BTC = { gia: 67050, ts: Date.now() };
   const tuoi = hub.giaTuoiNhat("BTC");
   ok(tuoi && tuoi.san === "BYBIT_PERP" && tuoi.gia === 67050, `giaTuoiNhat chọn giá tươi nhất (${tuoi?.san}) thay vì spot cũ`);
+
+  // L-06 (Đợt 1): MEXC Futures tách slot — không còn lẫn vào spot
+  {
+    const hub2 = new PriceHub(["BTC"]);
+    ok(hub2.prices.MEXC_PERP && hub2.prices.BINANCE_PERP, "PriceHub có slot MEXC_PERP và BINANCE_PERP riêng");
+    hub2.prices.MEXC_PERP.BTC = { gia: 66990, ts: Date.now() };
+    ok(hub2.gia("BTC") === null, "gia() KHÔNG lấy giá MEXC Futures làm spot");
+    ok(hub2.gia("BTC", { perpOk: true }) === 66990, "gia(perpOk) dùng MEXC_PERP làm fallback khẩn cấp");
+    const kn3 = hub2.giaKemNguon("BTC");
+    ok(kn3 && kn3.laPerp === true && kn3.san === "MEXC_PERP", "giaKemNguon gắn nhãn MEXC_PERP là perp");
+  }
 }
 
 /* ---------- 4. datahub.js — flowScore loại trừ nguồn (hàm THẬT, store giả) ---------- */
@@ -833,7 +844,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.2"') >= 0, "APP_VERSION = 2.17.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.3"') >= 0, "APP_VERSION = 2.17.2");
 }
 };
 
@@ -884,7 +895,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.2"') >= 0, "APP_VERSION = 2.17.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.3"') >= 0, "APP_VERSION = 2.17.2");
 }
 };
 
@@ -914,7 +925,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.2"') >= 0, "APP_VERSION = 2.17.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.3"') >= 0, "APP_VERSION = 2.17.2");
 }
 };
 
@@ -957,7 +968,7 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.2"') >= 0, "APP_VERSION = 2.17.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.3"') >= 0, "APP_VERSION = 2.17.2");
 }
 };
 
@@ -1647,7 +1658,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.17\.2/.test(idx), "index.html đã lên v2.17.2");
+  ok(/Trade\.2026 v2\.17\.3/.test(idx), "index.html đã lên v2.17.3");
 }
 
 const _p30 = async () => {
@@ -1708,7 +1719,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.17\.2/.test(idx), "index.html đã lên v2.17.2");
+  ok(/Trade\.2026 v2\.17\.3/.test(idx), "index.html đã lên v2.17.3");
 };
 
 const _p31 = async () => {
@@ -1748,7 +1759,7 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.17\.2/.test(read("index.html")), "index.html đã lên v2.17.2");
+  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
 }
 };
 
@@ -1806,7 +1817,7 @@ console.log("\n[32] v2.17.0 — futures: cửa sổ đánh giá tín hiệu 15m 
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.17\.2/.test(read("index.html")), "index.html đã lên v2.17.2");
+  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
 }
 };
 
@@ -1989,7 +2000,7 @@ console.log("\n[33] v2.17.0 — NN v2: missing-mask, snapshot contract, nhãn ne
   ok(!bh2.some(b => /NN thử nghiệm/.test(b.tieuDe)), "chưa có dự đoán NN → không có mục NN");
 
   // 13. version
-  ok(/Trade\.2026 v2\.17\.2/.test(read("index.html")), "index.html đã lên v2.17.2");
+  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
   ok(/neural\.js\?v=2\.17\.2/.test(read("index.html")), "index.html nạp neural.js v2.17.2");
 }
 };
@@ -2081,7 +2092,7 @@ console.log("\n[34] v2.17.0 — A06: từ chối artifact hỏng/legacy, báo đ
   // 11. wiring: config + UI + engine
   const cfg = read("assets/js/config.js");
   ok(/nnCheDo/.test(cfg), "config.js có SETTINGS.nnCheDo");
-  ok(/2\.17\.2/.test(cfg), "config.js APP_VERSION 2.17.2");
+  ok(/2\.17\.3/.test(cfg), "config.js APP_VERSION 2.17.3");
   const s2 = read("assets/js/screens2.js");
   ok(/Mạng nơ-ron/.test(s2) && /moTaTrangThai/.test(s2), "modal Cài đặt có công tắc NN + trạng thái");
   const eng = read("assets/js/engine.js");
@@ -2089,7 +2100,7 @@ console.log("\n[34] v2.17.0 — A06: từ chối artifact hỏng/legacy, báo đ
   ok(!/NN\.duDoanChoEngine\(/.test(eng) && !/buChoCache\(/.test(read("assets/js/app.js")), "không còn đường ghi/backfill cũ (A19)");
 
   // 12. version
-  ok(/Trade\.2026 v2\.17\.2/.test(read("index.html")), "index.html đã lên v2.17.2");
+  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
   ok(/neural\.js\?v=2\.17\.2/.test(read("index.html")), "index.html nạp neural.js v2.17.2");
 }
 };
@@ -2152,7 +2163,7 @@ console.log("\n[35] v2.17.0 — biên 15m + auto chấm điểm journal trình d
   ok(/SCREEN_HIENTAI === "sotinhieu"[^]*renderSoTinHieu/.test(app), "xong thì vẽ lại màn hình Sổ tín hiệu nếu đang mở");
 
   // version
-  ok(/Trade\.2026 v2\.17\.2/.test(read("index.html")), "index.html đã lên v2.17.2");
+  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
   ok(/app\.js\?v=2\.17\.2/.test(read("index.html")), "index.html nạp app.js v2.17.2");
 
   // phạm vi trạm AUTO (quyết định user 01/10/2026): tự chọn coin theo volume, không fix cứng
@@ -2325,10 +2336,10 @@ console.log("\n[36] v2.15.0 — cầu nối trình duyệt → trạm → WhatsA
 // --- E. wiring: index.html + app.js + screens2.js + config.js + bridge-browser.js ---
 {
   const idx = fs.readFileSync("index.html", "utf8");
-  ok(/Trade\.2026 v2\.17\.2/.test(idx), "index.html đã lên v2.17.2");
+  ok(/Trade\.2026 v2\.17\.3/.test(idx), "index.html đã lên v2.17.3");
   ok(/assets\/js\/bridge\.js\?v=2\.15\.0/.test(idx), "index.html nạp bridge.js?v=2.15.0");
-  ok(/assets\/js\/config\.js\?v=2\.17\.2/.test(idx), "cache-bust config.js");
-  ok(/assets\/js\/screens2\.js\?v=2\.15\.0/.test(idx), "cache-bust screens2.js");
+  ok(/assets\/js\/config\.js\?v=2\.17\.3/.test(idx), "cache-bust config.js");
+  ok(/assets\/js\/screens2\.js\?v=2\.17\.3/.test(idx), "cache-bust screens2.js");
   ok(/assets\/js\/app\.js\?v=2\.17\.2/.test(idx), "cache-bust app.js");
   const app = fs.readFileSync("assets/js/app.js", "utf8");
   ok(/BRIDGE\.khoiDong\(\)/.test(app), "app.js boot gọi BRIDGE.khoiDong()");
@@ -2483,10 +2494,12 @@ console.log("\n[37] v2.17.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
 
   // --- A22: version đồng bộ ---
   const cfg = read("assets/js/config.js");
-  ok(/const APP_VERSION = "2\.17\.2"/.test(cfg), "config.js APP_VERSION = 2.17.2");
-  ok(/Trade\.2026 v2\.17\.2/.test(idx), "index.html title/header v2.17.2");
-  for (const f of ["config.js", "ta.js", "smc.js", "exchanges.js", "journal.js", "engine.js", "neural.js", "screens.js", "app.js"])
-    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.2").test(idx), `cache-bust ${f} = 2.17.2`);
+  ok(/const APP_VERSION = "2\.17\.3"/.test(cfg), "config.js APP_VERSION = 2.17.3");
+  ok(/Trade\.2026 v2\.17\.3/.test(idx), "index.html title/header v2.17.3");
+  for (const f of ["config.js", "smc.js", "exchanges.js", "journal.js", "engine.js", "screens.js"])
+    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.3").test(idx), `cache-bust ${f} = 2.17.3`);
+  for (const f of ["ta.js", "neural.js", "app.js"])
+    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.2").test(idx), `cache-bust ${f} = 2.17.2 (không sửa đợt này)`);
 
   // --- A04: chiaTheoThoiGian — sắp xếp theo asOf, cắt 60/20/20, purge 15m ---
   const srcTrain = read("tools/train-nn.js");
