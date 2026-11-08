@@ -4,7 +4,7 @@
  * Bước 1: cấu hình lệnh — sàn (Binance/MEXC/OKX, giá REAL-TIME từng sàn),
  *         Long/Short, Cross/Isolated, đòn bẩy, entry Market/Limit,
  *         SL/TP tự map từ kế hoạch tín hiệu, R:R chấm ngưỡng an toàn
- *         → bấm "🛡️ Kiểm tra an toàn" → bot chạy 10 lớp kiểm tra
+ *         → bấm "🛡️ Kiểm tra an toàn" → bot chạy 11 lớp kiểm tra
  *         → kết quả 🟢 AN TOÀN / 🟡 TRUNG TÍNH / 🔴 RỦI RO + lý do
  * Bước 2: người dùng bấm "✅ Xác nhận đặt lệnh" → khớp lệnh PAPER
  *         (mô phỏng bằng giá thật của sàn đã chọn, bot giám sát SL/TP,
@@ -70,7 +70,8 @@ function tinhTicket() {
   const giaLive = giaSan(t.san, t.coin);
   const entry = t.entryMode === "market" ? (giaLive ?? t.entryLimit) : t.entryLimit;
   const risk = Math.abs(entry - t.sl); // khoảng cách entry→SL (1 đơn vị coin)
-  const rr = risk > 0 ? Math.abs(t.tp - entry) / risk : 0;
+  // L-01: RR CÓ DẤU (rrCoDau) — SL/TP ngược phía cho RR âm thay vì RR dương giả
+  const rr = risk > 0 ? rrCoDau(t.side, entry, t.sl, t.tp) : 0;
   const von = PAPER_BOT?.state?.balance ?? SETTINGS.risk.vonBanDau;
 
   let qty, giaTri, riskUsdt;
@@ -258,7 +259,7 @@ function capNhatSLTPMacDinh() {
   }
 }
 
-/* ---------- 10 lớp kiểm tra an toàn ---------- */
+/* ---------- 11 lớp kiểm tra an toàn ---------- */
 function kiemTraAnToanLenh() {
   const t = TICKET;
   const d = tinhTicket();
@@ -285,6 +286,15 @@ function kiemTraAnToanLenh() {
   // 3. R:R
   add("R:R", d.rr >= SETTINGS.risk.minRR ? "ok" : d.rr >= 1.5 ? "warn" : "bad",
     `1:${d.rr.toFixed(2)} (chuẩn tối thiểu 1:${SETTINGS.risk.minRR})`);
+
+  // 3b. SL/TP đúng phía (L-01) — long: SL < entry < TP; short: TP < entry < SL
+  {
+    const hopLe = bracketHopLe(t.side, d.entry, t.sl, t.tp);
+    add("SL/TP đúng phía", hopLe ? "ok" : "bad",
+      hopLe
+        ? (t.side === "long" ? `SL ${fmtGia(t.sl)} < entry ${fmtGia(d.entry)} < TP ${fmtGia(t.tp)}` : `TP ${fmtGia(t.tp)} < entry ${fmtGia(d.entry)} < SL ${fmtGia(t.sl)}`)
+        : `SL/TP NGƯỢC PHÍA (entry ${fmtGia(d.entry)}, SL ${fmtGia(t.sl)}, TP ${fmtGia(t.tp)}) — lệnh không vào được, lãi/lỗ hiển thị sẽ sai dấu`);
+  }
 
   // 4. Đòn bẩy
   add("Đòn bẩy", t.lev <= 3 ? "ok" : t.lev <= 5 ? "warn" : "bad", `x${t.lev} ${t.mode} (hồ sơ Mr.Bit 2–3x · sàn cho tối đa x${d.levMax})`);
@@ -355,6 +365,28 @@ function xacNhanDatLenh() {
   const t = TICKET;
   const d = tinhTicket();
   if (!PAPER_BOT) return;
+  // L-05: lệnh Limit không mở vị thế ngay — vào hàng chờ khớp khi giá về limit
+  if (t.entryMode === "limit") {
+    const lenh = PAPER_BOT.datLenhCho({
+      coin: t.coin, side: t.side, san: t.san, mode: t.mode, lev: t.lev,
+      entryLimit: d.entry, sl: t.sl, tp: t.tp, riskPct: t.riskPct, qty: d.qty,
+    });
+    if (!lenh) { alert("Không đặt được lệnh chờ (kiểm tra SL/entry)"); return; }
+    const box = $("#order-box");
+    if (box) {
+      box.innerHTML = "";
+      box.appendChild(el("div", { class: "card-title" }, "⏳ Đã đặt lệnh chờ khớp (PAPER)"));
+      box.appendChild(el("div", { class: "verdict " + (t.side === "long" ? "long" : "short") },
+        `${t.side.toUpperCase()} ${t.coin} @ limit ${fmtGia(d.entry)} · ${t.san} · x${t.lev} ${t.mode}`));
+      box.appendChild(el("div", { class: "kv" }, el("span", {}, "SL / TP"), el("b", { class: "mono" }, `${fmtGia(t.sl)} / ${fmtGia(t.tp)}`)));
+      box.appendChild(el("div", { class: "kv" }, el("span", {}, "Khối lượng · Giá trị"), el("b", { class: "mono" }, `${d.qty.toFixed(6)} ${t.coin} ≈ ${fmtUsd(d.giaTri)} (ký quỹ ${fmtUsd(d.margin)})`)));
+      box.appendChild(el("p", { class: "muted small" }, "Lệnh khớp khi giá thị trường về đúng limit; tự hủy nếu giá chạm SL trước hoặc sau 4h chưa khớp. Xem/hủy tại màn hình 🤖 Bot Trade."));
+      box.appendChild(el("div", { class: "row-gap" },
+        el("button", { class: "btn primary", onclick: () => { dongDatLenh(); location.hash = "#/bot"; } }, "Xem Bot Trade"),
+        el("button", { class: "btn", onclick: dongDatLenh }, "Đóng")));
+    }
+    return;
+  }
   const pos = PAPER_BOT.moLenhTay({
     coin: t.coin, side: t.side, san: t.san, mode: t.mode, lev: t.lev,
     entry: d.entry, sl: t.sl, tp: t.tp, riskPct: t.riskPct, qty: d.qty,

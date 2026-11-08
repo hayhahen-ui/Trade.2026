@@ -154,8 +154,12 @@ const JOURNAL = {
   async chamDiem(rec) {
     const now = Date.now();
     let nen = [];
+    let dungStartTime = false; // L-08: chỉ kiểm tra gap nến khi lấy nến đúng từ thời điểm tín hiệu
     try {
-      nen = await fetchKlines(rec.coin, this._khungNenChamDiem, 400);
+      // L-08: tải nến TỪ thời điểm tín hiệu (startTime) thay vì 400 nến gần nhất —
+      // bản ghi cũ hơn ~6,6h trước đây bị chấm sai vì "nến entry" lệch hàng giờ.
+      if (typeof fetchKlinesTu === "function") { nen = await fetchKlinesTu(rec.coin, this._khungNenChamDiem, rec.tsVao, 400); dungStartTime = true; }
+      else nen = await fetchKlines(rec.coin, this._khungNenChamDiem, 400);
     } catch (e) { return { rec, loi: "Không tải được nến: " + e.message }; }
     const luu = () => {
       rec.daDanhGiaDen = now;
@@ -172,6 +176,17 @@ const JOURNAL = {
         luu();
       }
       return { rec }; // chưa có nến entry mà chưa hết hạn → giữ dang_theo_doi
+    }
+    // L-08: nến entry lệch >2 phút so với thời điểm tín hiệu = thiếu dữ liệu
+    // (không bịa nhãn từ nến cách xa hàng giờ — bản ghi cũ bị chấm sai trước đây).
+    // Chỉ kiểm tra ở đường fetchKlinesTu (nến lấy đúng từ tsVao, lệch >2p là thiếu
+    // dữ liệu thật); đường fallback fetchKlines (400 nến gần nhất) có thể bắt đầu
+    // sau tín hiệu một cách hợp lệ (vd bản ghi cũ hơn cửa sổ) nên giữ hành vi cũ.
+    if (dungStartTime && nenEntry.openTime - rec.tsVao > 2 * 60e3) {
+      rec.trangThai = "thieu_du_lieu";
+      rec.ketQua = { ketQua: "thieu_du_lieu", at: null, r: null, netR: null, ghiChu: `Nến entry lệch ${Math.round((nenEntry.openTime - rec.tsVao) / 60e3)} phút so với thời điểm tín hiệu — thiếu dữ liệu nến` };
+      luu();
+      return { rec };
     }
     const tsEntry = nenEntry.openTime;
     const entry = nenEntry.open;
@@ -348,7 +363,10 @@ function _thongKeCore(ds) {
     expectancy: 0, tbGioDenTP: 0, tbGioDenSL: 0,
     theo: { side: {}, coin: {}, nhomDiem: {}, phien: {} },
   };
-  if (xong.length) st.expectancy = +(xong.reduce((s, r) => s + (r.ketQua?.r || 0), 0) / xong.length).toFixed(2);
+  // E-01: expectancy dùng R RÒNG sau phí/trượt (netR), không dùng R gộp (r) —
+  // số live −0.16 trước đây còn "đẹp" hơn thực tế ~0,1R/lệnh. Bản ghi cũ chưa
+  // có netR thì fallback về r.
+  if (xong.length) st.expectancy = +(xong.reduce((s, r) => s + (r.ketQua?.netR ?? r.ketQua?.r ?? 0), 0) / xong.length).toFixed(2);
   const gioTP = thang.map(r => r.ketQua?.gioDenKQ).filter(v => v != null);
   const gioSL = thua.map(r => r.ketQua?.gioDenKQ).filter(v => v != null);
   if (gioTP.length) st.tbGioDenTP = +(gioTP.reduce((a, b) => a + b, 0) / gioTP.length).toFixed(1);

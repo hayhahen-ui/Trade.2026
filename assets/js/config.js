@@ -3,7 +3,7 @@
  * ============================================================ */
 "use strict";
 
-const APP_VERSION = "2.17.2"; // v2.17.2 (A22): đồng bộ với index.html — đổi version thì bump cả hai
+const APP_VERSION = "2.17.3"; // v2.17.3: Đợt 0+1 audit (L-01→L-14, P-01, P-02, E-01) — đổi version thì bump cả hai
 const APP_NAME = "Trade.2026";
 const SIRO_VERSION = "1.0.0"; // giữ tương thích ngược với state cũ
 
@@ -82,6 +82,18 @@ const RAG_NGUONG_VOTE = 0.18;
 
 /* ---------- Ngưỡng verdict ---------- */
 const VERDICT = { ALERT: 70, PREPARE: 50 };
+
+/* ---------- Quy ước thanh lý (L-14 — contrarian) ----------
+ * LIQ_CONTRARIAN = true: long bị thanh lý nhiều → CỘNG điểm (áp lực bán đã
+ * xả xong, nghiêng tăng nhẹ), short bị thanh lý nhiều → TRỪ điểm, và ngược
+ * lại. Cùng một quy ước dùng ở 3 nơi: datahub.js flowScore, flowdb.js
+ * flowScore, datahub.js flowScore12h — cả 3 đọc cờ này (mặc định contrarian
+ * khi cờ chưa được nạp, vd trong harness).
+ * Phân biệt với cảnh báo "thanh lý mạnh — đang quét, chờ ổn định" ở
+ * engine.js: đó là cảnh báo biến động NGẮN HẠN trong lúc quét đang diễn ra,
+ * không phủ nhận quy ước contrarian cho điểm dòng tiền 30'/12h.
+ * Backtest dấu nào đúng (contrarian vs momentum): xem file kiểm chứng audit. */
+const LIQ_CONTRARIAN = true;
 
 /* ---------- Đòn bẩy tối đa theo sàn (futures) ---------- */
 const LEV_MAX = { BINANCE: 125, OKX: 125, MEXC: 500 };

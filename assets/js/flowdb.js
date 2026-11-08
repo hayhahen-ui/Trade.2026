@@ -411,7 +411,11 @@
         var flow = (c.buy + c.sell) ? ((c.buy - c.sell) / (c.buy + c.sell)) * 70 : 0;
         var lc = fw.liqPerCoin[coin];
         var liq = 0;
-        if (lc && (lc.long + lc.short)) liq = ((lc.long - lc.short) / (lc.long + lc.short)) * 30;
+        // L-14: quy ước contrarian — long bị thanh lý nhiều = áp lực bán đã xả
+        // xong ⇒ +điểm nhẹ (cờ LIQ_CONTRARIAN trong config.js; mặc định
+        // contrarian khi cờ chưa được nạp, vd trong harness).
+        var dauLiq = (typeof LIQ_CONTRARIAN === "undefined" || LIQ_CONTRARIAN) ? 1 : -1;
+        if (lc && (lc.long + lc.short)) liq = dauLiq * ((lc.long - lc.short) / (lc.long + lc.short)) * 30;
         return Math.max(-100, Math.min(100, Math.round(flow + liq)));
       });
     },

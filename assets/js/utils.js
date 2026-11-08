@@ -84,6 +84,22 @@ function escapeHtml(s) {
 
 /* ---------- Toán ---------- */
 function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+/* ---------- Kiểm tra bracket SL/TP (L-01 — Đợt 0) ----------
+ * bracketHopLe: LONG cần SL < entry < TP; SHORT cần TP < entry < SL.
+ * Dùng CHUNG cho bot (moLenh/moLenhTay/datLenhCho), phiếu lệnh
+ * (kiemTraAnToanLenh) và journal (chamDiemLenh đã có kiểm tra tương đương
+ * inline — giữ nguyên, không đổi).
+ * rrCoDau: R:R CÓ DẤU — dương chỉ khi bracket hợp lệ; âm = SL/TP ngược phía
+ * (lãi giả). Không dùng Math.abs cho RR nữa. */
+function bracketHopLe(side, entry, sl, tp) {
+  if (!(entry > 0) || !(sl > 0) || !(tp > 0)) return false;
+  return side === "long" ? (sl < entry && entry < tp) : (tp < entry && entry < sl);
+}
+function rrCoDau(side, entry, sl, tp) {
+  if (side === "long") return (entry - sl) !== 0 ? (tp - entry) / (entry - sl) : 0;
+  return (sl - entry) !== 0 ? (entry - tp) / (sl - entry) : 0;
+}
 function lamTron(v) {
   if (v == null || !isFinite(v)) return v;
   if (Math.abs(v) >= 1000) return Math.round(v * 100) / 100;

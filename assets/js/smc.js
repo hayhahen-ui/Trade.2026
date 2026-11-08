@@ -254,26 +254,35 @@ function danhGiaTrangThai(cauTruc) {
  * 1) OB LTF hình thành ngay trước CHoCH  2) OB LTF fresh cùng hướng
  * 3) OB MTF cùng hướng                    4) FVG chưa lấp cùng hướng
  * 5) Dải cấu trúc sweep→CHoCH (fallback) */
-function chonPOI({ phia, chochLTF, obLTF, obMTF, fvgLTF, fvgMTF, sweep }) {
+function chonPOI({ phia, chochLTF, obLTF, obMTF, fvgLTF, fvgMTF, sweep, gia }) {
   const huong = phia === "long" ? "bullish" : "bearish";
+  // L-09: vùng POI phải nằm ĐÚNG PHÍA giá hiện tại — OB bullish nằm trên giá
+  // không phải vùng mua dip cho lệnh long (và ngược lại). Long: đáy vùng < giá
+  // (vùng không hoàn toàn nằm trên giá); Short: đỉnh vùng > giá. gia == null
+  // (vd gọi từ test cũ) thì bỏ qua bộ lọc để tương thích ngược.
+  const dungPhia = (z) => gia == null ? true : (phia === "long" ? z[0] < gia : z[1] > gia);
   // Tầng 1
   if (chochLTF) {
-    const truocChoCh = obLTF.filter(o => o.huong === huong && !o.mitigated && o.index < chochLTF.index && chochLTF.index - o.index <= 12);
+    const truocChoCh = obLTF.filter(o => o.huong === huong && !o.mitigated && o.index < chochLTF.index && chochLTF.index - o.index <= 12 && dungPhia(o.zone));
     if (truocChoCh.length) { const o = truocChoCh[truocChoCh.length - 1]; return { ...o, nguon: "OB trước CHoCH (LTF)", tang: 1 }; }
   }
   // Tầng 2
-  const freshLTF = obLTF.filter(o => o.huong === huong && !o.mitigated);
+  const freshLTF = obLTF.filter(o => o.huong === huong && !o.mitigated && dungPhia(o.zone));
   if (freshLTF.length) { const o = freshLTF[freshLTF.length - 1]; return { ...o, nguon: "OB fresh (LTF)", tang: 2 }; }
   // Tầng 3
-  const freshMTF = obMTF.filter(o => o.huong === huong && !o.mitigated);
+  const freshMTF = obMTF.filter(o => o.huong === huong && !o.mitigated && dungPhia(o.zone));
   if (freshMTF.length) { const o = freshMTF[freshMTF.length - 1]; return { ...o, nguon: "OB khung 1H", tang: 3 }; }
-  // Tầng 4
-  const gaps = [...fvgLTF, ...fvgMTF].filter(g => g.huong === huong && !g.filled);
+  // Tầng 4 — L-09: lấy FVG MỚI NHẤT theo THỜI GIAN (g.time), không theo thứ tự
+  // mảng [...fvgLTF, ...fvgMTF] (2 mảng khác khung, thứ tự mảng không phải thời gian).
+  const gaps = [...fvgLTF, ...fvgMTF].filter(g => g.huong === huong && !g.filled && dungPhia(g.zone));
+  gaps.sort((a, b) => (a.time || 0) - (b.time || 0));
   if (gaps.length) { const g = gaps[gaps.length - 1]; return { ...g, nguon: "FVG chưa lấp", tang: 4 }; }
   // Tầng 5
   if (sweep && chochLTF) {
     const zone = phia === "long" ? [sweep.wick, chochLTF.mucPhaVo] : [chochLTF.mucPhaVo, sweep.wick];
-    return { huong, zone: [Math.min(...zone), Math.max(...zone)], nguon: "Dải sweep→CHoCH", tang: 5 };
+    const z = [Math.min(...zone), Math.max(...zone)];
+    if (!dungPhia(z)) return null;
+    return { huong, zone: z, nguon: "Dải sweep→CHoCH", tang: 5 };
   }
   return null;
 }

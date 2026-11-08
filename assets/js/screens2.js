@@ -170,11 +170,36 @@ function veBotPositions() {
   if (!box) return;
   box.innerHTML = "";
   const ps = PAPER_BOT.state.positions;
-  if (!ps.length) { box.appendChild(el("p", { class: "muted" }, "Không có vị thế mở. Bot chờ setup đạt chuẩn (điểm ≥ " + PAPER_BOT.config.minScore + ").")); return; }
+  const cho = (PAPER_BOT.state.pendingOrders || []);
+  // L-05: lệnh chờ khớp hiển thị riêng (có nút Hủy) — kể cả khi chưa có vị thế mở
+  if (cho.length) {
+    const tblC = el("table", { class: "mini-table" });
+    tblC.appendChild(el("tr", {}, el("th", {}, "⏳ Lệnh chờ khớp"), el("th", {}, "Phía"), el("th", {}, "Sàn"), el("th", {}, "Limit"), el("th", {}, "SL"), el("th", {}, "TP"), el("th", {}, "KL"), el("th", {}, "Hết hạn"), el("th", {}, "")));
+    for (const l of cho) {
+      tblC.appendChild(el("tr", {},
+        el("td", { class: "strong" }, `⏳ ${l.coin}`),
+        el("td", { class: l.side === "long" ? "up" : "down" }, l.side.toUpperCase() + (l.lev ? ` x${l.lev}` : "")),
+        el("td", { class: "small" }, (l.san || "BINANCE").slice(0, 3) + (l.mode ? `·${l.mode === "isolated" ? "iso" : "cross"}` : "")),
+        el("td", { class: "mono" }, fmtGia(l.entryLimit)),
+        el("td", { class: "mono" }, fmtGia(l.sl)),
+        el("td", { class: "mono" }, fmtGia(l.tp)),
+        el("td", { class: "mono" }, l.qty.toFixed(4)),
+        el("td", { class: "mono small" }, fmtGio(l.hetHan)),
+        el("td", {}, el("button", { class: "btn small", onclick: () => { PAPER_BOT.huyLenhCho(l.id); } }, "Hủy")),
+      ));
+    }
+    box.appendChild(tblC);
+  }
+  if (!ps.length) {
+    if (!cho.length) box.appendChild(el("p", { class: "muted" }, "Không có vị thế mở. Bot chờ setup đạt chuẩn (điểm ≥ " + PAPER_BOT.config.minScore + ")."));
+    return;
+  }
   const tbl = el("table", { class: "mini-table" });
   tbl.appendChild(el("tr", {}, el("th", {}, "Coin"), el("th", {}, "Phía"), el("th", {}, "Sàn"), el("th", {}, "Entry"), el("th", {}, "Giá"), el("th", {}, "SL"), el("th", {}, "TP"), el("th", {}, "PnL"), el("th", {}, "")));
   for (const p of ps) {
-    const gia = PRICE_HUB?.prices?.[p.san || "BINANCE"]?.[p.coin]?.gia ?? PRICE_HUB?.gia(p.coin) ?? p.entry;
+    // L-06: đọc giá theo SLOT (MEXC → MEXC_PERP), không đọc nhầm slot spot
+    const slot = (typeof slotGiaTheoSan === "function") ? slotGiaTheoSan(p.san || "BINANCE") : (p.san || "BINANCE");
+    const gia = PRICE_HUB?.prices?.[slot]?.[p.coin]?.gia ?? PRICE_HUB?.gia(p.coin) ?? p.entry;
     const pnl = (p.side === "long" ? gia - p.entry : p.entry - gia) * p.qty;
     tbl.appendChild(el("tr", {},
       el("td", { class: "strong" }, `${p.nguon === "tay" ? "🖐" : "🤖"} ${p.coin}`),

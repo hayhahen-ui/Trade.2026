@@ -50,7 +50,7 @@ function renderTongQuan(root) {
       el("td", { class: "left strong" }, coin),
       el("td", { class: "mono", id: `p-BINANCE-${coin}` }, "—"),
       el("td", { class: "mono", id: `p-OKX-${coin}` }, "—"),
-      el("td", { class: "mono", id: `p-MEXC-${coin}` }, "—"),
+      el("td", { class: "mono", id: `p-MEXC_PERP-${coin}` }, "—"),
       el("td", { class: "mono", id: `pct-${coin}` }, "—"),
       el("td", { id: `sig-${coin}` }, el("span", { class: "badge neutral" }, "đang quét…")),
       el("td", { class: "row-actions" },
@@ -221,7 +221,8 @@ function capNhatConnCard() {
 const SK_NGUON_GIA = [
   { id: "BINANCE", ten: "Binance", kieu: "WS · spot+fut" },
   { id: "OKX", ten: "OKX", kieu: "WS · spot" },
-  { id: "MEXC", ten: "MEXC", kieu: "WS · futures" },
+  { id: "MEXC_PERP", ten: "MEXC", kieu: "WS · futures" }, // L-06: slot MEXC_PERP (không còn MEXC spot)
+  { id: "BINANCE_PERP", ten: "Binance Fut", kieu: "WS · futures (qua DataHub)" }, // L-06
   { id: "BYBIT_PERP", ten: "Bybit", kieu: "WS · perp" },
   { id: "HYPERLIQUID", ten: "Hyperliquid", kieu: "WS · perp" },
 ];

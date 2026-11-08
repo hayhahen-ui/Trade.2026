@@ -53,14 +53,17 @@
   DH.on("stats", (s) => phat("stats", { stats: s }));
 
   /* ---------- 3. Giá dự phòng + trạng thái nguồn ---------- */
-  // FIX v2.0: ghi giá DataHub vào đúng slot theo NGUỒN (p.san) — giá perp Bybit/
-  // Hyperliquid KHÔNG được nhét vào slot spot BINANCE (sai provenance, sai basis).
-  const SLOT_THEO_SAN = { BINANCE: "BINANCE", "BINANCE-F": "BINANCE", OKX: "OKX", MEXC: "MEXC", BYBIT: "BYBIT_PERP", HYPERLIQUID: "HYPERLIQUID" };
+  // L-06: ghi giá DataHub vào đúng slot theo NGUỒN (p.san) — giá perp (BINANCE-F,
+  // MEXC Futures, Bybit) KHÔNG được nhét vào slot spot BINANCE (sai provenance,
+  // sai basis). Comment "FIX v2.0" trước đây ghi vậy nhưng code vẫn map
+  // BINANCE-F → BINANCE — nay sửa đúng qua slotGiaTheoSan() (map chữ giữ lại
+  // làm fallback khi hàm chưa được nạp).
+  const SLOT_THEO_SAN = { BINANCE: "BINANCE", "BINANCE-F": "BINANCE_PERP", OKX: "OKX", MEXC: "MEXC_PERP", BYBIT: "BYBIT_PERP", HYPERLIQUID: "HYPERLIQUID" };
   DH.on("price", (p) => {
     if (!OPT.feedPriceHub) return;
     try {
       if (typeof PRICE_HUB !== "undefined" && PRICE_HUB && PRICE_HUB.prices) {
-        const slot = SLOT_THEO_SAN[String(p.san || "").toUpperCase()] || "DH_KHAC";
+        const slot = (typeof slotGiaTheoSan === "function") ? slotGiaTheoSan(p.san) : (SLOT_THEO_SAN[String(p.san || "").toUpperCase()] || "DH_KHAC");
         const kho = PRICE_HUB.prices[slot] || (PRICE_HUB.prices[slot] = {});
         const cu = kho[p.coin];
         // chỉ đắp vào khi giá của app cũ hơn 10 giây (WS sàn đang rớt)

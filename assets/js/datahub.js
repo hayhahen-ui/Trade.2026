@@ -92,13 +92,19 @@
       setSource(this.id, "off", "đã tắt");
     }
     open() {
+      // P-01: hủy lịch reconnect cũ trước khi mở socket mới (tránh 2 socket cùng chạy)
+      clearTimeout(this.rt);
       setSource(this.id, "retry", this.retry ? `kết nối lại lần ${this.retry}` : "đang kết nối…");
       let ws;
       try { ws = new WebSocket(typeof this.url === "function" ? this.url() : this.url); }
       catch (e) { return this.schedule(); }
+      // P-01: đóng socket cũ (nếu còn mở) trước khi thay — socket bị thay vẫn
+      // nhận message và onclose bắn muộn sẽ tạo thêm socket (rò rỉ, dữ liệu trùng).
+      try { if (this.ws && this.ws !== ws) this.ws.close(); } catch (e) {}
       this.ws = ws;
 
       ws.onopen = () => {
+        if (ws !== this.ws) { try { ws.close(); } catch (e) {} return; } // socket cũ mở muộn → đóng, bỏ qua
         this.retry = 0; this.last = now();
         setSource(this.id, "on", this.o.note || "WebSocket");
         try { this.o.onOpen && this.o.onOpen(ws); } catch (e) {}
@@ -109,11 +115,13 @@
         }, this.o.pingMs || 20000);
       };
       ws.onmessage = (e) => {
+        if (ws !== this.ws) return; // socket cũ → bỏ qua message (đã bị thay thế)
         this.last = now(); bump(this.id);
         try { this.o.onMessage(e.data, ws); } catch (err) {}
       };
       ws.onclose = () => {
         clearInterval(this.hb);
+        if (ws !== this.ws) return; // socket cũ đóng muộn → không lên lịch reconnect
         if (!this.stopped) { setSource(this.id, "off", "mất kết nối"); this.schedule(); }
       };
       ws.onerror = () => { try { ws.close(); } catch (e) {} };
@@ -538,7 +546,10 @@
     const lg = l.reduce((s, x) => s + (x.huong === "LONG" ? x.usd : 0), 0);
     const ls = l.reduce((s, x) => s + (x.huong === "SHORT" ? x.usd : 0), 0);
     // Long bị thanh lý nhiều = áp lực bán đã xả xong ⇒ nghiêng tăng nhẹ
-    const liq = lg + ls ? ((lg - ls) / (lg + ls)) * 30 : 0;
+    // L-14: quy ước contrarian — đọc cờ LIQ_CONTRARIAN trong config.js
+    // (mặc định contrarian khi cờ chưa được nạp, vd trong harness).
+    const dauLiq = (typeof LIQ_CONTRARIAN === "undefined" || LIQ_CONTRARIAN) ? 1 : -1;
+    const liq = lg + ls ? dauLiq * ((lg - ls) / (lg + ls)) * 30 : 0;
     return Math.max(-100, Math.min(100, Math.round(flow + liq)));
   }
 
@@ -580,7 +591,10 @@
     const wTot = wMua + wBan, tTot = tMua + tBan, lTot = lL + lS;
     const dWhale = wTot > 0 ? ((wMua - wBan) / wTot) * 50 : 0;
     const dTaker = tTot > 0 ? ((tMua - tBan) / tTot) * 30 : 0;
-    const dLiq = lTot > 0 ? ((lL - lS) / lTot) * 20 : 0;
+    // L-14: quy ước contrarian — long bị thanh lý nhiều = lực bán đã xả ⇒ +điểm nhẹ
+    // (cờ LIQ_CONTRARIAN trong config.js; mặc định contrarian khi chưa được nạp).
+    const dauLiq = (typeof LIQ_CONTRARIAN === "undefined" || LIQ_CONTRARIAN) ? 1 : -1;
+    const dLiq = lTot > 0 ? dauLiq * ((lL - lS) / lTot) * 20 : 0;
     const score = Math.max(-100, Math.min(100, Math.round(dWhale + dTaker + dLiq)));
     return {
       score, soKhung: list.length,

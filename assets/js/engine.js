@@ -86,7 +86,7 @@ async function phanTichCoin(coin) {
   /* ---------- POI ---------- */
   const poi = side ? chonPOI({
     phia: side, chochLTF: choch, obLTF: ob15, obMTF: ob1h,
-    fvgLTF: fvg15, fvgMTF: fvg1h, sweep: sweepDungPhia,
+    fvgLTF: fvg15, fvgMTF: fvg1h, sweep: sweepDungPhia, gia,
   }) : null;
 
   /* ---------- Máy trạng thái ---------- */
@@ -125,7 +125,8 @@ async function phanTichCoin(coin) {
 
   /* ---------- Kế hoạch giao dịch ---------- */
   let plan = null;
-  if (side && poi && sweepDungPhia) {
+  // L-10: chỉ dựng plan khi ĐÃ CÓ CHoCH (trước đây dựng từ khi có sweep, dù chưa có CHoCH)
+  if (side && poi && sweepDungPhia && choch) {
     const [zLo, zHi] = poi.zone;
     const entry = side === "long" ? zHi : zLo;            // mép vùng POI
     const entrySau = (zLo + zHi) / 2;                     // giữa vùng (limit 2)
@@ -135,7 +136,7 @@ async function phanTichCoin(coin) {
       : Math.max(sweepDungPhia.wick, zHi) + buffer;
     const risk = Math.abs(entry - sl);
     if (risk > 0) {
-      const tp1 = side === "long" ? entry + risk * SETTINGS.risk.minRR : entry - risk * SETTINGS.risk.minRR;
+      let tp1 = side === "long" ? entry + risk * SETTINGS.risk.minRR : entry - risk * SETTINGS.risk.minRR;
       const tp2 = side === "long" ? entry + risk * SETTINGS.risk.preferRR : entry - risk * SETTINGS.risk.preferRR;
       // TP thanh khoản: EQH/EQL hoặc đỉnh/đáy 1H đối diện
       let tpLiq = null;
@@ -148,7 +149,11 @@ async function phanTichCoin(coin) {
       }
       // Fibo OTE trên chân sweep→đỉnh CHoCH
       const ote = choch ? fiboOTE(sweepDungPhia.wick, choch.mucPhaVo, side) : null;
-      const rr1 = SETTINGS.risk.minRR;
+      // L-04: RR THẬT — TP1 không được vượt qua mục tiêu thanh khoản gần nhất
+      // (EQH/EQL, đỉnh/đáy 1H): nếu tpLiq gần hơn TP 1:minRR thì TP1 = tpLiq và
+      // rr1 = RR tới thanh khoản (có thể < minRR → rrOk=false → không báo).
+      if (tpLiq) tp1 = side === "long" ? Math.min(tp1, tpLiq) : Math.max(tp1, tpLiq);
+      const rr1 = +(Math.abs(tp1 - entry) / risk).toFixed(2);
       const rrLiq = tpLiq ? Math.abs(tpLiq - entry) / risk : null;
       // Sizing theo vốn paper
       const von = (typeof PAPER_BOT !== "undefined" && PAPER_BOT?.state?.balance) || SETTINGS.risk.vonBanDau;
@@ -210,8 +215,9 @@ async function phanTichCoin(coin) {
   push("ltf_confirmation", "Retest giữ vùng POI", dLtf >= 15, dLtf, CHECKLIST_WEIGHTS.ltf_confirmation,
     retest === "held" ? "Đã chạm POI và bật lại đúng hướng" : retest === "testing" ? "Giá đang trong vùng POI" : "Chưa hồi về POI");
 
-  // 6. Risk/Reward (10)
-  const rrOk = plan && plan.rr1 >= SETTINGS.risk.minRR;
+  // 6. Risk/Reward (10) — L-04: RR thật, kiểm tra CẢ rr1 (tới TP1) VÀ rrLiq
+  // (tới thanh khoản): tpLiq gần mà rr1 vẫn = minRR thì vẫn là RR giả.
+  const rrOk = plan && plan.rr1 >= SETTINGS.risk.minRR && (plan.rrLiq == null || plan.rrLiq >= SETTINGS.risk.minRR);
   push("risk_reward", `R:R ≥ 1:${SETTINGS.risk.minRR}`, !!rrOk, rrOk ? CHECKLIST_WEIGHTS.risk_reward : 0,
     CHECKLIST_WEIGHTS.risk_reward, plan ? `RR kế hoạch 1:${plan.rr1}${plan.rrLiq ? ` · tới thanh khoản 1:${plan.rrLiq}` : ""}` : "Chưa dựng được kế hoạch");
 
@@ -285,6 +291,9 @@ async function phanTichCoin(coin) {
         if (lsNguoc) canhBao.push(`🌊 Lịch sử 12h (${ls12h.soKhung} khung) NGƯỢC hướng (điểm ${ls12h.score > 0 ? "+" : ""}${ls12h.score}) — dòng tiền năm 2026 đang đi chiều khác`);
       }
       if (dongTien.nguoc) canhBao.push(`🌊 Dòng tiền ${nguonDiem === "master" ? "master data" : "real-time"} NGƯỢC hướng (điểm ${fs > 0 ? "+" : ""}${fs}${cs ? `, lệnh lớn mua ${fmtUsd(cs.buy)} / bán ${fmtUsd(cs.sell)}` : ""})`);
+      // L-14: cảnh báo này là về biến động NGẮN HẠN trong lúc quét đang diễn ra
+      // (đừng vào lệnh lúc thị trường đang giật) — khác với điểm dòng tiền
+      // contrarian (LIQ_CONTRARIAN): thanh lý nhiều = áp lực đã xả, nghiêng hướng ngược lại.
       if (tl && tl.tong > 20e6) canhBao.push(`💥 Thanh lý mạnh 15 phút qua ${fmtUsd(tl.tong)} (long ${fmtUsd(tl.long)} / short ${fmtUsd(tl.short)}) — đang quét thanh khoản, chờ ổn định`);
       if (dhGia && gia && Math.abs(dhGia - gia) / gia > 0.004) canhBao.push(`Giá lệch giữa các sàn ${fmtPct((dhGia - gia) / gia * 100)} — kiểm tra lại trước khi vào`);
     }
@@ -394,7 +403,10 @@ async function phanTichCoin(coin) {
   let verdict = "NO_TRADE";
   if (!side) verdict = "NO_TRADE";
   else if (phase === "invalidated") verdict = "NO_TRADE";
-  else if (score >= VERDICT.ALERT && (phase === "alert_ready" || phase === "retest_in_progress")) verdict = side === "long" ? "LONG" : "SHORT";
+  // L-10: chỉ báo LONG/SHORT khi phase = alert_ready (retest giữ vùng) — đang
+  // retest (retest_in_progress) thì chỉ là PREPARE, không báo. L-04: kèm rrOk
+  // (RR thật ≥ 1:minRR, đã tính tới tpLiq) — RR thật không đạt thì không báo.
+  else if (score >= VERDICT.ALERT && phase === "alert_ready" && rrOk) verdict = side === "long" ? "LONG" : "SHORT";
   else if (score >= VERDICT.PREPARE) verdict = "PREPARE";
   else if (side && !choch) verdict = "WAIT_CONFIRM";
 
