@@ -3,7 +3,7 @@
  * ============================================================ */
 "use strict";
 
-const APP_VERSION = "2.17.4"; // v2.17.4: Panel Skill Auto Run trên Tổng quan — đổi version thì bump cả hai
+const APP_VERSION = "2.17.5"; // v2.17.5: Panel fix 404 workflow (chua co file = trang thai cho) — đổi version thì bump cả hai
 const APP_NAME = "Trade.2026";
 const SIRO_VERSION = "1.0.0"; // giữ tương thích ngược với state cũ
 

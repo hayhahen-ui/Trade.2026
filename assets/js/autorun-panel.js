@@ -16,6 +16,7 @@
 const AR_JOURNAL_URL = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json";
 const AR_GH_RUNS_URL = "https://api.github.com/repos/hayhahen-ui/Trade.2026/actions/workflows/station-skill-5m.yml/runs?per_page=1";
 const AR_GH_ACTIONS_URL = "https://github.com/hayhahen-ui/Trade.2026/actions/workflows/station-skill-5m.yml";
+const AR_GH_FOLDER_URL = "https://github.com/hayhahen-ui/Trade.2026/tree/main/.github/workflows";
 const AR_CACHE_MS = 30000;      // nhật ký trạm: tối đa 30 giây/lần
 const AR_GH_CACHE_MS = 300000;  // GitHub API không xác thực: tối đa 5 phút/lần (giới hạn 60 req/giờ)
 
@@ -83,12 +84,29 @@ function vePanelAutoRun() {
 let _arCacheJournal = null, _arCacheJournalAt = 0;
 let _arCacheGh = null, _arCacheGhAt = 0;
 
+/* ---------- Hàm thuần: trạng thái workflow từ dữ liệu GitHub API ----------
+ * 404 = file workflow chưa có trên main: TRẠNG THÁI CHỜ, không phải lỗi.
+ * Lỗi này từng hiện thành "không tải được lần chạy (HTTP 404)" vì arFetchJson
+ * ném lỗi trước khi đọc body — đã sửa: giữ lại status để phân biệt. */
+function arTrangThaiWorkflow(gh) {
+  if (!gh || gh.status === 404 || gh.message === "Not Found")
+    return { ten: "Workflow", giaTri: "chưa có file station-skill-5m.yml — thêm file vào main thì auto run mới chạy", cls: "neutral", link: AR_GH_FOLDER_URL };
+  if (gh._loi)
+    return { ten: "Workflow", giaTri: "không tải được lần chạy (" + gh._loi + ")", cls: "warn", link: AR_GH_ACTIONS_URL };
+  const runs = Array.isArray(gh.workflow_runs) ? gh.workflow_runs : [];
+  if (!runs.length)
+    return { ten: "Workflow", giaTri: "đã có workflow, chưa chạy lần nào", cls: "neutral", link: AR_GH_ACTIONS_URL };
+  const r0 = runs[0];
+  const kq = r0.status === "completed" ? (r0.conclusion === "success" ? "thành công" : "thất bại (" + (r0.conclusion || "?") + ")") : "đang chạy";
+  return { ten: "Workflow", giaTri: "lần chạy " + arFmtGio(Date.parse(r0.created_at)) + " · " + kq, cls: r0.conclusion === "success" ? "ok" : "warn", link: r0.html_url || AR_GH_ACTIONS_URL };
+}
+
 async function arFetchJson(url, ms) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), ms);
   try {
     const resp = await fetch(url, { signal: ctl.signal });
-    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    if (!resp.ok) { const err = new Error("HTTP " + resp.status); err.status = resp.status; throw err; }
     return await resp.json();
   } finally {
     clearTimeout(timer);
@@ -108,23 +126,12 @@ async function capNhatPanelAutoRun() {
       try {
         _arCacheGh = await arFetchJson(AR_GH_RUNS_URL, 15000);
         _arCacheGhAt = nowMs;
-      } catch (e) { _arCacheGh = { _loi: String(e && e.message || e) }; }
+      } catch (e) { _arCacheGh = { _loi: String(e && e.message || e), status: (e && e.status) || null }; }
     }
     const d = _arCacheJournal || {};
     const rows = [];
     // 1. Lần chạy workflow gần nhất (GitHub Actions API công khai)
-    const runs = _arCacheGh && Array.isArray(_arCacheGh.workflow_runs) ? _arCacheGh.workflow_runs : [];
-    if (_arCacheGh && _arCacheGh._loi) {
-      rows.push({ ten: "Workflow", giaTri: "không tải được lần chạy (" + _arCacheGh._loi + ")", cls: "warn", link: AR_GH_ACTIONS_URL });
-    } else if (_arCacheGh && _arCacheGh.message) {
-      rows.push({ ten: "Workflow", giaTri: "chưa có file station-skill-5m.yml — thêm file vào main thì auto run mới chạy", cls: "warn", link: AR_GH_ACTIONS_URL });
-    } else if (!runs.length) {
-      rows.push({ ten: "Workflow", giaTri: "đã có workflow, chưa chạy lần nào", cls: "neutral", link: AR_GH_ACTIONS_URL });
-    } else {
-      const r0 = runs[0];
-      const kq = r0.status === "completed" ? (r0.conclusion === "success" ? "thành công" : "thất bại (" + (r0.conclusion || "?") + ")") : "đang chạy";
-      rows.push({ ten: "Workflow", giaTri: "lần chạy " + arFmtGio(Date.parse(r0.created_at)) + " · " + kq, cls: r0.conclusion === "success" ? "ok" : "warn", link: r0.html_url || AR_GH_ACTIONS_URL });
-    }
+    rows.push(arTrangThaiWorkflow(_arCacheGh));
     // 2. Trạm 24/7 theo capNhat của nhật ký
     const tuoiTram = d.capNhat ? nowMs - Date.parse(d.capNhat) : null;
     if (tuoiTram == null) rows.push({ ten: "Trạm 24/7", giaTri: "không rõ heartbeat", cls: "neutral" });
