@@ -136,7 +136,7 @@ Work on the Trade.2026 coin trading project the right way, from its real code an
 
 ## Learn
 
-- Latest change: v1.1.3 on 2026-11-08, panel fix for the GitHub API 404 (missing workflow file is a waiting state, not an error), app v2.17.5, harness 663 pass 0 fail. See CHANGELOG.md.
+- Latest change: v1.1.3 on 2026-11-08, panel fix for the GitHub API 404 (missing workflow file is a waiting state, not an error), app v2.17.5, harness 663 pass 0 fail. River v1.1.2 is in the same branch. See CHANGELOG.md.
 
 - Known lessons already baked in: check the live data branch not a zip of main, GitHub cron is best effort, Supabase auth is apikey only, NN weights mismatch 12 8 1 versus 24 8 1, harness dirties data files, and the withdrawn 57 out of 63 figure must never be reused.
 
