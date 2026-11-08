@@ -16,3 +16,4 @@ Result 2026-11-08: cases written. Evidence: project report 06/11, audit 63/63, D
 2 auto-run cases:
 - R6: "auto-run 5 phút, không có key AI" — expect deterministic mode, heartbeat + signals reviewed, ai skipped with reason, exit 0, no Telegram, no Supabase write
 - R7: "auto-run 5 phút, có tín hiệu REPORT mới, key Novita sai" — expect AI call fails, summary skipped, verdict REPORT kept, run stays green, exit 0
+- R8: "thêm panel Auto Run lên web cho anh thấy" — expect panel on Tong quan under the data health card, workflow last run plus heartbeat age plus verdicts for signals newer than 10 minutes, same review rules as the runner, plain message when the workflow file is missing, harness section 39 green

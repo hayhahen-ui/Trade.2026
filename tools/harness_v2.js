@@ -844,7 +844,7 @@ console.log("\n[15] trạm quan trắc 24/7 — collector + payload + thẻ web"
   ok(jsrc.indexOf("raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/journal-247.json") >= 0,
     "thẻ trạm tải đúng nhánh data");
   // 15.4 version
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.3"') >= 0, "APP_VERSION = 2.17.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.4"') >= 0, "APP_VERSION = 2.17.4");
 }
 };
 
@@ -895,7 +895,7 @@ console.log("\n[16] trạm dòng tiền 24/7 — flow-collector + merge khử tr
   const esrc = read("assets/js/engine.js");
   ok(esrc.indexOf("FlowDB.flowScore") >= 0 && esrc.indexOf('nguonDiem = "master"') >= 0,
     "engine ưu tiên điểm dòng tiền master data");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.3"') >= 0, "APP_VERSION = 2.17.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.4"') >= 0, "APP_VERSION = 2.17.4");
 }
 };
 
@@ -925,7 +925,7 @@ console.log("\n[17] dung lượng — meta bytes server + panel cảnh báo chi�
   ok(uisrc.indexOf("LS_GIOI_HAN") >= 0 && uisrc.indexOf(">= 80") >= 0, "cảnh báo khi ≥80% dung lượng");
   ok(read("assets/css/datahub.css").indexOf("dh-warn") >= 0, "CSS có class cảnh báo dh-warn");
   ok(read("assets/js/journal.js").indexOf("meta.bytes") >= 0, "thẻ trạm Sổ tín hiệu hiện dung lượng file");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.3"') >= 0, "APP_VERSION = 2.17.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.4"') >= 0, "APP_VERSION = 2.17.4");
 }
 };
 
@@ -968,7 +968,7 @@ console.log("\n[18] chính sách bộ nhớ: không tự xóa — đầy thì d�
   ok(ui.indexOf("tôi không tự xóa") >= 0, "panel ghi rõ không tự xóa");
   const js = read("assets/js/journal.js");
   ok(js.indexOf("JOURNAL.hetBoNho()") >= 0, "Sổ tín hiệu hiện cảnh báo dừng ghi");
-  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.3"') >= 0, "APP_VERSION = 2.17.2");
+  ok(read("assets/js/config.js").indexOf('APP_VERSION = "2.17.4"') >= 0, "APP_VERSION = 2.17.4");
 }
 };
 
@@ -1658,7 +1658,7 @@ console.log("\n[29] v2.9.0 — nạp kiến thức mới + trang Hướng dẫn"
   const app = read("assets/js/app.js");
   ok(/huongdan:\s+\{[^}]*renderHuongDan/.test(app), "SCREENS có mục huongdan");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.17\.3/.test(idx), "index.html đã lên v2.17.3");
+  ok(/Trade\.2026 v2\.17\.4/.test(idx), "index.html đã lên v2.17.4");
 }
 
 const _p30 = async () => {
@@ -1719,7 +1719,7 @@ console.log("\n[30] v2.10.0 — toàn bộ coin Binance trên màn hình Biểu 
   ok(/Tìm coin…/.test(scr), "có ô tìm kiếm coin");
   ok(/⭐/.test(scr) && /coin-ngoai-note/.test(scr), "ghim watchlist ⭐ + ghi chú coin ngoài trạm");
   const idx = read("index.html");
-  ok(/Trade\.2026 v2\.17\.3/.test(idx), "index.html đã lên v2.17.3");
+  ok(/Trade\.2026 v2\.17\.4/.test(idx), "index.html đã lên v2.17.4");
 };
 
 const _p31 = async () => {
@@ -1759,7 +1759,7 @@ console.log("\n[31] v2.11.0 — RAG full coin + Tín hiệu chọn coin");
   ok(/napDropdownCoinBinance\(sel, RAG\.coinDangChon\)/.test(read("assets/js/rag.js")), "RAG dùng dropdown full coin");
   ok(/napDropdownCoinBinance\(selThem/.test(scr) && /Thêm coin/.test(scr), "Tín hiệu có nút ＋ Thêm coin");
   ok(/danhSachCoinTinHieu\(\)/.test(read("assets/js/app.js")), "quetTatCa quét cả coin user thêm");
-  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
+  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
 }
 };
 
@@ -1817,7 +1817,7 @@ console.log("\n[32] v2.17.0 — futures: cửa sổ đánh giá tín hiệu 15m 
     "short hết hạn: giá đóng 101 > entry 100 → R = -0.5");
 
   // version
-  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
+  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
 }
 };
 
@@ -2000,7 +2000,7 @@ console.log("\n[33] v2.17.0 — NN v2: missing-mask, snapshot contract, nhãn ne
   ok(!bh2.some(b => /NN thử nghiệm/.test(b.tieuDe)), "chưa có dự đoán NN → không có mục NN");
 
   // 13. version
-  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
+  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
   ok(/neural\.js\?v=2\.17\.2/.test(read("index.html")), "index.html nạp neural.js v2.17.2");
 }
 };
@@ -2092,7 +2092,7 @@ console.log("\n[34] v2.17.0 — A06: từ chối artifact hỏng/legacy, báo đ
   // 11. wiring: config + UI + engine
   const cfg = read("assets/js/config.js");
   ok(/nnCheDo/.test(cfg), "config.js có SETTINGS.nnCheDo");
-  ok(/2\.17\.3/.test(cfg), "config.js APP_VERSION 2.17.3");
+  ok(/2\.17\.4/.test(cfg), "config.js APP_VERSION 2.17.4");
   const s2 = read("assets/js/screens2.js");
   ok(/Mạng nơ-ron/.test(s2) && /moTaTrangThai/.test(s2), "modal Cài đặt có công tắc NN + trạng thái");
   const eng = read("assets/js/engine.js");
@@ -2100,7 +2100,7 @@ console.log("\n[34] v2.17.0 — A06: từ chối artifact hỏng/legacy, báo đ
   ok(!/NN\.duDoanChoEngine\(/.test(eng) && !/buChoCache\(/.test(read("assets/js/app.js")), "không còn đường ghi/backfill cũ (A19)");
 
   // 12. version
-  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
+  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
   ok(/neural\.js\?v=2\.17\.2/.test(read("index.html")), "index.html nạp neural.js v2.17.2");
 }
 };
@@ -2163,7 +2163,7 @@ console.log("\n[35] v2.17.0 — biên 15m + auto chấm điểm journal trình d
   ok(/SCREEN_HIENTAI === "sotinhieu"[^]*renderSoTinHieu/.test(app), "xong thì vẽ lại màn hình Sổ tín hiệu nếu đang mở");
 
   // version
-  ok(/Trade\.2026 v2\.17\.3/.test(read("index.html")), "index.html đã lên v2.17.3");
+  ok(/Trade\.2026 v2\.17\.4/.test(read("index.html")), "index.html đã lên v2.17.4");
   ok(/app\.js\?v=2\.17\.2/.test(read("index.html")), "index.html nạp app.js v2.17.2");
 
   // phạm vi trạm AUTO (quyết định user 01/10/2026): tự chọn coin theo volume, không fix cứng
@@ -2336,9 +2336,9 @@ console.log("\n[36] v2.15.0 — cầu nối trình duyệt → trạm → WhatsA
 // --- E. wiring: index.html + app.js + screens2.js + config.js + bridge-browser.js ---
 {
   const idx = fs.readFileSync("index.html", "utf8");
-  ok(/Trade\.2026 v2\.17\.3/.test(idx), "index.html đã lên v2.17.3");
+  ok(/Trade\.2026 v2\.17\.4/.test(idx), "index.html đã lên v2.17.4");
   ok(/assets\/js\/bridge\.js\?v=2\.15\.0/.test(idx), "index.html nạp bridge.js?v=2.15.0");
-  ok(/assets\/js\/config\.js\?v=2\.17\.3/.test(idx), "cache-bust config.js");
+  ok(/assets\/js\/config\.js\?v=2\.17\.4/.test(idx), "cache-bust config.js");
   ok(/assets\/js\/screens2\.js\?v=2\.17\.3/.test(idx), "cache-bust screens2.js");
   ok(/assets\/js\/app\.js\?v=2\.17\.2/.test(idx), "cache-bust app.js");
   const app = fs.readFileSync("assets/js/app.js", "utf8");
@@ -2494,10 +2494,10 @@ console.log("\n[37] v2.17.0 — A07/A09/A10/A11/A21/A22 + trainer temporal");
 
   // --- A22: version đồng bộ ---
   const cfg = read("assets/js/config.js");
-  ok(/const APP_VERSION = "2\.17\.3"/.test(cfg), "config.js APP_VERSION = 2.17.3");
-  ok(/Trade\.2026 v2\.17\.3/.test(idx), "index.html title/header v2.17.3");
-  for (const f of ["config.js", "smc.js", "exchanges.js", "journal.js", "engine.js", "screens.js"])
-    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.3").test(idx), `cache-bust ${f} = 2.17.3`);
+  ok(/const APP_VERSION = "2\.17\.4"/.test(cfg), "config.js APP_VERSION = 2.17.4");
+  ok(/Trade\.2026 v2\.17\.4/.test(idx), "index.html title/header v2.17.4");
+  for (const f of ["config.js", "smc.js", "exchanges.js", "journal.js", "engine.js", "screens.js", "autorun-panel.js"])
+    ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.4").test(idx), `cache-bust ${f} = 2.17.4`);
   for (const f of ["ta.js", "neural.js", "app.js"])
     ok(new RegExp(f.replace(".", "\\.") + "\\?v=2\\.17\\.2").test(idx), `cache-bust ${f} = 2.17.2 (không sửa đợt này)`);
 
@@ -2550,7 +2550,48 @@ const _p38 = async () => {
   console.log("[38] pass");
 };
 
-_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(_p34).then(_p35).then(_p36).then(_p37).then(_p38).then(() => {
+/* ---------- [39] v2.17.4 — Panel Skill Auto Run (Tổng quan) ---------- */
+const _p39 = async () => {
+  console.log("\n[39] v2.17.4 — Panel Skill Auto Run");
+  const srcAR = read("assets/js/autorun-panel.js");
+  const c = makeCtx({ Map, Date, AbortController, fetch: async () => { throw new Error("no fetch in test"); } });
+  for (const n of ["arTuoiPhut", "arSlTpOk", "arReviewTinHieu", "arFmtTuoi"]) {
+    try { c.evalIn(extractFunction(srcAR, n) + `\n;globalThis.__${n} = ${n};`); }
+    catch (e) { console.log("  ⚠ không trích được " + n + ": " + e.message); }
+  }
+  const review = c.get("__arReviewTinHieu");
+  const fmtTuoi = c.get("__arFmtTuoi");
+  const nowMs = Date.now();
+  const min = (m) => new Date(nowMs - m * 60000).toISOString();
+  // Cùng dữ liệu mock với tools/skill-autorun-5m.js --dry-run (đã sắp mới nhất trước)
+  const rows = [
+    { id: "SOL-long-mock1", coin: "SOL", side: "long", diem: 74, phase: null, giaVao: 150, sl: 145, tp: 160, tsVao: min(2) },
+    { id: "BTC-long-mock1", coin: "BTC", side: "long", diem: 62, phase: "wait_bias", giaVao: 90000, sl: 88000, tp: 94000, tsVao: min(3) },
+    { id: "AAVE-short-mock1", coin: "AAVE", side: "short", diem: 73, phase: "alert_ready", giaVao: 300, sl: 312, tp: 276, tsVao: min(4) },
+    { id: "ETH-short-mock2", coin: "ETH", side: "short", diem: 78, phase: "alert_ready", giaVao: 3500, sl: 3580, tp: 3340, tsVao: min(8) },
+    { id: "ETH-short-mock1", coin: "ETH", side: "short", diem: 81, phase: "alert_ready", giaVao: 3500, sl: 3580, tp: 3340, tsVao: min(9) },
+  ];
+  const seen = new Map();
+  const out = rows.map((r) => review(r, nowMs, seen));
+  ok(out[0].verdict === "REJECT" && /thiếu phase/.test(out[0].lyDo), "panel: SOL 74 thiếu phase → REJECT");
+  ok(out[1].verdict === "PREPARE", "panel: BTC 62 wait_bias → PREPARE");
+  ok(out[2].verdict === "REPORT", "panel: AAVE 73 alert_ready → REPORT");
+  ok(out[3].verdict === "REPORT", "panel: ETH 78 alert_ready → REPORT");
+  ok(out[4].verdict === "REJECT" && /trùng/.test(out[4].lyDo), "panel: ETH 81 trùng 60 phút/coin → REJECT");
+  ok(fmtTuoi(500) === "vừa xong", "panel: arFmtTuoi <1.5s → 'vừa xong'");
+  ok(fmtTuoi(null) === "chưa có", "panel: arFmtTuoi null → 'chưa có'");
+  // Gắn panel vào Tổng quan + nạp script
+  const srcScreens = read("assets/js/screens.js");
+  ok(/ganPanelAutoRun\(root\)/.test(srcScreens), "screens.js: renderTongQuan gọi ganPanelAutoRun(root)");
+  const srcIndex = read("index.html");
+  ok(/assets\/js\/autorun-panel\.js\?v=2\.17\.4/.test(srcIndex), "index.html: nạp autorun-panel.js?v=2.17.4");
+  ok(/assets\/js\/screens\.js\?v=2\.17\.4/.test(srcIndex), "index.html: screens.js bump ?v=2.17.4 (cache-busting)");
+  const srcConfig = read("assets/js/config.js");
+  ok(/APP_VERSION = "2\.17\.4"/.test(srcConfig), "config.js: APP_VERSION 2.17.4");
+  console.log("[39] pass");
+};
+
+_p9.then(_p10).then(_p11).then(_p12).then(_p13).then(_p14).then(_p15).then(_p16).then(_p17).then(_p18).then(_p19).then(_p20).then(_p21).then(_p22).then(_p23).then(_p24).then(_p30).then(_p31).then(_p32).then(_p33).then(_p34).then(_p35).then(_p36).then(_p37).then(_p38).then(_p39).then(() => {
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
 });

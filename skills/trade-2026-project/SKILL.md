@@ -76,6 +76,8 @@ Work on the Trade.2026 coin trading project the right way, from its real code an
 
 - Write one run record per cycle as skill-run-<UTC timestamp>.json, with the heartbeat age, the signals reviewed, each verdict with its reason, the AI provider used or the reason it was skipped, and the run exit code. The workflow uploads the record as an artifact kept for 7 days.
 
+- Show the run on the web: the panel in assets/js/autorun-panel.js sits on the Tong quan screen under the data health card. It reads the station journal from the data branch and the latest workflow run from the public GitHub API, and it reviews new signals with the same rules as the runner. It never needs a key and never writes anything. When the workflow file is missing, the panel says so plainly instead of showing a fake green state.
+
 - Exit 0 when the Supabase read worked, even when the station is STALE or no signal is new. Exit 1 only when the runner itself fails, such as Supabase unreachable after one retry, or a required variable missing outside dry run. A dry run uses mock data and makes no network call except the optional AI test call.
 
 ## Resources
@@ -116,6 +118,8 @@ Work on the Trade.2026 coin trading project the right way, from its real code an
 
 - Auto Run: the heartbeat age is in the run record, every new signal has a verdict with a reason, the AI call count is at most one per run, a failed AI call never turns the run red, and the run record file exists as an artifact.
 
+- Auto Run panel: visible on Tong quan, shows the workflow last run, the station heartbeat age, and verdicts for signals newer than 10 minutes, with the same review rules as the runner.
+
 - Fix at most three rounds when a check fails, then report what is still open.
 
 ## Guard
@@ -132,7 +136,7 @@ Work on the Trade.2026 coin trading project the right way, from its real code an
 
 ## Learn
 
-- Latest change: v1.1.0 on 2026-11-08, Auto Run every 5 minutes added (tools/skill-autorun-5m.js plus workflow station-skill-5m.yml, free AI key chain Novita then UTIM then APINEX, at most one AI call per run, run record as artifact). See CHANGELOG.md.
+- Latest change: v1.1.1 on 2026-11-08, Auto Run panel on the Tong quan screen added (assets/js/autorun-panel.js, app v2.17.4, harness section 39, 657 pass 0 fail). See CHANGELOG.md.
 
 - Known lessons already baked in: check the live data branch not a zip of main, GitHub cron is best effort, Supabase auth is apikey only, NN weights mismatch 12 8 1 versus 24 8 1, harness dirties data files, and the withdrawn 57 out of 63 figure must never be reused.
 
