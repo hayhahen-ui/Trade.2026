@@ -1,0 +1,60 @@
+# Trade.2026 — Skill Auto Run (moi 5 phut)
+# Chay skill trade-2026-project tu dong: doc heartbeat tram, doc tin hieu moi,
+# review theo luat review-trade-signal, ghi 1 run record, roi dung.
+# CHI DOC Supabase, khong ghi Supabase, khong gui Telegram, khong trade.
+# Key AI free la tuy chon, doc tu GitHub Secrets. Khong co key thi chay
+# deterministic (khong goi AI) — do la run day du, khong phai loi.
+# Thu tu key: NOVITA_API_KEY -> UTIM_API_KEY (+UTIM_MODEL) -> APINEX_API_KEY (+APINEX_MODEL)
+#   -> RIVER_API_KEY (+RIVER_MODEL, mac dinh moonshotai/Kimi-K3.1-Pro).
+# River la dich vu TRA PHI, de cuoi chuoi nen chi ton tien khi 3 free deu hong.
+# Toi da 1 lan goi AI moi run, chi khi co tin hieu REPORT moi.
+name: Skill Auto Run 5m
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Chay thu (du lieu mock, khong doc Supabase)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: station-skill-5m
+  cancel-in-progress: true
+
+jobs:
+  skill-autorun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      NOVITA_API_KEY: ${{ secrets.NOVITA_API_KEY }}
+      UTIM_API_KEY: ${{ secrets.UTIM_API_KEY }}
+      UTIM_MODEL: ${{ secrets.UTIM_MODEL }}
+      APINEX_API_KEY: ${{ secrets.APINEX_API_KEY }}
+      APINEX_MODEL: ${{ secrets.APINEX_MODEL }}
+      RIVER_API_KEY: ${{ secrets.RIVER_API_KEY }}
+      RIVER_MODEL: ${{ secrets.RIVER_MODEL }}
+      DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Chay skill auto run
+        run: node tools/skill-autorun-5m.js
+
+      - name: Luu run record (7 ngay)
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-run-${{ github.run_id }}
+          path: skill-run-*.json
+          retention-days: 7
