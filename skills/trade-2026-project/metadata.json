@@ -1,0 +1,28 @@
+{
+  "description": "Work on the Trade.2026 coin project from its real code and live state: static web, engine, station, Supabase, bot relay, neural shadow and audit. Use when the user asks about Trade.2026. Never trades.",
+  "name": "trade-2026-project",
+  "not_triggers": [
+    "bot Forex NexusPilot",
+    "đăng bài lên Page",
+    "hãy tạo video"
+  ],
+  "owner": "hay",
+  "scope": "project:skill-library",
+  "status": "active",
+  "tags": [
+    "trade2026",
+    "coin",
+    "project"
+  ],
+  "triggers": [
+    "Trade.2026",
+    "trạm Trade.2026 có chạy không",
+    "kiểm chứng audit Trade.2026",
+    "sửa lỗi Trade.2026",
+    "bot coin @trademrbit_bot",
+    "đẩy nhánh Trade.2026 lên GitHub",
+    "auto chạy skill trade 2026 mỗi 5 phút",
+    "skill trade 2026 tự chạy 5 phút một lần"
+  ],
+  "version": "1.1.0"
+}
