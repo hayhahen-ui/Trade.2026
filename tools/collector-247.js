@@ -17,6 +17,7 @@ const ROOT = path.join(__dirname, "..");
 const DATA_DIR = path.join(ROOT, "data");
 const PUBLIC_PATH = path.join(DATA_DIR, "journal-247.json"); // payload web tải về
 const STORE_PATH = path.join(DATA_DIR, ".journal-247-store.json"); // toàn bộ localStorage sandbox
+const FLOW_STORE_PATH = path.join(DATA_DIR, ".flow-247-store.json"); // kho dòng tiền (lệnh lớn + thanh lý OKX/Hyperliquid) — hướng F 20/11/2026
 const PUSH_STAMP = path.join(DATA_DIR, ".journal-247-push.txt");
 /* 01/10/2026 (quyết định của user): chế độ AUTO — trạm tự chọn coin để quét thay vì
  * danh sách cố định. Mỗi vòng: lấy top 30 cặp USDT theo volume 24h (spot ticker qua
@@ -128,6 +129,22 @@ async function main() {
   ["assets/js/config.js", "assets/js/utils.js", "assets/js/ta.js", "assets/js/smc.js",
    "assets/js/exchanges.js", "assets/js/derivatives.js", "assets/js/journal.js",
    "assets/js/neural.js", "assets/js/engine.js"].forEach(load);
+
+  /* (F) 20/11/2026 — Liq Feed: cấp DataHub/DataHubBridge cho engine từ kho dòng tiền.
+   * __docKhoFlow đọc lại file kho TƯƠI từ đĩa mỗi khi napLiqFeed() gọi (1 lần/vòng,
+   * trước vòng quét). Kho thiếu/hỏng => engine chạy không dongTien như trước, không crash. */
+  sandbox.__docKhoFlow = () => {
+    try { return JSON.parse(fs.readFileSync(FLOW_STORE_PATH, "utf8")); }
+    catch { return null; }
+  };
+  try {
+    load("assets/js/liq-feed.js");
+    const okFeed = vm.runInContext("napLiqFeed()", ctx);
+    const infoFeed = vm.runInContext("liqFeedInfo()", ctx);
+    console.log(`  💧 liq-feed: ${okFeed ? "OK" : "KHÔNG CÓ KHO (engine chạy không dongTien)"} — ${infoFeed.soLiq} thanh lý / ${infoFeed.soWhale} lệnh lớn trong kho`);
+  } catch (e) {
+    console.log(`  ⚠ liq-feed lỗi (${String(e.message || e).slice(0, 80)}) — engine chạy không dongTien`);
+  }
 
   const phanTichCoin = get("phanTichCoin");
   const JOURNAL = get("JOURNAL");
