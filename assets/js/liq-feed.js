@@ -25,7 +25,8 @@
  *    cho tab web). Bản trạm quét TOÀN BỘ kho để không bỏ sót
  *    thanh lý của coin đang xét khi 400 bản ghi mới nhất toàn
  *    là coin khác.
- *  - Cửa sổ thời gian: bản trình duyệt chỉ lọc ts >= t0 (ngầm giả định
+ *  - Cửa sổ thời gian: từ W3 (21/11) cả hai bản đều lọc ts >= t0 &&
+ *    ts <= now. Trước W3 bản trình duyệt chỉ lọc ts >= t0 (ngầm giả định
  *    kho chỉ chứa dữ liệu quá khứ — đúng khi chạy live, vì feed append
  *    theo thời gian thực). Bản trạm lọc thêm ts <= now: nếu không, khi
  *    replay/backtest/khôi phục kho, các bản ghi TƯƠNG LAI so với mốc

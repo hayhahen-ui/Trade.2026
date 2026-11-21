@@ -98,16 +98,20 @@
     },
     /* Cảnh báo quét thanh khoản: tổng thanh lý 5 phút gần nhất của 1 coin */
     thanhLyGanDay(coin, phut) {
-      const t0 = Date.now() - (phut || 5) * 60e3;
-      const l = DH.liqs(400).filter((x) => x.coin === String(coin).toUpperCase() && x.ts >= t0);
+      // W3 (21/11): chặn cả hai đầu cửa sổ (xem datahub.js buildStats).
+      const nowMs = Date.now();
+      const t0 = nowMs - (phut || 5) * 60e3;
+      const l = DH.liqs(400).filter((x) => x.coin === String(coin).toUpperCase() && x.ts >= t0 && x.ts <= nowMs);
       const long = l.reduce((s, x) => s + (x.huong === "LONG" ? x.usd : 0), 0);
       const short = l.reduce((s, x) => s + (x.huong === "SHORT" ? x.usd : 0), 0);
       return { long, short, tong: long + short, count: l.length };
     },
     /* Có cá mập vào lệnh cùng chiều trong N phút không? */
     xacNhanCaMap(coin, huong, phut) {
-      const t0 = Date.now() - (phut || 15) * 60e3;
-      const w = DH.whales(600).filter((x) => x.coin === String(coin).toUpperCase() && x.ts >= t0);
+      // W3 (21/11): chặn cả hai đầu cửa sổ (xem datahub.js buildStats).
+      const nowMs = Date.now();
+      const t0 = nowMs - (phut || 15) * 60e3;
+      const w = DH.whales(600).filter((x) => x.coin === String(coin).toUpperCase() && x.ts >= t0 && x.ts <= nowMs);
       const buy = w.reduce((s, x) => s + (x.side === "BUY" ? x.usd : 0), 0);
       const sell = w.reduce((s, x) => s + (x.side === "SELL" ? x.usd : 0), 0);
       return String(huong).toUpperCase() === "LONG" ? buy > sell * 1.2 : sell > buy * 1.2;

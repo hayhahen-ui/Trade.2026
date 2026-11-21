@@ -354,19 +354,23 @@
     },
 
     buckets: function (coin, minutes) {
+      // W3 (21/11): chặn cả hai đầu cửa sổ (bucket hiện tại vẫn được tính).
+      var nowMin = Math.floor(Date.now() / BUCKET_MS) * BUCKET_MS;
       var t0 = Math.floor((Date.now() - (minutes || 120) * 60e3) / BUCKET_MS) * BUCKET_MS;
       var c = String(coin || "").toUpperCase();
-      return this._be.query("buckets", { index: "t", from: t0, limit: 5000 })
+      return this._be.query("buckets", { index: "t", from: t0, to: nowMin, limit: 5000 })
         .then(function (r) { return c ? r.filter(function (b) { return b.coin === c; }) : r; });
     },
 
     /* Cửa sổ dòng tiền N phút — nguồn cho KPI / coin table / phân bổ / cảnh báo */
     flowWindow: function (minutes) {
-      var t0 = Date.now() - (minutes || 60) * 60e3;
+      // W3 (21/11): chặn cả hai đầu cửa sổ — query có hỗ trợ `to` (xem _be.query).
+      var nowMs = Date.now();
+      var t0 = nowMs - (minutes || 60) * 60e3;
       var self = this;
       return Promise.all([
-        self._be.query("whales", { index: "ts", from: t0, limit: 8000, desc: true }),
-        self._be.query("liqs", { index: "ts", from: t0, limit: 8000, desc: true }),
+        self._be.query("whales", { index: "ts", from: t0, to: nowMs, limit: 8000, desc: true }),
+        self._be.query("liqs", { index: "ts", from: t0, to: nowMs, limit: 8000, desc: true }),
       ]).then(function (pair) {
         var w = pair[0], l = pair[1];
         var perCoin = {}, liqPerCoin = {}, buy = 0, sell = 0;
@@ -461,7 +465,7 @@
         var coins = Object.keys(fw.perCoin);
         // 1. whale burst: ≥N lệnh cùng chiều, tổng ≥ ngưỡng, trong burstMin phút
         var tBurst = now - ALERT.burstMin * 60e3;
-        jobs.push(self._be.query("whales", { index: "ts", from: tBurst, limit: 3000, desc: true }).then(function (w) {
+        jobs.push(self._be.query("whales", { index: "ts", from: tBurst, to: now, limit: 3000, desc: true }).then(function (w) {
           var inner = [];
           coins.forEach(function (coin) {
             ["BUY", "SELL"].forEach(function (side) {
@@ -490,7 +494,7 @@
         });
         // 3. liq cascade
         var tLiq = now - ALERT.liqMin * 60e3;
-        jobs.push(self._be.query("liqs", { index: "ts", from: tLiq, limit: 3000, desc: true }).then(function (l) {
+        jobs.push(self._be.query("liqs", { index: "ts", from: tLiq, to: now, limit: 3000, desc: true }).then(function (l) {
           var inner = [];
           var byCoin = {};
           l.forEach(function (x) { (byCoin[x.coin] = byCoin[x.coin] || []).push(x); });

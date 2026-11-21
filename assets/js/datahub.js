@@ -495,9 +495,12 @@
   ];
 
   function buildStats() {
-    const t0 = now() - CFG.whale.windowMin * 60e3;
-    const w = store.whales.filter((x) => x.ts >= t0);
-    const l = store.liqs.filter((x) => x.ts >= t0);
+    // W3 (21/11): chặn cả hai đầu cửa sổ — bản ghi tương lai (ts > now)
+    // không được tính (lỗi look-ahead T4 đã bắt ở liq-feed.js).
+    const nowMs = now();
+    const t0 = nowMs - CFG.whale.windowMin * 60e3;
+    const w = store.whales.filter((x) => x.ts >= t0 && x.ts <= nowMs);
+    const l = store.liqs.filter((x) => x.ts >= t0 && x.ts <= nowMs);
 
     let buy = 0, sell = 0, vol = 0;
     const perCoin = {};
@@ -536,9 +539,11 @@
   function flowScore(coin, opts = {}) {
     coin = up(coin);
     const loai = new Set((opts.loaiTruSan || []).map(up));
-    const t0 = now() - 30 * 60e3;
-    const w = store.whales.filter((x) => x.coin === coin && x.ts >= t0 && !loai.has(up(x.san)));
-    const l = store.liqs.filter((x) => x.coin === coin && x.ts >= t0 && !loai.has(up(x.san)));
+    // W3 (21/11): chặn cả hai đầu cửa sổ (xem buildStats).
+    const nowMs = now();
+    const t0 = nowMs - 30 * 60e3;
+    const w = store.whales.filter((x) => x.coin === coin && x.ts >= t0 && x.ts <= nowMs && !loai.has(up(x.san)));
+    const l = store.liqs.filter((x) => x.coin === coin && x.ts >= t0 && x.ts <= nowMs && !loai.has(up(x.san)));
     if (!w.length && !l.length) return 0;
     const buy = w.reduce((s, x) => s + (x.side === "BUY" ? x.usd : 0), 0);
     const sell = w.reduce((s, x) => s + (x.side === "SELL" ? x.usd : 0), 0);
