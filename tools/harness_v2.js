@@ -1025,14 +1025,18 @@ console.log("\n[18] learn.js — Kaizen từ tín hiệu hệ thống");
   ok(!!lh && lh.tot === false && lh.winRate === 17, "bài học v2.17.2: tín hiệu LONG thua (WR 17% — het_han R>0 tính thắng)");
   const rule = kq.rules.find((r) => r.kieu === "tin_hieu_huong_long");
   ok(!!rule && rule.delta < 0, `rule Kaizen tin_hieu_huong_long, delta=${rule && rule.delta}`);
+  ok(rule && rule.active === false, "rule mới sinh mặc định INACTIVE (chỉ đề xuất, user chốt 21/11)");
 
-  // 18.5 vòng Kaizen khép kín: rule → dieuChinhKienThuc → Cố vấn
-  g("hocTuLichSu")();
+  // 18.5 chỉ-đề-xuất (user chốt 21/11): rule sinh ra nhưng mặc định INACTIVE;
+  // dieuChinhKienThuc trả delta 0 khi công tắc tắt — Cố vấn không tự trừ điểm
+  const learnSau = g("hocTuLichSu")();
+  const ruleLong = (learnSau.rules || []).find((r) => r.kieu === "tin_hieu_huong_long");
+  ok(!!ruleLong && ruleLong.active === false, "rule mới sinh mặc định INACTIVE (chỉ đề xuất, chưa áp)");
   const adjLong = g("dieuChinhKienThuc")({ side: "long", coin: "BTC", score: 80, theoTinHieu: true, killzone: false, lev: 2 });
-  ok(adjLong.delta < 0 && adjLong.canhBao.some((x) => /LONG/.test(x)),
-    `Cố vấn gặp setup LONG → trừ điểm (${adjLong.delta}) + cảnh báo 📚`);
+  ok(adjLong.delta === 0 && adjLong.canhBao.length === 0,
+    `công tắc tắt → Cố vấn gặp setup LONG không bị trừ điểm (delta=${adjLong.delta})`);
   const adjShort = g("dieuChinhKienThuc")({ side: "short", coin: "ETH", score: 83, theoTinHieu: true, killzone: true, lev: 2 });
-  ok(!adjShort.canhBao.some((x) => /LONG/.test(x)), "setup SHORT không bị phạt oan");
+  ok(adjShort.delta === 0 && !adjShort.canhBao.some((x) => /LONG/.test(x)), "setup SHORT cũng delta 0, không bị phạt oan");
 
   // 18.6 UI: renderTuHoc tải ngầm trạm + có thẻ học tín hiệu
   const lsrc = read("assets/js/learn.js");

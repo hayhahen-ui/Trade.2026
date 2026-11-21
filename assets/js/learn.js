@@ -126,7 +126,7 @@ function hocTuTinHieu(ds) {
       rules.push({
         ...rule, nhan, winRate: wr, n: s.n, nguon: "tin_hieu",
         delta: tot ? Math.min(8, Math.round(Math.abs(diff) / 4)) : -Math.min(15, Math.round(Math.abs(diff) / 3)),
-        khuyenNghi, active: cu ? cu.active : true,
+        khuyenNghi, active: cu ? cu.active : false,
       });
     }
   };
@@ -224,7 +224,7 @@ function hocTuLichSu() {
       rules.push({
         kieu: ruleKieu, nhan, winRate: wr, n: s.n,
         delta: tot ? Math.min(8, Math.round(Math.abs(diff) / 4)) : -Math.min(15, Math.round(Math.abs(diff) / 3)),
-        khuyenNghi, active: cu ? cu.active : true,
+        khuyenNghi, active: cu ? cu.active : false,
       });
     }
   };
@@ -284,7 +284,9 @@ function hocTuLichSu() {
 }
 
 /* ---------- Áp dụng kiến thức (gọi từ Advisor/Engine) ---------- */
+const LEARN_AUTO_APPLY = false; // user chốt 21/11: quy tắc chỉ đề xuất, duyệt tay mới áp
 function dieuChinhKienThuc(ctx) {
+  if (!LEARN_AUTO_APPLY) return { delta: 0, canhBao: [] };
   if (!LEARN.rules.length) return { delta: 0, canhBao: [] };
   let delta = 0; const canhBao = [];
   const sideN = String(ctx.side || "").toLowerCase();
