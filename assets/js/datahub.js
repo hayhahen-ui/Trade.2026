@@ -35,7 +35,7 @@
   const store = {
     prices: {},                 // BTC: {gia, pct24h, san, ts}
     whales: [], liqs: [], polys: [], news: [],
-    funding: {}, oi: {},
+    funding: {}, oi: {}, oiHist: {}, // oiHist: lịch sử {oi, mark, ts} mỗi 60s, tối đa 20 mẫu (~20p) — cho điểm Derivs (RAG 21/11)
     macro: { fng: null },
     etf: null,
     stats: null,
@@ -386,6 +386,10 @@
           store.funding[c] = { rate: num(p.lastFundingRate) * 100, mark: num(p.markPrice), next: num(p.nextFundingTime) };
           const o = await getJson(`${CFG.endpoints.binanceFutRest}/fapi/v1/openInterest?symbol=${c}USDT`, 10000);
           store.oi[c] = { oi: num(o.openInterest), ts: num(o.time) || now() };
+          // RAG 21/11: lưu snapshot {oi, mark, ts} để tính biến động OI + giá (vòng 60s).
+          const hist = (store.oiHist[c] = store.oiHist[c] || []);
+          hist.push({ oi: num(o.openInterest), mark: num(p.markPrice), ts: now() });
+          if (hist.length > 20) hist.shift();
         } catch (e) { /* geo-block hoặc rate limit — bỏ qua vòng này */ }
       }
       emit("macro", store.macro);
@@ -558,6 +562,48 @@
     return Math.max(-100, Math.min(100, Math.round(flow + liq)));
   }
 
+  /* ---------- Điểm Derivs (funding + OI) cho RAG — RAG 21/11 ----------
+   * funding rate (%/8h): dương cao = long chen chúc (trả phí cho short) → ngược
+   *   chiều (âm); ngưỡng ±0,05%/8h = đủ điểm, tuyến tính ở giữa.
+   * OI: chỉ đọc khi lịch sử đủ dài (mẫu tham chiếu ≥10 phút trước). OI tăng +
+   *   giá cùng chiều = tiền mới vào theo hướng đó (tiếp diễn); OI giảm = đóng
+   *   vị thế (cạn lực, ngược nửa điểm). |ΔOI| < 0,5% = nhiễu → 0.
+   * Thiếu funding → chỉ dùng OI; thiếu cả hai → null (không điền mặc định). */
+  function tinhDiemDerivs(fundingRatePct, oiChgPct, priceChgPct) {
+    let f = null, o = null;
+    if (fundingRatePct != null && Number.isFinite(fundingRatePct)) {
+      f = Math.max(-1, Math.min(1, -fundingRatePct / 0.05));
+    }
+    if (oiChgPct != null && priceChgPct != null && Number.isFinite(oiChgPct) && Number.isFinite(priceChgPct) && Math.abs(priceChgPct) > 0) {
+      const mag = Math.min(Math.abs(oiChgPct) / 0.05, 1);
+      if (Math.abs(oiChgPct) >= 0.005) {
+        o = oiChgPct > 0 ? Math.sign(priceChgPct) * mag : -Math.sign(priceChgPct) * 0.5 * mag;
+      } else o = 0;
+    }
+    if (f == null && o == null) return null;
+    const score = f == null ? o : o == null ? f : (f + o) / 2;
+    return { score: +score.toFixed(3), funding: f == null ? null : +f.toFixed(3), oi: o == null ? null : +o.toFixed(3) };
+  }
+  function derivsScore(coin) {
+    coin = up(coin);
+    const fd = store.funding[coin] || null;
+    const hist = store.oiHist[coin] || [];
+    const nowMs = now();
+    // Mẫu tham chiếu: mẫu MỚI NHẤT mà đã ≥10 phút tuổi (cửa sổ ~10 phút trở lên).
+    const ref = [...hist].reverse().find((s) => nowMs - s.ts >= 10 * 60e3) || null;
+    let oiChgPct = null, priceChgPct = null;
+    if (ref && hist.length) {
+      const cur = hist[hist.length - 1];
+      if (ref.oi > 0 && cur.oi > 0 && ref.mark > 0 && cur.mark > 0) {
+        oiChgPct = (cur.oi - ref.oi) / ref.oi;
+        priceChgPct = (cur.mark - ref.mark) / ref.mark;
+      }
+    }
+    const kq = tinhDiemDerivs(fd ? fd.rate : null, oiChgPct, priceChgPct);
+    if (!kq) return null;
+    return { ...kq, fundingRate: fd ? fd.rate : null, oiChgPct: oiChgPct == null ? null : +oiChgPct.toFixed(4), priceChgPct: priceChgPct == null ? null : +priceChgPct.toFixed(4), chiFunding: fd != null };
+  }
+
   /* ---------- Lịch sử dòng tiền 12h (master data từ 01/01/2026) ----------
    * Nạp flow-history-12h.json (nhánh `data` GitHub) 1 lần, cache trong RAM.
    * flowScore12h(coin, soKhung): tổng hợp N khung 12h gần nhất của coin thành
@@ -639,7 +685,7 @@
 
   global.DataHub = {
     VERSION: "1.0.0",
-    config: CFG, on, off, start, stop, setFilter, flowScore,
+    config: CFG, on, off, start, stop, setFilter, flowScore, derivsScore, tinhDiemDerivs,
     taiLichSu12h, flowScore12h,
     stats: () => store.stats || buildStats(),
     prices: () => store.prices,
@@ -651,6 +697,7 @@
     macro: () => store.macro,
     funding: () => store.funding,
     oi: () => store.oi,
+    oiHist: () => store.oiHist,
     etf: () => store.etf,
     snapshot: () => JSON.parse(JSON.stringify({
       ts: now(), prices: store.prices, stats: store.stats, macro: store.macro,

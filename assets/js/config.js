@@ -76,7 +76,7 @@ const KILLZONE_BONUS = 5;
 /* ---------- Trọng số RAG Reasoner — NGUỒN SỰ THẬT DUY NHẤT ----------
  * Mọi UI/README/comment đều render từ đây, không hard-code số ở nơi khác.
  * 5 lớp chính tổng = 1.00; heatmap là LỚP ĐIỀU CHỈNH (±) ngoài hệ trọng số. */
-const RAG_WEIGHTS = { smc: 0.35, whale: 0.20, flow: 0.20, macro: 0.15, momentum: 0.10 };
+const RAG_WEIGHTS = { smc: 0.35, whale: 0.15, flow: 0.20, macro: 0.10, momentum: 0.10, derivs: 0.10 }; // RAG 21/11: thêm Derivs (funding/OI) 10% — lấy 5 từ Whale (trùng Flow) + 5 từ Macro (thưa tin); tổng vẫn 1.00
 const RAG_HEATMAP_ADJ = 0.06;
 const RAG_NGUONG_VOTE = 0.18;
 

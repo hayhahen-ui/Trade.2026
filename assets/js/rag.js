@@ -12,7 +12,7 @@
  *        AMBIGUOUS → truy xuất lại (tối đa 2 vòng)
  *        INCORRECT → NO_TRADE (không tin dữ liệu xấu)
  *   → 🧠 Reasoner (hợp nhất trọng số — xem RAG_WEIGHTS trong config.js:
- *        SMC .35 · Whale .20 · Dòng tiền .20 · Macro .15 · Momentum .10,
+ *        SMC .35 · Whale .15 · Dòng tiền .20 · Macro .10 · Momentum .10 · Derivs .10,
  *        cộng điều chỉnh 🧲 heatmap ±.06) + disagreement index
  *   → 🛡️ Risk Manager → Final Answer: gợi ý LONG / SHORT / ĐỨNG NGOÀI + độ tin cậy
  * ============================================================ */
@@ -96,6 +96,8 @@ async function ragPipeline(coin, opts = {}) {
         const st = DataHub.stats();
         const cs = st?.coinStats?.[coin] || null;
         const tl = window.DataHubBridge ? DataHubBridge.thanhLyGanDay(coin, 15) : null;
+        // RAG 21/11: điểm Derivs (funding + OI) — null khi chưa đủ dữ liệu (vd coin ngoài top 6 adapter).
+        const dv = typeof DataHub.derivsScore === "function" ? DataHub.derivsScore(coin) : null;
         const nguon = DataHub.sources().filter((s) => s.status === "on").length;
         let hmNote = "", hmNC = null;
         try {
@@ -103,8 +105,8 @@ async function ragPipeline(coin, opts = {}) {
           if (hmNC && hmNC.huong !== "can_bang")
             hmNote = ` · 🧲 heatmap ${hmNC.huong === "len" ? "hút lên" : "hút xuống"} (lệch ${Math.abs(hmNC.lechPct)}%)`;
         } catch (e) {}
-        b.tomTat = `Điểm dòng tiền ${fs > 0 ? "+" : ""}${fs} · ${cs ? `${cs.count} lệnh lớn, mua ${fmtUsd(cs.buy)} / bán ${fmtUsd(cs.sell)}` : "chưa có lệnh lớn"}${tl && tl.tong ? ` · thanh lý 15ph ${fmtUsd(tl.tong)}` : ""}${hmNote} · ${nguon} nguồn đang chạy`;
-        return { score: fs, coinStats: cs, thanhLy: tl, nguon, heatmapNC: hmNC };
+        b.tomTat = `Điểm dòng tiền ${fs > 0 ? "+" : ""}${fs} · ${cs ? `${cs.count} lệnh lớn, mua ${fmtUsd(cs.buy)} / bán ${fmtUsd(cs.sell)}` : "chưa có lệnh lớn"}${tl && tl.tong ? ` · thanh lý 15ph ${fmtUsd(tl.tong)}` : ""}${dv ? ` · 📊 derivs ${dv.score > 0 ? "+" : ""}${dv.score} (funding ${dv.fundingRate != null ? dv.fundingRate.toFixed(3) + "%" : "—"}${dv.oiChgPct != null ? `, OI ${(dv.oiChgPct * 100).toFixed(1)}%` : ""})` : ""}${hmNote} · ${nguon} nguồn đang chạy`;
+        return { score: fs, coinStats: cs, thanhLy: tl, nguon, heatmapNC: hmNC, derivs: dv };
       }),
       chay("Macro News", "📰", "tool", async (b) => {
         await taiLichKinhTe();
@@ -172,6 +174,9 @@ async function ragPipeline(coin, opts = {}) {
       add("🧲 Heatmap thanh lý (±điều chỉnh)", flow.heatmapNC.huong === "len" ? 0.6 : -0.6, RAG_HEATMAP_ADJ,
         `nam châm ${flow.heatmapNC.huong === "len" ? "hút lên" : "hút xuống"} · lệch ${Math.abs(flow.heatmapNC.lechPct)}%`);
     if (macro) add("Macro Pulse", macro.p.score / 100, RAG_WEIGHTS.macro, `pulse ${macro.p.score}`);
+    // RAG 21/11: Derivs (funding/OI) — chỉ cộng khi có dữ liệu, thiếu thì bỏ qua (không điền mặc định).
+    if (flow?.derivs) add("Derivs (funding/OI)", flow.derivs.score, RAG_WEIGHTS.derivs,
+      `điểm ${flow.derivs.score > 0 ? "+" : ""}${flow.derivs.score} · funding ${flow.derivs.fundingRate != null ? flow.derivs.fundingRate.toFixed(3) + "%/8h" : "—"}${flow.derivs.oiChgPct != null ? ` · OI ${(flow.derivs.oiChgPct * 100).toFixed(1)}%` : " · chưa đủ lịch sử OI"}`);
     const rsi = kq.ltf.rsi;
     let mom = 0, momGhi = "trung tính";
     if (rsi?.reversal === "positive") { mom = 0.6; momGhi = "đảo chiều dương"; }
