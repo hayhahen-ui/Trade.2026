@@ -12,15 +12,23 @@ Cách dùng:
 v2.0: retry exponential backoff (3 lần) · ghi file ATOMIC (temp + os.replace)
       · fetch lỗi thì GIỮ NGUYÊN file cũ và exit 1 (không ghi đè bằng dữ liệu rỗng).
 
+v3.0 (23/11/2026): TE đổi trang lịch sang render bằng JavaScript từ 12/11/2026 —
+      HTML tĩnh không còn dòng sự kiện nào (parse ra 0 dòng, workflow lỗi 25/25).
+      API guest cũng đã bị TE khai tử (HTTP 410). Nay fetch bằng Chrome headless
+      qua Playwright: mở trang thật, chờ `tr[data-id]` render rồi lấy HTML đã
+      render; logic parse/sheets/schema giữ nguyên 100%. urllib giữ lại làm
+      fallback khi không có Playwright/Chrome. Chạy local trong VM này cần
+      proxy nội bộ: HTTP_PROXY/HTTPS_PROXY trỏ tới forward proxy (Chrome tự
+      đọc biến môi trường); trên GitHub Actions chạy trực tiếp, không cần proxy.
+
 Lưu ý: trang TE ẩn danh trả giờ UTC → file ghi timezone "UTC";
 app tự quy đổi sang giờ Việt Nam (UTC+7) khi hiển thị/phân tích.
-Nếu IP của bạn bị TE chặn, hãy dùng economic_agent.py (Chrome) như cũ —
-file JSON tạo ra dùng chung được.
 """
 from __future__ import annotations
 
 import argparse
 import json
+from html import unescape
 import os
 import re
 import sys
@@ -45,7 +53,58 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
 
 
-def fetch_html(url: str = SOURCE_URL, tries: int = 3) -> str:
+def _proxy_config() -> dict | None:
+    """Proxy cho Chrome, đọc từ biến môi trường (HTTPS_PROXY/https_proxy...).
+    Không có proxy thì trả None → Chrome đi thẳng (trường hợp GitHub Actions).
+    Truyền tường minh qua launch() thay vì trông chờ Chrome tự đọc env,
+    để hành vi nhất quán mọi môi trường."""
+    raw = (os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+           or os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy"))
+    if not raw:
+        return None
+    from urllib.parse import urlparse  # noqa: PLC0415
+    u = urlparse(raw)
+    cfg: dict = {"server": f"{u.scheme or 'http'}://{u.hostname}:{u.port or 8080}"}
+    if u.username:
+        cfg["username"] = u.username
+    if u.password:
+        cfg["password"] = u.password
+    return cfg
+
+
+def fetch_html_chrome(url: str = SOURCE_URL, timeout_ms: int = 90000) -> str:
+    """Mở trang bằng Chrome headless (Playwright), chờ bảng lịch render rồi
+    trả HTML đã render. TE render lịch bằng JS nên HTML tĩnh không có dòng nào.
+    Ném lỗi khi: không có Playwright, Chrome lỗi, hoặc hết timeout không thấy
+    dòng sự kiện nào (caller sẽ fallback sang urllib rồi mới exit 1)."""
+    from playwright.sync_api import sync_playwright  # noqa: PLC0415 — import lười: chỉ cần khi chạy Chrome
+
+    with sync_playwright() as p:
+        launch_args = ["--no-sandbox", "--disable-dev-shm-usage"]
+        if os.environ.get("TE_IGNORE_CERT_ERRORS") == "1":
+            # Chỉ dùng khi chạy sau proxy MITM tự ký (vd VM dev): proxy thay
+            # chứng chỉ bằng CA riêng nên Chrome không tin. Trên Actions để
+            # mặc định tắt để giữ xác thực TLS đầy đủ.
+            launch_args.append("--ignore-certificate-errors")
+        # channel="chromium": dùng bản Chrome đầy đủ thay vì headless shell.
+        # TE trả 403 "Access denied" cho headless shell nhưng cho Chrome đầy
+        # đủ chạy headless qua (kiểm chứng 23/11: shell → 403, full → 547 dòng).
+        browser = p.chromium.launch(headless=True, channel="chromium",
+                                    args=launch_args, proxy=_proxy_config())
+        try:
+            page = browser.new_page(user_agent=UA, viewport={"width": 1280, "height": 900})
+            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+            page.wait_for_selector("tr[data-id]", timeout=60000)
+            page.wait_for_timeout(3000)  # chờ các dòng tải muộn render xong
+            html = page.content()
+            if html.count("data-id=") < 20:
+                raise RuntimeError(f"Chrome render xong nhưng chỉ thấy {html.count('data-id=')} data-id")
+            return html
+        finally:
+            browser.close()
+
+
+def fetch_html_urllib(url: str = SOURCE_URL, tries: int = 3) -> str:
     """Fetch có retry + exponential backoff. Hết tries thì ném lỗi (caller giữ file cũ)."""
     last_err = None
     for i in range(tries):
@@ -64,8 +123,28 @@ def fetch_html(url: str = SOURCE_URL, tries: int = 3) -> str:
     raise RuntimeError(f"Không tải được {url} sau {tries} lần thử: {last_err}")
 
 
+def fetch_html(url: str = SOURCE_URL, use_chrome: bool = True) -> str:
+    """Chrome trước, urllib sau. Chrome lỗi (không có Playwright/Chrome, timeout,
+    render không ra dòng) thì thử urllib; cả hai lỗi thì ném RuntimeError
+    (caller giữ file cũ, exit 1)."""
+    last_err = None
+    if use_chrome:
+        try:
+            return fetch_html_chrome(url)
+        except Exception as e:  # noqa: BLE001 — mọi lỗi Chrome đều fallback urllib
+            last_err = e
+            print(f"CẢNH BÁO: Chrome fetch lỗi ({e}) — thử lại bằng urllib.", file=sys.stderr)
+    try:
+        return fetch_html_urllib(url)
+    except Exception as e:  # noqa: BLE001
+        last_err = e
+    raise RuntimeError(f"Không tải được {url}: {last_err}")
+
+
 def clean(s: str) -> str:
-    return re.sub(r"\s+", " ", s or "").strip()
+    # unescape: page.content() serialize lại DOM nên '&' thành '&amp;'
+    # (file cũ từ HTML tĩnh không có entity này — giữ dữ liệu sạch như cũ)
+    return unescape(re.sub(r"\s+", " ", s or "").strip())
 
 
 def field(chunk: str, fid: str) -> str:
@@ -111,7 +190,7 @@ def parse_rows(html: str) -> list[dict]:
             "Consensus": field(chunk, "consensus"),
             "Forecast": field(chunk, "forecast"),
             "Impact": STAR * importance,
-            "EventKey": attr("data-event"),
+            "EventKey": unescape(attr("data-event")),
             "DetailURL": ("https://tradingeconomics.com" + data_url) if data_url.startswith("/") else data_url,
             "Timezone": "UTC",
         })
@@ -172,9 +251,11 @@ def ghi_atomic(out: Path, text: str) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(OUT_JSON))
+    ap.add_argument("--no-chrome", action="store_true",
+                    help="Bỏ qua Chrome headless, chỉ dùng urllib (đường cũ, TE giờ trả 0 dòng)")
     args = ap.parse_args()
     try:
-        html = fetch_html()
+        html = fetch_html(use_chrome=not args.no_chrome)
     except RuntimeError as e:
         print(f"LỖI: {e} — giữ nguyên file cũ, không ghi đè.", file=sys.stderr)
         return 1
