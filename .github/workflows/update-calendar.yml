@@ -1,8 +1,10 @@
 # Trade.2026 — Tự động cập nhật lịch kinh tế Trading Economics vào data/economic_calendar_data.json
 name: Cap nhat lich kinh te TE
 on:
-  schedule:
-    - cron: "15 0,6,12,18 * * *"   # 4 lần/ngày (UTC) = 7h15/13h15/19h15/1h15 giờ VN
+  # TAM DUNG lich chay tu dong 23/11/2026: 3 lan chay tay #186/#187/#188 deu
+  # loi o buoc cao — host du lieu io.tradingeconomics.com khong tra du lieu
+  # cho may chu GitHub (trang chinh van 200). De workflow_dispatch de chay
+  # tay khi can; mo lai schedule khi co duong cao moi (xem tools/update_calendar.py).
   workflow_dispatch:
 permissions:
   contents: write
