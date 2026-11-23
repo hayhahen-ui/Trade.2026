@@ -100,7 +100,7 @@ def fetch_html_chrome(url: str = SOURCE_URL, timeout_ms: int = 90000) -> str:
             resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
             http_status = resp.status if resp else None
             try:
-                page.wait_for_selector("tr[data-id]", timeout=60000)
+                page.wait_for_selector("tr[data-id]", timeout=90000)
             except Exception:
                 # Chẩn đoán để biết runner thấy gì: 403/captcha hay chỉ chậm.
                 title = page.title()
@@ -108,9 +108,23 @@ def fetch_html_chrome(url: str = SOURCE_URL, timeout_ms: int = 90000) -> str:
                     body = page.inner_text("body")[:300].replace("\n", " | ")
                 except Exception:
                     body = "<không đọc được body>"
+                # Dữ liệu lịch KHÔNG đi qua REST API mà qua Socket.IO live
+                # tới io.tradingeconomics.com (key=moon) — kiểm tra riêng
+                # host này có với tới được từ runner không.
+                import urllib.request as _u
+                probe_url = ("https://io.tradingeconomics.com/socket.io/?key=moon"
+                             "&url=%2Fcalendar&EIO=4&transport=polling&t=probe")
+                try:
+                    _req = _u.Request(probe_url, headers={"User-Agent": UA})
+                    with _u.urlopen(_req, timeout=15) as _r:
+                        sock_diag = (f"socket.io probe HTTP {_r.status} "
+                                     f"body={_r.read(120)!r}")
+                except Exception as _e:
+                    sock_diag = f"socket.io probe LỖI: {_e!r}"[:300]
                 raise RuntimeError(
-                    f"Chrome chờ dòng sự kiện timeout 60s "
-                    f"(HTTP {http_status}, title={title!r}, body={body!r})")
+                    f"Chrome chờ dòng sự kiện timeout 90s "
+                    f"(HTTP {http_status}, title={title!r}, body={body!r}; "
+                    f"{sock_diag})")
             page.wait_for_timeout(3000)  # chờ các dòng tải muộn render xong
             html = page.content()
             if html.count("data-id=") < 20:
