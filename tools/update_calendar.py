@@ -80,7 +80,11 @@ def fetch_html_chrome(url: str = SOURCE_URL, timeout_ms: int = 90000) -> str:
     from playwright.sync_api import sync_playwright  # noqa: PLC0415 — import lười: chỉ cần khi chạy Chrome
 
     with sync_playwright() as p:
-        launch_args = ["--no-sandbox", "--disable-dev-shm-usage"]
+        launch_args = ["--no-sandbox", "--disable-dev-shm-usage",
+                       # Giảm dấu vết tự động hoá: TE chặn headless shell và có
+                       # thể chặn cả Chrome bị gắn cờ webdriver (kiểm chứng
+                       # trên runner sau lần #186 timeout 60s không thấy dòng).
+                       "--disable-blink-features=AutomationControlled"]
         if os.environ.get("TE_IGNORE_CERT_ERRORS") == "1":
             # Chỉ dùng khi chạy sau proxy MITM tự ký (vd VM dev): proxy thay
             # chứng chỉ bằng CA riêng nên Chrome không tin. Trên Actions để
@@ -93,8 +97,20 @@ def fetch_html_chrome(url: str = SOURCE_URL, timeout_ms: int = 90000) -> str:
                                     args=launch_args, proxy=_proxy_config())
         try:
             page = browser.new_page(user_agent=UA, viewport={"width": 1280, "height": 900})
-            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-            page.wait_for_selector("tr[data-id]", timeout=60000)
+            resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+            http_status = resp.status if resp else None
+            try:
+                page.wait_for_selector("tr[data-id]", timeout=60000)
+            except Exception:
+                # Chẩn đoán để biết runner thấy gì: 403/captcha hay chỉ chậm.
+                title = page.title()
+                try:
+                    body = page.inner_text("body")[:300].replace("\n", " | ")
+                except Exception:
+                    body = "<không đọc được body>"
+                raise RuntimeError(
+                    f"Chrome chờ dòng sự kiện timeout 60s "
+                    f"(HTTP {http_status}, title={title!r}, body={body!r})")
             page.wait_for_timeout(3000)  # chờ các dòng tải muộn render xong
             html = page.content()
             if html.count("data-id=") < 20:
