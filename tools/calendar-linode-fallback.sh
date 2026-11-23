@@ -16,7 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 LOG="${CAL_LOG:-$HOME/calendar-linode.log}"
 RAW_URL="https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/main/data/economic_calendar_data.json"
-STALE_SECS=25200  # 7h
+STALE_SECS="${CAL_STALE_SECS:-25200}"  # 7h; dat CAL_STALE_SECS=0 de bat buoc chay (test duong day len main)
 
 log() { echo "[$(date -u '+%Y-%m-%d %H:%M:%S UTC')] $*" | tee -a "$LOG"; }
 
