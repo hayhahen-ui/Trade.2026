@@ -36,6 +36,11 @@ else
   fi
 fi
 
+# Thu vien he thong cai tay khong sudo (apt download + dpkg-deb -x) nam o ~/syslibs
+if [ -d "$HOME/syslibs/usr/lib/x86_64-linux-gnu" ]; then
+  export LD_LIBRARY_PATH="$HOME/syslibs/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
 # Python chay Playwright: venv rieng tren tram (Ubuntu chan pip he thong - PEP 668,
 # ensurepip cung bi luoc bo) — xem ghi chu setup trong header.
 #   python3 -m venv --without-pip ~/playwright-venv
