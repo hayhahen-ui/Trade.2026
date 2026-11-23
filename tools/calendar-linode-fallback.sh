@@ -36,9 +36,17 @@ else
   fi
 fi
 
+# Python chay Playwright: venv rieng tren tram (Ubuntu chan pip he thong - PEP 668,
+# ensurepip cung bi luoc bo) — xem ghi chu setup trong header.
+#   python3 -m venv --without-pip ~/playwright-venv
+#   ~/playwright-venv/bin/python /tmp/get-pip.py
+#   ~/playwright-venv/bin/pip install playwright
+#   ~/playwright-venv/bin/python -m playwright install chromium
+PY="${CAL_PY:-$HOME/playwright-venv/bin/python}"
+
 # 2. Playwright + Chromium phai co san (cai 1 lan o buoc setup, khong cai trong cron)
-if ! python3 -c "import playwright" 2>/dev/null; then
-  log "FAIL: chua co playwright tren tram — chay buoc setup truoc"; exit 1
+if ! "$PY" -c "import playwright" 2>/dev/null; then
+  log "FAIL: chua co playwright trong venv $PY — chay buoc setup truoc"; exit 1
 fi
 CHROME=$(ls "$HOME"/.cache/ms-playwright/chromium-*/chrome-linux64/chrome 2>/dev/null | head -1)
 if [ -z "$CHROME" ]; then
@@ -53,7 +61,7 @@ git -C "$REPO" worktree add --detach "$WT" origin/main >> "$LOG" 2>&1 || { log "
 
 # 4. Cao (tren tram khong proxy, khong MITM — khong can TE_IGNORE_CERT_ERRORS)
 OUT="$WT/data/economic_calendar_data.json"
-if ! python3 "$WT/tools/update_calendar.py" --out "$OUT" >> "$LOG" 2>&1; then
+if ! "$PY" "$WT/tools/update_calendar.py" --out "$OUT" >> "$LOG" 2>&1; then
   log "FAIL: update_calendar.py exit != 0 (khong push)"; exit 1
 fi
 ROWS=$(python3 -c "import json; d=json.load(open('$OUT')); print(sum(len(v) for v in d['sheets'].values()))")
