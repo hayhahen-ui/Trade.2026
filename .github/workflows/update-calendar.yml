@@ -14,6 +14,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Cai Playwright + Chromium
+        # v3.0 (23/11/2026): TE render lich bang JS nen can Chrome headless.
+        # --with-deps cai them thu vien he thong cho Chromium tren runner.
+        run: |
+          pip install playwright
+          playwright install chromium --with-deps
       - name: Tai va parse TE calendar
         run: python3 tools/update_calendar.py
       - name: Kiem tra du lieu tuoi
