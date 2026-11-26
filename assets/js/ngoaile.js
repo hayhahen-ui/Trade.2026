@@ -78,12 +78,14 @@ function renderNgoaile(root) {
       taiTextThu(urlTrangThai("outboxTw"), null),
     ]);
     wrap.innerHTML = "";
-    const bat = !!(cfg && cfg.EXCEPTION_ENABLED);
+    // Câu chữ "chưa có heads-up" theo trạng thái watcher THẬT (đang chạy hay không),
+    // không theo cờ config tĩnh trên bản deploy (config đó đang tắt).
+    const dangChay = nhanTrangThai(cfg, state, Date.now()).nhan === "ĐANG CHẠY";
     veTrangThai(wrap, cfg, state);
     veCong(wrap, cfg);
     veKenh(wrap, cfg, state, waTxt, twTxt);
     veTre(wrap);
-    veHeadsUp(wrap, parseJsonl(headsUpTxt), bat);
+    veHeadsUp(wrap, parseJsonl(headsUpTxt), dangChay);
     veReplay(wrap, replay);
   };
   docGia().catch((e) => {
