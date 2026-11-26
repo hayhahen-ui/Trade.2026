@@ -3,11 +3,11 @@
  "startedAt": 1795698969381,
  "lastBarTs": {
   "15m": 1795698900,
-  "1m": 1795698960
+  "1m": 1795699320
  },
  "lastFire": {},
  "pendingForward": [],
- "lastPollAt": 1795698984753,
+ "lastPollAt": 1795699326138,
  "channels": {
   "telegram": {
    "lastSentAt": 0
@@ -22,7 +22,7 @@
  "counters": {
   "alerts": 0,
   "forwards": 0,
-  "polls": 2,
+  "polls": 3,
   "fetchErrors": 0
  }
 }
