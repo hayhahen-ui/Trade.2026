@@ -81,5 +81,25 @@ console.log("U7 — câu chữ trạng thái trống lịch sử heads-up theo b
   ok(M.headsUpEmptyText(false) !== M.headsUpEmptyText(true), "hai trạng thái khác câu chữ");
 }
 
+console.log("U8 — nhãn trạng thái watcher theo file trạng thái thật + URL nhánh data");
+{
+  const now = Date.UTC(2026, 10, 26, 13, 0); // 20:00 VN
+  const chay = M.nhanTrangThai({ EXCEPTION_ENABLED: false }, { lastPollAt: now - 60 * 1000, counters: { polls: 120 } }, now);
+  ok(chay.nhan === "ĐANG CHẠY" && chay.lop === "buy", "state mới 1 phút → ĐANG CHẠY", JSON.stringify(chay));
+  const chayBien = M.nhanTrangThai(null, { lastPollAt: now - 65 * 60000, counters: { polls: 3 } }, now);
+  ok(chayBien.nhan === "ĐANG CHẠY", "ngưỡng 65 phút (chu kỳ đẩy 1 giờ) vẫn tính đang chạy", JSON.stringify(chayBien));
+  const dung = M.nhanTrangThai(null, { lastPollAt: now - 66 * 60000, counters: { polls: 3 } }, now);
+  ok(dung.nhan === "ĐÃ DỪNG" && dung.lop === "neutral", "quá 65 phút → ĐÃ DỪNG", JSON.stringify(dung));
+  ok(M.nhanTrangThai({ EXCEPTION_ENABLED: true }, null, now).nhan === "ĐANG BẬT", "chưa có state, config bật → ĐANG BẬT");
+  ok(M.nhanTrangThai({ EXCEPTION_ENABLED: false }, null, now).nhan === "ĐANG TẮT (mặc định)", "chưa có state, config tắt → ĐANG TẮT (mặc định)");
+  ok(M.nhanTrangThai(null, null, now).nhan === "ĐANG TẮT (mặc định)", "không cfg, không state → ĐANG TẮT");
+  const uState = M.urlTrangThai("state");
+  ok(uState.length === 2 && uState[0] === M.DATA_BRANCH + "/watcher-state.json" && uState[1] === "exception/logs/watcher-state.json", "state: nhánh data trước, file tĩnh sau", JSON.stringify(uState));
+  ok(M.urlTrangThai("headsUp")[0] === M.DATA_BRANCH + "/heads-up.jsonl", "heads-up: nhánh data trước");
+  ok(JSON.stringify(M.urlTrangThai("config")) === JSON.stringify(["exception/config.json"]), "config: chỉ bản deploy");
+  ok(JSON.stringify(M.urlTrangThai("replay")) === JSON.stringify(["exception/logs/replay-8w.json"]), "replay: chỉ bản deploy");
+  ok(M.urlTrangThai("khongco").length === 0, "khóa lạ → []");
+}
+
 console.log(`\nKết quả: ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

@@ -4,10 +4,17 @@
  * Không đặt lệnh, không sửa journal/verdict nhánh chính, không ghi đè log.
  * Bật/tắt nhánh: tĩnh site không ghi được file → hiện hướng dẫn bật thật
  * (sửa exception/config.json / env trên trạm), KHÔNG giả vờ đã bật.
+ * LIVE: file trạng thái (state/heads-up/outbox) chỉ có trên trạm — trạm đẩy
+ * lên nhánh data (data/exception/*) mỗi giờ, màn hình đọc từ đó trước,
+ * rớt về file tĩnh trên bản deploy nếu nhánh data chưa có. Config + replay
+ * nằm trên main nên đọc thẳng từ bản deploy. Nhãn ĐANG CHẠY dựa vào
+ * lastPollAt THẬT trong file trạng thái (ngưỡng 65 phút = chu kỳ đẩy 1 giờ),
+ * không dựa vào config tĩnh. Tự tải lại mỗi 60 giây.
  * Pure helpers ở cuối file để test bằng Node (tools/test-ngoaile-ui.js).
  * ============================================================ */
 "use strict";
 
+const DATA_BRANCH = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/exception";
 const NGOAILE_FILES = {
   config: "exception/config.json",
   headsUp: "exception/logs/heads-up.jsonl",
@@ -16,6 +23,16 @@ const NGOAILE_FILES = {
   outboxWa: "exception/logs/outbox-wa-pending.json",
   outboxTw: "exception/logs/outbox-tw-pending.json",
 };
+
+/* URL đọc 1 file: state/heads-up/outbox → nhánh data trước, file tĩnh sau;
+ * config/replay chỉ có trên bản deploy. */
+function urlTrangThai(khoa) {
+  const rel = NGOAILE_FILES[khoa];
+  if (!rel) return [];
+  if (khoa === "config" || khoa === "replay") return [rel];
+  const ten = rel.split("/").pop();
+  return [`${DATA_BRANCH}/${ten}`, rel];
+}
 
 async function taiJson(url, fallback) {
   try {
@@ -31,6 +48,21 @@ async function taiText(url, fallback) {
     return await r.text();
   } catch { return fallback; }
 }
+/* Thử lần lượt các URL, lấy cái đầu tiên đọc được (undefined = chưa đọc được). */
+async function taiJsonThu(urls, fallback) {
+  for (const u of urls) {
+    const v = await taiJson(u, undefined);
+    if (v !== undefined) return v;
+  }
+  return fallback;
+}
+async function taiTextThu(urls, fallback) {
+  for (const u of urls) {
+    const v = await taiText(u, undefined);
+    if (v !== undefined) return v;
+  }
+  return fallback;
+}
 
 function renderNgoaile(root) {
   root.innerHTML = "";
@@ -39,12 +71,13 @@ function renderNgoaile(root) {
   const docGia = async () => {
     const [cfg, headsUpTxt, state, replay, waTxt, twTxt] = await Promise.all([
       taiJson(NGOAILE_FILES.config, null),
-      taiText(NGOAILE_FILES.headsUp, null),
-      taiJson(NGOAILE_FILES.state, null),
+      taiTextThu(urlTrangThai("headsUp"), null),
+      taiJsonThu(urlTrangThai("state"), null),
       taiJson(NGOAILE_FILES.replay, null),
-      taiText(NGOAILE_FILES.outboxWa, null),
-      taiText(NGOAILE_FILES.outboxTw, null),
+      taiTextThu(urlTrangThai("outboxWa"), null),
+      taiTextThu(urlTrangThai("outboxTw"), null),
     ]);
+    wrap.innerHTML = "";
     const bat = !!(cfg && cfg.EXCEPTION_ENABLED);
     veTrangThai(wrap, cfg, state);
     veCong(wrap, cfg);
@@ -54,21 +87,28 @@ function renderNgoaile(root) {
     veReplay(wrap, replay);
   };
   docGia().catch((e) => {
-    wrap.appendChild(el("div", { class: "card" }, "Lỗi tải dữ liệu nhánh ngoại lệ: " + String((e && e.message) || e)));
+    if (!wrap.children.length) {
+      wrap.appendChild(el("div", { class: "card" }, "Lỗi tải dữ liệu nhánh ngoại lệ: " + String((e && e.message) || e)));
+    }
   });
   root.appendChild(wrap);
+  // Tự tải lại mỗi 60 giây để trạng thái theo kịp lần đẩy mới nhất từ trạm.
+  if (typeof window !== "undefined") {
+    if (window.__ngoaileTimer) clearInterval(window.__ngoaileTimer);
+    window.__ngoaileTimer = setInterval(() => { docGia().catch(() => {}); }, 60000);
+  }
 }
 
 /* ---------- 1. Trạng thái watcher ---------- */
 function veTrangThai(wrap, cfg, state) {
-  const bat = !!(cfg && cfg.EXCEPTION_ENABLED);
   const polls = state && state.counters ? state.counters.polls : null;
   const lanQuet = state && state.counters && polls > 0
     ? `đã quét ${polls} lần` : (state ? "chưa có vòng quét nào" : "chưa có trạng thái (file chưa được tạo — watcher chưa chạy lần nào)");
+  const tt = nhanTrangThai(cfg, state, Date.now());
   const card = el("div", { class: "card" },
     el("h3", {}, "Trạng thái watcher"),
     el("div", { style: "display:flex;flex-direction:column;gap:6px;align-items:flex-start" },
-      el("span", { class: `badge ${bat ? "buy" : "neutral"}` }, bat ? "ĐANG BẬT" : "ĐANG TẮT (mặc định)"),
+      el("span", { class: `badge ${tt.lop}` }, tt.nhan),
       el("span", { class: "tiny" }, lanQuet)),
     el("div", { class: "tiny", style: "margin-top:4px" }, `Lần quét cuối: ${fmtLastPoll(state)}`));
   card.appendChild(huongDanBatBtn());
@@ -261,6 +301,21 @@ function replaySummary(replay) {
   };
 }
 
+/* Nhãn trạng thái watcher theo file trạng thái THẬT (không theo config tĩnh):
+ * - lastPollAt trong 65 phút → ĐANG CHẠY (ngưỡng 65' = chu kỳ trạm đẩy lên
+ *   nhánh data mỗi giờ; lần quét cuối trong file là giờ quét trên trạm).
+ * - đã từng quét (polls > 0) nhưng lần cuối đã cũ → ĐÃ DỪNG.
+ * - chưa có state, config bật → ĐANG BẬT (chờ file trạng thái đầu tiên).
+ * - chưa có state, config tắt → ĐANG TẮT (mặc định). */
+function nhanTrangThai(cfg, state, nowMs) {
+  const now = typeof nowMs === "number" ? nowMs : Date.now();
+  const last = state && state.lastPollAt;
+  const polls = state && state.counters ? state.counters.polls : 0;
+  if (typeof last === "number" && last > 0 && now - last <= 65 * 60000) return { nhan: "ĐANG CHẠY", lop: "buy" };
+  if (polls > 0) return { nhan: "ĐÃ DỪNG", lop: "neutral" };
+  if (cfg && cfg.EXCEPTION_ENABLED) return { nhan: "ĐANG BẬT", lop: "buy" };
+  return { nhan: "ĐANG TẮT (mặc định)", lop: "neutral" };
+}
 /* Lần quét cuối từ watcher-state.json (lastPollAt, epoch ms) — không bịa giờ. */
 function fmtLastPoll(state) {
   const ms = state && state.lastPollAt;
@@ -293,7 +348,7 @@ function tinhTrangThai({ cfg, state, outboxWa, outboxTw }) {
 
 /* UMD-ish: Node tests + browser */
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { parseJsonl, parseOutbox, fmtGioVN, fmtPct, alertRow, replayRow, replaySummary, tinhTrangThai, tinLabel, coinsLabel, fmtLastPoll, fmtLastSent, headsUpEmptyText };
+  module.exports = { parseJsonl, parseOutbox, fmtGioVN, fmtPct, alertRow, replayRow, replaySummary, tinhTrangThai, tinLabel, coinsLabel, fmtLastPoll, fmtLastSent, headsUpEmptyText, nhanTrangThai, urlTrangThai, DATA_BRANCH };
 }
 if (typeof window !== "undefined") {
   window.renderNgoaile = renderNgoaile;
