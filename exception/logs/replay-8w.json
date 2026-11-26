@@ -1,0 +1,419 @@
+{
+ "meta": {
+  "weeks": 8,
+  "source": "binance",
+  "bar": "15m",
+  "coins": [
+   "BTC",
+   "ETH",
+   "SOL"
+  ],
+  "startMs": 1790846789198,
+  "endMs": 1795685189198,
+  "win": 20,
+  "minCoins": 3,
+  "chgPct": 1.3,
+  "cooldownMin": 45,
+  "volSpikeX": 3,
+  "minSpikeCoins": 1,
+  "newsWindowMin": 60,
+  "calGeneratedAt": "2026-11-26T06:13:46+0000",
+  "calFrom": "2026-11-25",
+  "calTo": "2026-12-04"
+ },
+ "barsEvaluated": 5356,
+ "alignedBars": 5376,
+ "fires": [
+  {
+   "tsMs": 1792504800000,
+   "direction": "UP",
+   "pct": 2.0300729612084143,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": 1.3105730759821022,
+     "volX": 23.888799680698185
+    },
+    {
+     "coin": "ETH",
+     "chgPct": 2.328339394341472,
+     "volX": 59.64554373284091
+    },
+    {
+     "coin": "SOL",
+     "chgPct": 2.451306413301668,
+     "volX": 22.826244786690847
+    }
+   ]
+  },
+  {
+   "tsMs": 1793305800000,
+   "direction": "DOWN",
+   "pct": -2.4167045595450207,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": -1.8787079762689562,
+     "volX": 9.50854812652387
+    },
+    {
+     "coin": "ETH",
+     "chgPct": -2.6469661728597327,
+     "volX": 19.367390969677015
+    },
+    {
+     "coin": "SOL",
+     "chgPct": -2.724439529506373,
+     "volX": 19.98461651021465
+    }
+   ]
+  },
+  {
+   "tsMs": 1793802600000,
+   "direction": "UP",
+   "pct": 1.7028114020526102,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": 1.4679517629212047,
+     "volX": 8.266726176328223
+    },
+    {
+     "coin": "ETH",
+     "chgPct": 1.5730763917668256,
+     "volX": 10.87655568410939
+    },
+    {
+     "coin": "SOL",
+     "chgPct": 2.0674060514698,
+     "volX": 4.9156609991167635
+    }
+   ]
+  },
+  {
+   "tsMs": 1793890800000,
+   "direction": "DOWN",
+   "pct": -2.1992344382415747,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": -1.6287784927668025,
+     "volX": 19.384685503365738
+    },
+    {
+     "coin": "ETH",
+     "chgPct": -2.463279053595735,
+     "volX": 22.197538811124346
+    },
+    {
+     "coin": "SOL",
+     "chgPct": -2.5056457683621858,
+     "volX": 21.26952977655818
+    }
+   ]
+  },
+  {
+   "tsMs": 1794174300000,
+   "direction": "DOWN",
+   "pct": -3.1486433284118895,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": -1.9371520016928767,
+     "volX": 104.84474934994243
+    },
+    {
+     "coin": "ETH",
+     "chgPct": -4.2775237615207296,
+     "volX": 313.5471051347476
+    },
+    {
+     "coin": "SOL",
+     "chgPct": -3.231254222022062,
+     "volX": 125.12267335358017
+    }
+   ]
+  },
+  {
+   "tsMs": 1794324600000,
+   "direction": "DOWN",
+   "pct": -2.123017517760062,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": -1.4553926604043421,
+     "volX": 15.487554590256599
+    },
+    {
+     "coin": "ETH",
+     "chgPct": -2.511652244692286,
+     "volX": 20.22502783576866
+    },
+    {
+     "coin": "SOL",
+     "chgPct": -2.4020076481835573,
+     "volX": 10.57371140587015
+    }
+   ]
+  },
+  {
+   "tsMs": 1794622500000,
+   "direction": "DOWN",
+   "pct": -1.4884435923670465,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": -1.321314538566587,
+     "volX": 16.061587245510935
+    },
+    {
+     "coin": "ETH",
+     "chgPct": -1.7089216527550244,
+     "volX": 33.80418081184839
+    },
+    {
+     "coin": "SOL",
+     "chgPct": -1.4350945857795283,
+     "volX": 5.630162361101533
+    }
+   ]
+  },
+  {
+   "tsMs": 1794708000000,
+   "direction": "UP",
+   "pct": 2.6340564526087538,
+   "spikeCount": 2,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": 1.9774516535986386,
+     "volX": 3.364901664694833
+    },
+    {
+     "coin": "ETH",
+     "chgPct": 2.6380559503587975,
+     "volX": 3.025570752809912
+    },
+    {
+     "coin": "SOL",
+     "chgPct": 3.2866617538688248,
+     "volX": 2.7222067189549253
+    }
+   ]
+  },
+  {
+   "tsMs": 1795186800000,
+   "direction": "DOWN",
+   "pct": -1.524444636828511,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": -1.366784639944052,
+     "volX": 8.048360653716056
+    },
+    {
+     "coin": "ETH",
+     "chgPct": -1.545980736907926,
+     "volX": 5.5436625803761554
+    },
+    {
+     "coin": "SOL",
+     "chgPct": -1.6605685336335552,
+     "volX": 5.285462637754924
+    }
+   ]
+  },
+  {
+   "tsMs": 1795231800000,
+   "direction": "DOWN",
+   "pct": -2.5417745755394683,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": -2.552632708234992,
+     "volX": 21.83628273090129
+    },
+    {
+     "coin": "ETH",
+     "chgPct": -2.554281592757479,
+     "volX": 27.289573865191148
+    },
+    {
+     "coin": "SOL",
+     "chgPct": -2.5184094256259337,
+     "volX": 24.06275828740997
+    }
+   ]
+  },
+  {
+   "tsMs": 1795242600000,
+   "direction": "UP",
+   "pct": 2.344664058241482,
+   "spikeCount": 1,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": 1.912744082932516,
+     "volX": 1.8138661432661183
+    },
+    {
+     "coin": "ETH",
+     "chgPct": 2.771339056012656,
+     "volX": 3.2609101732021837
+    },
+    {
+     "coin": "SOL",
+     "chgPct": 2.349909035779274,
+     "volX": 2.989860064852323
+    }
+   ]
+  },
+  {
+   "tsMs": 1795441500000,
+   "direction": "UP",
+   "pct": 4.878186438179587,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": 4.195690119247653,
+     "volX": 41.24704091744527
+    },
+    {
+     "coin": "ETH",
+     "chgPct": 4.930744711677781,
+     "volX": 48.43977416981878
+    },
+    {
+     "coin": "SOL",
+     "chgPct": 5.50812448361333,
+     "volX": 22.70596323836171
+    }
+   ]
+  },
+  {
+   "tsMs": 1795444200000,
+   "direction": "DOWN",
+   "pct": -1.6702049024841035,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": -1.4476543674640352,
+     "volX": 22.102437208136756
+    },
+    {
+     "coin": "ETH",
+     "chgPct": -2.000860468029253,
+     "volX": 27.89176915811699
+    },
+    {
+     "coin": "SOL",
+     "chgPct": -1.5620998719590218,
+     "volX": 12.320555012222693
+    }
+   ]
+  },
+  {
+   "tsMs": 1795617000000,
+   "direction": "DOWN",
+   "pct": -1.4279766091437034,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 5,
+   "newsEvent": "Core PCE Price Index MoM",
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": -1.3690012736094714,
+     "volX": 5.511963277480668
+    },
+    {
+     "coin": "ETH",
+     "chgPct": -1.435992192901414,
+     "volX": 10.228401793615468
+    },
+    {
+     "coin": "SOL",
+     "chgPct": -1.4789363609202244,
+     "volX": 7.245677756165537
+    }
+   ]
+  },
+  {
+   "tsMs": 1795617900000,
+   "direction": "UP",
+   "pct": 1.973334979742784,
+   "spikeCount": 3,
+   "strong": true,
+   "newsCount": 0,
+   "newsEvent": null,
+   "coins": [
+    {
+     "coin": "BTC",
+     "chgPct": 1.485808489985696,
+     "volX": 3.228335432655094
+    },
+    {
+     "coin": "ETH",
+     "chgPct": 2.1893913529283937,
+     "volX": 10.17190820531972
+    },
+    {
+     "coin": "SOL",
+     "chgPct": 2.244805096314262,
+     "volX": 5.843207135072613
+    }
+   ]
+  }
+ ],
+ "cooldownBlocked": 1
+}

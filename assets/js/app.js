@@ -15,6 +15,7 @@ const SCREENS = {
   sotinhieu: { ten: "Sổ tín hiệu", emoji: "📝", render: renderSoTinHieu },
   lichkinhte:{ ten: "Lịch kinh tế",  emoji: "📅", render: renderLich },
   hoidap:     { ten: "AI Hỏi đáp",      emoji: "💬", render: renderHoiDap },
+  ngoaile:   { ten: "Nhánh ngoại lệ", emoji: "⚡", render: renderNgoaile },
   kienthuc:  { ten: "Kiến thức",     emoji: "📚", render: renderKienThuc },
   huongdan:  { ten: "Hướng dẫn",     emoji: "🧭", render: renderHuongDan },
 };
