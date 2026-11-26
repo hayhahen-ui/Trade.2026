@@ -14,7 +14,7 @@
  * ============================================================ */
 "use strict";
 
-const DATA_BRANCH = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/exception";
+const DATA_BRANCH = "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/exception";
 const NGOAILE_FILES = {
   config: "exception/config.json",
   headsUp: "exception/logs/heads-up.jsonl",

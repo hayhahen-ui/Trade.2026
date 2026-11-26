@@ -94,8 +94,8 @@ console.log("U8 — nhãn trạng thái watcher theo file trạng thái thật +
   ok(M.nhanTrangThai({ EXCEPTION_ENABLED: false }, null, now).nhan === "ĐANG TẮT (mặc định)", "chưa có state, config tắt → ĐANG TẮT (mặc định)");
   ok(M.nhanTrangThai(null, null, now).nhan === "ĐANG TẮT (mặc định)", "không cfg, không state → ĐANG TẮT");
   const uState = M.urlTrangThai("state");
-  ok(uState.length === 2 && uState[0] === M.DATA_BRANCH + "/watcher-state.json" && uState[1] === "exception/logs/watcher-state.json", "state: nhánh data trước, file tĩnh sau", JSON.stringify(uState));
-  ok(M.urlTrangThai("headsUp")[0] === M.DATA_BRANCH + "/heads-up.jsonl", "heads-up: nhánh data trước");
+  ok(uState.length === 2 && uState[0] === "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/exception/watcher-state.json" && uState[1] === "exception/logs/watcher-state.json", "state: nhánh data trước, file tĩnh sau", JSON.stringify(uState));
+  ok(M.urlTrangThai("headsUp")[0] === "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/exception/heads-up.jsonl", "heads-up: nhánh data trước");
   ok(JSON.stringify(M.urlTrangThai("config")) === JSON.stringify(["exception/config.json"]), "config: chỉ bản deploy");
   ok(JSON.stringify(M.urlTrangThai("replay")) === JSON.stringify(["exception/logs/replay-8w.json"]), "replay: chỉ bản deploy");
   ok(M.urlTrangThai("khongco").length === 0, "khóa lạ → []");
