@@ -45,6 +45,10 @@ const WA_TOK = CFG0.channels.whatsapp.tokenEnv;
 const WA_TO = CFG0.channels.whatsapp.toEnv;
 
 const FIX = JSON.parse(fs.readFileSync(path.join(ROOT, "exception/testdata/case-night-15m-okx.json"), "utf8"));
+const CAL_FIX = path.join(ROOT, "exception/testdata/calendar-2026-11-25.json");
+// E2/E3 đọc fixture lịch ĐÓNG BĂNG (Recent sheet, bản cào 13:13 26/11) — KHÔNG đọc
+// data/economic_calendar_data.json live, vì file live cào lại mỗi 6h và rớt sự kiện
+// đã qua (25/11 GDP/PCE), làm 4 assert E2/E3 fail từ lượt cào 19:13 26/11.
 const COINS = CFG0.coins;
 const GATE_CFG = {
   minCoins: 3, chgPct: 1.0, volSpikeX: 3.0, volMedianWindow: 20,
@@ -116,7 +120,7 @@ function testGate() {
 /* ---------------- E2 news calendar ---------------- */
 function testNews() {
   console.log("E2 — tin kinh teá (news) calendar");
-  const cal = news.loadCalendar();
+  const cal = news.loadCalendar(CAL_FIX);
   ok(Array.isArray(cal.events) && cal.events.length > 400, `calendar loads (${cal.events.length} events, skippedTz ${cal.skippedTz})`);
   const seen = new Set();
   let dups = 0;
@@ -139,7 +143,7 @@ function testNews() {
 /* ---------------- E3 heads-up message ---------------- */
 function testMessage() {
   console.log("E3 — heads-up message (locked tokens)");
-  const cal = news.loadCalendar();
+  const cal = news.loadCalendar(CAL_FIX);
   const hi = news.findHigh(cal, TS(84), 60);
   const alert = {
     tsMs: TS(84), bar: "15m", trigger: "15m", direction: "DOWN", pct: -1.4283333,
