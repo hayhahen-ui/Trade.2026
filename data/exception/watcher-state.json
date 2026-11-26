@@ -1,0 +1,28 @@
+{
+ "version": 1,
+ "startedAt": 1795698969381,
+ "lastBarTs": {
+  "15m": 1795698900,
+  "1m": 1795698960
+ },
+ "lastFire": {},
+ "pendingForward": [],
+ "lastPollAt": 1795698984753,
+ "channels": {
+  "telegram": {
+   "lastSentAt": 0
+  },
+  "whatsapp": {
+   "lastSentAt": 0
+  },
+  "tradewatch": {
+   "lastSentAt": 0
+  }
+ },
+ "counters": {
+  "alerts": 0,
+  "forwards": 0,
+  "polls": 2,
+  "fetchErrors": 0
+ }
+}
