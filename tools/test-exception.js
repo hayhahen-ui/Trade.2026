@@ -283,6 +283,69 @@ function testWatcherCore() {
   stExp.pendingForward.push({ alertId: "E-expired", coin: "BTC", mark: 240, baseClose: 100, dueTs: T * 1000 - 25 * 3600 * 1000 });
   const s3 = watcher.processTick(stExp, {}, undefined, cfgOn, { nowMs: T * 1000 + 3600 * 1000 });
   ok(s3.state.pendingForward.length === 6 && s3.state.pendingForward.every((p) => p.alertId !== "E-expired"), "expired >24h no-price pending dropped");
+
+  // E5b — catch-up 27/11: nến 1m tăng vọt rơi GIỮA 2 lượt --once cách nhau 5'
+  // phải kích (trước fix chỉ xét nến mới nhất nên 09:07 bị bỏ qua).
+  const CB = 1795743600; // 08:40 VN 27/11 — bar 20 = 09:07
+  const mkCatch = () => {
+    const s = {};
+    for (const c of COINS) {
+      s[c] = Array.from({ length: 30 }, (_, i) => {
+        const spike = i === 20, after = i > 20;
+        return { ts: CB + i * 60, open: after ? 100.7 : 100, close: spike || after ? 100.7 : 100,
+          high: 100.7, low: 100, vol: spike ? 40 : 10 };
+      });
+    }
+    return s;
+  };
+  const cutTo = (s, n) => { const o = {}; for (const c of COINS) o[c] = s[c].slice(0, n); return o; };
+  const cFull = mkCatch();
+  const c1 = watcher.processTick(watcher.freshState(CB * 1000), {}, cutTo(cFull, 20), cfgOn, { nowMs: (CB + 19 * 60) * 1000 + 30000, cal: null });
+  ok(c1.alerts.length === 0, "catch-up tick1 (tới 08:59) → chưa có alert");
+  const c2 = watcher.processTick(c1.state, {}, cutTo(cFull, 25), cfgOn, { nowMs: (CB + 24 * 60) * 1000 + 30000, cal: null });
+  ok(c2.alerts.length === 1 && c2.alerts[0].trigger === "1m-fast" && c2.alerts[0].direction === "UP" && c2.alerts[0].id === `E-${CB + 20 * 60}-1m-fast:UP`,
+    "catch-up tick2 bắt đúng nến 09:07 (không phải nến mới nhất 09:11)", JSON.stringify(c2.alerts.map((a) => a.id)));
+  const c3 = watcher.processTick(c2.state, {}, cFull, cfgOn, { nowMs: (CB + 29 * 60) * 1000 + 30000, cal: null });
+  ok(c3.alerts.length === 0, "catch-up tick3 → không lặp lại");
+  // Nến cũ quá 10' thì chỉ ghi nhận, không bắn muộn.
+  const d1 = watcher.processTick(watcher.freshState(CB * 1000), {}, cutTo(cFull, 20), cfgOn, { nowMs: (CB + 19 * 60) * 1000 + 30000, cal: null });
+  const d2 = watcher.processTick(d1.state, {}, cutTo(cFull, 25), cfgOn, { nowMs: (CB + 24 * 60) * 1000 + 11 * 60 * 1000, cal: null });
+  ok(d2.alerts.length === 0 && d2.state.lastBarTs["1m"] === CB + 24 * 60, "nến 09:07 đã cũ 15' → không bắn muộn, nhưng lastBarTs vẫn tiến");
+
+  // E5c — 27/11: nến forming không được chấm, không tiến lastBarTs.
+  // Tái hiện cú 21:30: nến 15m 21:30 đóng −1,95% nhưng watcher OKX chấm
+  // nó lúc đang chạy (chưa đủ ngưỡng) rồi đánh dấu đã xét → khi đóng
+  // đủ −1,95% thì không bao giờ kích. Bar A=21:30 (đóng 21:45),
+  // bar B=21:45 (đang chạy tới 22:00).
+  const FA = 1795791600; // 22:00 VN
+  const mkForm15 = (bClose, bVol) => {
+    const s = {};
+    for (const c of COINS) {
+      const arr = Array.from({ length: 21 }, (_, i) => ({
+        ts: FA - (20 - i) * 900, open: 100, close: 100, high: 100, low: 100, vol: 10,
+      }));
+      arr[20] = { ts: FA - 900, open: 100, close: 98.05, high: 100, low: 98, vol: 135 }; // A: −1,95% đã đóng
+      arr.push({ ts: FA, open: 98.05, close: bClose, high: 98.05, low: Math.min(98.05, bClose), vol: bVol }); // B
+      s[c] = arr;
+    }
+    return s;
+  };
+  const f1 = watcher.processTick(watcher.freshState((FA + 240) * 1000), mkForm15(97.9, 20), undefined, cfgOn, { nowMs: (FA + 240) * 1000, cal: null });
+  ok(f1.alerts.length === 1 && f1.alerts[0].direction === "DOWN" && f1.alerts[0].trigger === "15m" && f1.alerts[0].id === `E-${FA - 900}-15m:DOWN`,
+    "tick1 (B đang chạy): kích đúng nến A 21:30 DOWN", JSON.stringify(f1.alerts.map((a) => a.id)));
+  ok(f1.state.lastBarTs["15m"] === FA - 900, "tick1: lastBarTs dừng ở A, KHÔNG tiến qua nến B đang chạy", String(f1.state.lastBarTs["15m"]));
+  const f2 = watcher.processTick(f1.state, mkForm15(96.5, 135), undefined, cfgOn, { nowMs: (FA + 960) * 1000, cal: null });
+  ok(f2.alerts.length === 0, "tick2 (B đã đóng −1,58%): 0 alert do cooldown 45' cùng chiều DOWN");
+  ok(f2.state.lastBarTs["15m"] === FA, "tick2: lastBarTs tiến tới B sau khi B đóng", String(f2.state.lastBarTs["15m"]));
+  // Heal: state đã nhiễm (lastBarTs = B trong khi B còn đang chạy) →
+  // kéo về A và ghi lại; tick sau B đóng thì B được xét đúng.
+  const hp = watcher.freshState((FA + 240) * 1000);
+  hp.lastBarTs["15m"] = FA;
+  const h1 = watcher.processTick(hp, mkForm15(97.9, 20), undefined, cfgOn, { nowMs: (FA + 240) * 1000, cal: null });
+  ok(h1.alerts.length === 0 && h1.state.lastBarTs["15m"] === FA - 900, "heal: watermark nhiễm kéo về nến đóng mới nhất A, không bắn", String(h1.state.lastBarTs["15m"]));
+  const h2 = watcher.processTick(h1.state, mkForm15(96.5, 135), undefined, cfgOn, { nowMs: (FA + 960) * 1000, cal: null });
+  ok(h2.alerts.length === 1 && h2.alerts[0].direction === "DOWN" && h2.alerts[0].id === `E-${FA}-15m:DOWN`,
+    "heal: tick sau B đóng thì B được xét và kích DOWN", JSON.stringify(h2.alerts.map((a) => a.id)));
 }
 
 /* ---------------- E6 channels ---------------- */
@@ -411,6 +474,33 @@ async function testLatency() {
     fetch: async (u, i) => { sigCap = i && i.signal; return { json: async () => ({ code: "0", data: [] }) }; },
   });
   ok(sigCap && typeof sigCap.addEventListener === "function" && sigCap.aborted === false, "fetchOkx wires AbortController signal");
+
+  // E7b — 27/11: primary đổi sang Binance (thay cho fix lọc nến đóng ở OKX).
+  // fetchBinance chỉ trả nến ĐÃ ĐÓNG (closeTime r[6] < nowMs); nến đang chạy bị loại
+  // nên lastBarTs không bao giờ tiến qua nến chưa đóng — đúng lỗi bỏ lỡ nến 21:30.
+  const NOW7 = 1795792200000; // 22:10 VN 27/11
+  const binRows = [
+    [1795790700000, "100", "101", "99", "100.5", "10", 1795791599999, "0", 0, "0", "0", "0"], // 21:45, đóng 22:00
+    [1795791600000, "100.5", "101", "100", "101", "12", 1795792499999, "0", 0, "0", "0", "0"], // 22:00, đang chạy tới 22:15
+  ];
+  const bRows = await watcher.fetchBinance("BTC", "15m", 5, {
+    nowMs: NOW7,
+    fetch: async () => ({ json: async () => binRows }),
+  });
+  ok(bRows.length === 1 && bRows[0].ts === 1795790700, "fetchBinance loại nến đang chạy, chỉ giữ nến đã đóng", JSON.stringify(bRows.map((r) => r.ts)));
+  const cfgB = JSON.parse(JSON.stringify(CFG0));
+  cfgB.watcher.primary = "binance";
+  cfgB.watcher.fallback = "okx";
+  const hitUrls = [];
+  const cRows = await watcher.fetchCoinBar("BTC", "15m", cfgB, {
+    nowMs: NOW7,
+    fetch: async (u) => { hitUrls.push(u); return { json: async () => binRows }; },
+  });
+  ok(hitUrls.length === 1 && hitUrls[0].includes("data-api.binance.vision"), "fetchCoinBar primary=binance → gọi data-api.binance.vision, không gọi OKX", JSON.stringify(hitUrls));
+  ok(cRows.length === 1 && cRows[0].ts === 1795790700, "fetchCoinBar qua Binance chỉ trả nến đã đóng");
+  ok(CFG0.watcher.primary === "binance" && CFG0.watcher.fallback === "okx", "config.json: primary=binance, fallback=okx");
+  const cfgD = JSON.parse(fs.readFileSync(path.join(ROOT, "exception/config-display.json"), "utf8"));
+  ok(cfgD.watcher.primary === "binance" && cfgD.watcher.fallback === "okx", "config-display.json: primary=binance, fallback=okx");
 }
 
 /* ---------------- run ---------------- */

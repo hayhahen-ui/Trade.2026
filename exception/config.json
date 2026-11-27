@@ -18,8 +18,8 @@
     "pollSecs": 15,
     "fastBarMin": 1,
     "slowBarMin": 15,
-    "primary": "okx",
-    "fallback": "binance",
+    "primary": "binance",
+    "fallback": "okx",
     "httpTimeoutMs": 8000,
     "forwardMarksMin": [15, 60, 240]
   },

@@ -1,8 +1,16 @@
 /* ============================================================
  * Trade.2026 — Nhánh ngoai lé: fast watcher (tier B)
- * Poll ~15s: OKX 1m + 15m candles (primary), Binance klines (fallback).
+ * Poll ~15s: Binance 1m + 15m klines (primary, closed bars only),
+ * OKX candles (fallback — NOTE: fetchOkx does not filter forming bars,
+ * so the fallback path can still judge a bar before it closes; see
+ * 21:30 27/11/2026 miss: OKX primary judged the 21:30 15m bar while
+ * forming and marked it seen, its closed −1,95% was never re-judged).
  * On each newly closed 15m bar → gate.evaluateSync (slow path, chg15mPct);
  * on each newly closed 1m bar → fast path (chg1mPctFast, trigger "1m-fast").
+ * Every bar closed since the last tick is judged in turn (catch-up, 27/11/2026:
+ * a 5-min --once cadence used to judge only the newest 1m bar and silently
+ * skip the 4 in between — the 09:07 spike was lost that way); bars older than
+ * the catch-up window (1m: 10', 15m: 20') are judged but never fired late.
  * Fire → heads-up (formatHeadsUp) → notify.dispatch (3 kênh) → heads-up JSONL.
  * Forward returns logged at +15/+60/+240 phat (log-only, no advice).
  * EXCEPTION_ENABLED=false → sleeps before any fetch/write (nhánh chính untouched).
@@ -111,38 +119,69 @@ function processTick(stateIn, series15, series1m, cfg, ctx) {
   const alerts = [];
   const forwards = [];
 
+  /* Judge EVERY newly-closed bar since lastBarTs, not just the latest one.
+   * Before this fix, a --once display run every 5 min only judged the newest
+   * 1m bar and jumped lastBarTs past the 4 in between — the 09:07 27/11 spike
+   * (BTC +0,67% x112,9 · ETH +0,77% x242,5 · SOL +0,68% x29,0, gate fire:true)
+   * was skipped silently and never alerted. The live 15s poller almost never
+   * has >1 new bar per tick, so its behaviour is unchanged; the fix only
+   * matters after a gap (display --once cadence, restarts).
+   * Stale bars are judged (lastBarTs still advances) but never fired late:
+   * maxCatchupMin caps how old a bar may be to alert (1m: 10', 15m: 20').
+   * Same-direction repeats inside the 45' cooldown stay blocked. */
   const evaluateBar = (bar, seriesByCoin) => {
-    const last = seriesByCoin.BTC && seriesByCoin.BTC.length ? seriesByCoin.BTC[seriesByCoin.BTC.length - 1] : null;
-    if (!last) return;
-    if (last.ts <= (state.lastBarTs[bar] || 0)) return; // bar already judged
-    const r = gate.evaluateSync(seriesByCoin, gateCfg(cfg, bar));
-    state.lastBarTs[bar] = last.ts;
-    if (!r.fire) return;
-    const tsMs = last.ts * 1000;
-    const key = `${bar === "15m" ? "15m" : "1m-fast"}:${r.direction}`;
-    if (!gate.cooldownAllows(state.lastFire, key, tsMs, cfg.gate.cooldownMin)) return;
-    state.lastFire[key] = tsMs;
-    state.counters.alerts++;
-    const alert = {
-      id: `E-${last.ts}-${key}`,
-      tsMs,
-      bar,
-      trigger: bar === "15m" ? "15m" : "1m-fast",
-      direction: r.direction,
-      pct: r.pct,
-      coins: r.coins.map((c) => ({ coin: c.coin, chgPct: c.chgPct, volX: c.volX, close: c.close })),
-      spikeCount: r.spikeCount,
-      syncCount: r.coins.length,
-      totalTracked: r.rows.length,
-      newsEvents: cal ? news.findHigh(cal, tsMs, cfg.gate.newsWindowMin) : [],
-      text: null,
-    };
-    for (const c of alert.coins) {
-      for (const mark of cfg.watcher.forwardMarksMin) {
-        state.pendingForward.push({ alertId: alert.id, coin: c.coin, mark, baseClose: c.close, dueTs: tsMs + mark * 60000 });
+    const btc = seriesByCoin.BTC || [];
+    if (!btc.length) return;
+    const barSec = bar === "15m" ? 900 : 60;
+    const nowSec = Math.floor(nowMs / 1000);
+    // Nen dang chay VAN DUOC cham (giua toc do canh bao) NHUNG khong duoc
+    // tien lastBarTs — chi nen DA DONG (ts + barSec <= now) moi danh dau
+    // da xet. Day la loi bo lo nen 21:30 27/11: OKX tra nen forming,
+    // watcher cham som (chua du nguong) roi danh dau da xet, nen dong
+    // khong duoc xet lai voi gia tri cuoi.
+    let lastSeen = state.lastBarTs[bar] || 0;
+    // Heal: watermark tung chay qua nen forming -> keo ve nen dong moi
+    // nhat va GHI LAI, de nen do duoc xet khi no dong.
+    const lastClosedTs = btc.reduce((m, b) => (b.ts + barSec <= nowSec && b.ts > m ? b.ts : m), 0);
+    if (lastSeen > lastClosedTs) { lastSeen = lastClosedTs; state.lastBarTs[bar] = lastClosedTs; }
+    const fresh = btc.filter((b) => b.ts > lastSeen);
+    if (!fresh.length) return;
+    const maxAgeMs = (bar === "15m" ? 20 : 10) * 60000;
+    for (const b of fresh) {
+      const cut = {};
+      for (const [coin, arr] of Object.entries(seriesByCoin)) cut[coin] = arr.filter((c) => c.ts <= b.ts);
+      const r = gate.evaluateSync(cut, gateCfg(cfg, bar));
+      // Chi tien watermark khi nen DA DONG; nen forming duoc cham nhung
+      // se duoc xet lai khi dong (xem ghi chu o dau evaluateBar).
+      if (b.ts + barSec <= nowSec) state.lastBarTs[bar] = b.ts;
+      if (!r.fire) continue;
+      const tsMs = b.ts * 1000;
+      if (nowMs - tsMs > maxAgeMs) continue; // stale: never fire late
+      const key = `${bar === "15m" ? "15m" : "1m-fast"}:${r.direction}`;
+      if (!gate.cooldownAllows(state.lastFire, key, tsMs, cfg.gate.cooldownMin)) continue;
+      state.lastFire[key] = tsMs;
+      state.counters.alerts++;
+      const alert = {
+        id: `E-${b.ts}-${key}`,
+        tsMs,
+        bar,
+        trigger: bar === "15m" ? "15m" : "1m-fast",
+        direction: r.direction,
+        pct: r.pct,
+        coins: r.coins.map((c) => ({ coin: c.coin, chgPct: c.chgPct, volX: c.volX, close: c.close })),
+        spikeCount: r.spikeCount,
+        syncCount: r.coins.length,
+        totalTracked: r.rows.length,
+        newsEvents: cal ? news.findHigh(cal, tsMs, cfg.gate.newsWindowMin) : [],
+        text: null,
+      };
+      for (const c of alert.coins) {
+        for (const mark of cfg.watcher.forwardMarksMin) {
+          state.pendingForward.push({ alertId: alert.id, coin: c.coin, mark, baseClose: c.close, dueTs: tsMs + mark * 60000 });
+        }
       }
+      alerts.push(alert);
     }
-    alerts.push(alert);
   };
 
   evaluateBar("15m", series15);
@@ -191,7 +230,10 @@ async function fetchOkx(coin, bar, limit, opts) {
 
 async function fetchBinance(coin, bar, limit, opts) {
   const o = opts || {};
-  const url = `https://api.binance.com/api/v3/klines?symbol=${coin}USDT&interval=${bar}&limit=${limit || 30}`;
+  // data-api.binance.vision, KHÔNG dùng api.binance.com: host .com trả 451
+  // "restricted location" từ máy này (kiểm chứng 22:17 27/11) và nhiều khả
+  // năng cũng 451 từ trạm Singapore → primary rỗng → rơi về OKX (lỗi cũ).
+  const url = `https://data-api.binance.vision/api/v3/klines?symbol=${coin}USDT&interval=${bar}&limit=${limit || 30}`;
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), o.timeoutMs || 8000);
   try {

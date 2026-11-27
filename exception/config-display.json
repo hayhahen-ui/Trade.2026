@@ -1,0 +1,71 @@
+{
+  "EXCEPTION_ENABLED": true,
+  "version": "1.0.0",
+  "note": "Display-only publisher chay tren may Muse: chi ghi state + heads-up de man hinh doc, KHONG gui canh bao (ca 3 kenh tat). Watcher tren tram van la ben gui that duy nhat.",
+  "coins": [
+    "BTC",
+    "ETH",
+    "SOL"
+  ],
+  "gate": {
+    "minCoins": 3,
+    "chg15mPct": 1.3,
+    "chg1mPctFast": 0.6,
+    "volSpikeX": 3.0,
+    "volMedianWindow": 20,
+    "requireVolSpike": true,
+    "minSpikeCoins": 1,
+    "newsWindowMin": 60,
+    "cooldownMin": 45
+  },
+  "watcher": {
+    "pollSecs": 15,
+    "fastBarMin": 1,
+    "slowBarMin": 15,
+    "primary": "binance",
+    "fallback": "okx",
+    "httpTimeoutMs": 8000,
+    "forwardMarksMin": [
+      15,
+      60,
+      240
+    ]
+  },
+  "channels": {
+    "telegram": {
+      "enabled": false,
+      "chatId": "5753439659",
+      "tokenEnv": [
+        "TELEGRAM_BOT_TOKEN",
+        "BOT_TOKEN_TRADEMRBIT"
+      ],
+      "apiBase": "https://api.telegram.org",
+      "queueMode": false,
+      "queuePath": ""
+    },
+    "whatsapp": {
+      "enabled": false,
+      "phoneNumberId": "1401526599706098",
+      "tokenEnv": "WHATSAPP_CLOUD_TOKEN",
+      "toEnv": "WHATSAPP_TO",
+      "to": "",
+      "graphBase": "https://graph.facebook.com",
+      "graphVersion": "v21.0",
+      "outboxPath": "exception/logs/outbox-wa-pending.json"
+    },
+    "tradewatch": {
+      "enabled": false,
+      "signalsTable": "signals",
+      "outboxPath": "exception/logs/outbox-tw-pending.json",
+      "monitorPath": "/api/monitor/run",
+      "timeoutMs": 5000,
+      "retries": 1
+    }
+  },
+  "paths": {
+    "calendar": "data/economic_calendar_data.json",
+    "headsUpLog": "exception/logs/heads-up.jsonl",
+    "stateFile": "exception/logs/watcher-state.json",
+    "pendingLog": "exception/logs/pending-alerts.jsonl"
+  }
+}
