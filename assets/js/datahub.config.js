@@ -31,7 +31,7 @@ const DH_CONFIG = {
     hyperliquid: true,   // trades (DEX perp)
     polymarket:  true,   // dòng lệnh cá cược real-time (REST poll)
     macro:       true,   // Fear&Greed + funding + open interest
-    etf:         false,  // cần proxy (xem tools/proxy)
+    etf:         true,   // SoSoValue qua cron ngày (data/etf-flows.json, nhánh data)
     newsFeed:    true,   // RSS Cointelegraph qua proxy Vercel /api/proxy
     tradermap:   false,  // backend bên thứ 3 — chỉ bật khi bạn có quyền + proxy
   },
@@ -50,7 +50,7 @@ const DH_CONFIG = {
     /* Proxy CORS của bạn (Cloudflare Worker trong tools/proxy).
        Ví dụ: "https://siro-proxy.tenban.workers.dev/?url=" */
     proxy:         "/api/proxy?url=",
-    etfFlowsUrl:   "",            // URL JSON dòng tiền ETF (qua proxy)
+    etfFlowsUrl:   "https://raw.githubusercontent.com/hayhahen-ui/Trade.2026/data/data/etf-flows.json",  // SoSoValue, cron ngày đẩy lên nhánh data
     newsRssUrl:    "/api/proxy?url=" + encodeURIComponent("https://cointelegraph.com/rss"),
 
     /* Nguồn tradermap.io — tắt mặc định.
