@@ -17,6 +17,7 @@ const ALLOW = [
   "api.alternative.me",     // Fear & Greed (dự phòng)
   "farside.co.uk",          // Dòng tiền ETF (khi bật ETF)
   "data-api.polymarket.com",// Polymarket v2 (dự phòng; hiện app gọi trực tiếp)
+  "api.tradermap.io",      // TraderMap REST (/api/prices, /api/stats) — bật 28/11
 ];
 
 module.exports = async (req, res) => {

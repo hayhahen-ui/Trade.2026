@@ -33,7 +33,7 @@ const DH_CONFIG = {
     macro:       true,   // Fear&Greed + funding + open interest
     etf:         true,   // SoSoValue qua cron ngày (data/etf-flows.json, nhánh data)
     newsFeed:    true,   // RSS Cointelegraph qua proxy Vercel /api/proxy
-    tradermap:   false,  // backend bên thứ 3 — chỉ bật khi bạn có quyền + proxy
+    tradermap:   true,   // backend bên thứ 3 (REST qua proxy; WS cần tmUserId)
   },
 
   endpoints: {
