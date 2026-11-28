@@ -117,8 +117,23 @@ function veDongHo() {
   if (c) c.textContent = new Date().toLocaleTimeString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }) + " VN";
 }
 
+/* ---------- Đăng nhập qua Telegram (v2.17.6) ---------- */
+function veTgLogin() {
+  const c = $("#tg-login");
+  if (!c) return;
+  if (typeof TG_LOGIN !== "undefined" && TG_LOGIN && TG_LOGIN.tgId) {
+    c.textContent = "✈️ Telegram • " + TG_LOGIN.tgId;
+    c.title = "Đã đăng nhập qua Telegram (mở bằng link kèm mã từ bot @trademrbit_bot)";
+  } else {
+    c.textContent = "";
+    c.title = "";
+  }
+}
+
 /* ---------- Khởi động ---------- */
 function boot() {
+  // v2.17.6: hiện trạng thái đăng nhập Telegram (nếu mở bằng link kèm mã)
+  try { veTgLogin(); } catch (e) {}
   // v2.15.0: cầu nối trình duyệt → trạm 24/7 → WhatsApp (bọc JOURNAL.ghiNhan)
   try { if (typeof BRIDGE !== "undefined") BRIDGE.khoiDong(); } catch (e) {}
   // v2.14.0: feature flag NN off|shadow (MRBIT_NEURAL_CODING_01 §4 P0) — đọc từ SETTINGS

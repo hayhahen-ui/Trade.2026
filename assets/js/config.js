@@ -131,3 +131,41 @@ function loadSettings() {
 function saveSettings(s) { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch {} }
 
 let SETTINGS = loadSettings();
+
+/* ---------- Đăng nhập qua Telegram (v2.17.6) ----------
+ * Hợp đồng link kèm mã (bot @trademrbit_bot cấp khi user bấm /start):
+ *   https://trade.mrbitbet90.tech/?code=tg-<telegramUserId>-<suffix>
+ *   vd: ?code=tg-5753439659-a1b2c3 (suffix: 6 ký tự a-z0-9 do bot sinh ngẫu nhiên)
+ * Lưu ý trung thực: frontend tĩnh không giữ được secret nên KHÔNG xác thực
+ * được mã bằng mật mã — mã chỉ là danh tính do bot cấp, app lưu lại để
+ * nhận diện người dùng (hiển thị + ghi nhớ). Dashboard vốn công khai,
+ * mã không mở thêm quyền gì. Khi có backend xác thực (vd /api/verify-code
+ * đối chiếu Supabase) thì siết lại tại đây, không đổi định dạng link. */
+const TG_LOGIN_KEY = "trade2026_tg_login_v1";
+const TG_CODE_RE = /^tg-(\d{5,20})-([A-Za-z0-9]{4,32})$/;
+function loadTgLogin() {
+  try {
+    const raw = localStorage.getItem(TG_LOGIN_KEY);
+    const o = raw ? JSON.parse(raw) : null;
+    if (o && TG_CODE_RE.test(o.code || "")) return o;
+  } catch {}
+  return null;
+}
+function saveTgLogin(o) { try { localStorage.setItem(TG_LOGIN_KEY, JSON.stringify(o)); } catch {} }
+let TG_LOGIN = loadTgLogin();
+try {
+  const code = new URLSearchParams(location.search).get("code");
+  if (code && TG_CODE_RE.test(code)) {
+    const m = TG_CODE_RE.exec(code);
+    TG_LOGIN = { code, tgId: m[1], at: Date.now() };
+    saveTgLogin(TG_LOGIN);
+    const u = new URL(location.href);
+    u.searchParams.delete("code");
+    history.replaceState(null, "", u.pathname + u.search + u.hash);
+  }
+} catch {}
+function dangXuatTelegram() {
+  try { localStorage.removeItem(TG_LOGIN_KEY); } catch {}
+  TG_LOGIN = null;
+  try { if (typeof veTgLogin === "function") veTgLogin(); } catch {}
+}

@@ -670,6 +670,18 @@ function moCaiDat() {
   try { if (typeof BRIDGE !== "undefined") bridgeStatus = BRIDGE.trangThai(); } catch (e) {}
   box.appendChild(el("div", { class: "small muted", style: "margin:4px 0 8px" },
     "Trạng thái: " + bridgeStatus + " Tín hiệu mới trên máy này → GitHub → trạm (≤2 phút) → WhatsApp (≤1 phút)."));
+  // v2.17.6: đăng nhập qua Telegram (link kèm mã từ bot @trademrbit_bot)
+  box.appendChild(el("label", { class: "small muted" }, "✈️ Đăng nhập qua Telegram:"));
+  const tg = (typeof TG_LOGIN !== "undefined" && TG_LOGIN) ? TG_LOGIN : null;
+  if (tg) {
+    box.appendChild(el("div", { class: "small", style: "margin:4px 0 8px" },
+      "Đã đăng nhập — Telegram ID " + tg.tgId + " (mở bằng link kèm mã từ bot)."));
+    box.appendChild(el("div", { class: "row-gap", style: "margin:0 0 8px" },
+      el("button", { class: "btn small", onclick: () => { dangXuatTelegram(); modal.remove(); moCaiDat(); } }, "Đăng xuất Telegram")));
+  } else {
+    box.appendChild(el("div", { class: "small muted", style: "margin:4px 0 8px" },
+      "Chưa đăng nhập — mở bot @trademrbit_bot trên Telegram, bấm /start để lấy link kèm mã."));
+  }
   box.appendChild(el("div", { class: "row-gap", style: "margin-top:14px" },
     el("button", {
       class: "btn primary", onclick: () => {
