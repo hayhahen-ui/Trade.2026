@@ -337,7 +337,16 @@
     let timer = null, seen = new Set(), fails = 0;
     async function tick() {
       try {
-        const rows = await getJson(`${CFG.endpoints.polymarketRest}?limit=100&takerOnly=true`, 12000);
+        const j = await getJson(`${CFG.endpoints.polymarketRest}?limit=100&takerOnly=true`, 12000);
+        /* Data API v1 đã nghỉ (410) — v2 trả {"data": [...]} với field snake_case */
+        const raw = Array.isArray(j) ? j : (j && Array.isArray(j.data) ? j.data : null);
+        if (!raw) throw new Error("shape");
+        const rows = raw.map((t) => ({
+          transactionHash: t.transactionHash || t.transaction_hash,
+          proxyWallet: t.proxyWallet || t.proxy_wallet,
+          timestamp: t.timestamp, size: t.size, price: t.price,
+          title: t.title, slug: t.slug, outcome: t.outcome, side: t.side,
+        }));
         if (!Array.isArray(rows)) throw new Error("shape");
         fails = 0; setSource("polymarket", "on", "REST poll"); bump("polymarket");
         for (let i = rows.length - 1; i >= 0; i--) {

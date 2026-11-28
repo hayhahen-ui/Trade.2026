@@ -32,7 +32,7 @@ const DH_CONFIG = {
     polymarket:  true,   // dòng lệnh cá cược real-time (REST poll)
     macro:       true,   // Fear&Greed + funding + open interest
     etf:         false,  // cần proxy (xem tools/proxy)
-    newsFeed:    false,  // cần proxy RSS
+    newsFeed:    true,   // RSS Cointelegraph qua proxy Vercel /api/proxy
     tradermap:   false,  // backend bên thứ 3 — chỉ bật khi bạn có quyền + proxy
   },
 
@@ -44,14 +44,14 @@ const DH_CONFIG = {
     okxRest:       "https://www.okx.com",
     bybitWs:       "wss://stream.bybit.com/v5/public/linear",
     hyperliquidWs: "wss://api.hyperliquid.xyz/ws",
-    polymarketRest:"https://data-api.polymarket.com/trades",
+    polymarketRest:"https://data-api.polymarket.com/v2/trades",
     fng:           "https://api.alternative.me/fng/?limit=1",
 
     /* Proxy CORS của bạn (Cloudflare Worker trong tools/proxy).
        Ví dụ: "https://siro-proxy.tenban.workers.dev/?url=" */
-    proxy:         "",
+    proxy:         "/api/proxy?url=",
     etfFlowsUrl:   "",            // URL JSON dòng tiền ETF (qua proxy)
-    newsRssUrl:    "",            // URL RSS tin tức (qua proxy)
+    newsRssUrl:    "/api/proxy?url=" + encodeURIComponent("https://cointelegraph.com/rss"),
 
     /* Nguồn tradermap.io — tắt mặc định.
        API này là backend riêng của bên thứ ba: không có CORS cho origin
