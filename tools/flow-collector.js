@@ -6,6 +6,9 @@
  *  - Lệnh lớn ≥ $100K → whales (id trùng format web để khử trùng)
  *  - Thanh lý OKX → liqs
  * Ghi data/flow-247.json → web tải về merge vào FlowDB (master data).
+ * Dual-write (hybrid 1+2, Wave 2, 28/11/2026): dòng mới ghi thêm lên Supabase
+ * (whale_events / liquidations) qua tools/supabase-writer.js — best-effort:
+ * lỗi Supabase chỉ log, không fail vòng chạy; JSON vẫn là nguồn thật.
  * ============================================================ */
 "use strict";
 const fs = require("fs");
@@ -20,8 +23,8 @@ const NGUONG = 100000;          // $100K như web
 /* Chính sách bộ nhớ (theo yêu cầu user 26/09/2026): KHÔNG tự xóa.
  * Kho ≥ WARN → in STORAGE_WARN (vẫn ghi). Kho ≥ MAX → dừng ghi,
  * đánh dấu payload, thoát code 2 để cron nhắc user (1 lần/ngày). */
-const CB_BYTES = 3 * 1024 * 1024;   // 3MB: cảnh báo
-const MAX_BYTES = 5 * 1024 * 1024;  // 5MB: đầy → dừng ghi
+const CB_BYTES = 40 * 1024 * 1024;  // 40MB: cảnh báo (80% trần)
+const MAX_BYTES = 50 * 1024 * 1024; // 50MB: đầy → dừng ghi (user chốt 02/11/2026: tăng trần, giữ nguyên toàn bộ dữ liệu)
 
 const jget = async (url, opt = {}) => {
   const ctl = new AbortController();
@@ -172,11 +175,29 @@ async function main() {
       bytes: statPub.size, storeBytes,
       whales: st.whales.length, liqs: st.liqs.length,
       hetBoNho: false,
-      chinhSach: "không tự xóa; đầy 5MB thì dừng ghi và nhắc user",
+      chinhSach: "không tự xóa; đầy 50MB thì dừng ghi và nhắc user",
       chuThich: "file công khai (nhánh data) + kho server",
     };
     fs.writeFileSync(PUBLIC_PATH, JSON.stringify(payloadFlow));
   } catch {}
-  console.log(`  mới: ${w1 + w2} lệnh lớn, ${l1} thanh lý | kho: ${st.whales.length}W/${st.liqs.length}L | ${(Date.now() - t0) / 1000 | 0}s`);
+  /* Dual-write (hybrid 1+2, Wave 2): ghi dòng mới lên Supabase, best-effort tuyệt đối.
+   * Lỗi Supabase (chưa có key, mạng, 401...) chỉ log, KHÔNG fail vòng chạy,
+   * JSON vẫn là nguồn thật trong giai đoạn dual-write. Upsert theo id nên chạy
+   * lại an toàn. Dòng mới = phần append thêm sau lần fetch (w1+w2 / l1). */
+  let sbGhi = "Supabase: bỏ qua";
+  try {
+    const newWhales = st.whales.slice(st.whales.length - (w1 + w2));
+    const newLiqs = st.liqs.slice(st.liqs.length - l1);
+    if (newWhales.length + newLiqs.length > 0) {
+      const { createFromEnv } = require("./supabase-writer");
+      const sb = createFromEnv();
+      if (newWhales.length) await sb.writeWhales(newWhales);
+      if (newLiqs.length) await sb.writeLiquidations(newLiqs);
+      sbGhi = `Supabase: +${newWhales.length}W/+${newLiqs.length}L`;
+    } else sbGhi = "Supabase: 0 dòng mới";
+  } catch (e) {
+    sbGhi = `Supabase LỖI (JSON vẫn ghi): ${String((e && e.message) || e).slice(0, 120)}`;
+  }
+  console.log(`  mới: ${w1 + w2} lệnh lớn, ${l1} thanh lý | kho: ${st.whales.length}W/${st.liqs.length}L | ${sbGhi} | ${(Date.now() - t0) / 1000 | 0}s`);
 }
 main().catch((e) => { console.error("[flow-247] FAIL:", e.message); process.exit(1); });
