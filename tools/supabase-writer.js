@@ -133,10 +133,10 @@ function create({ url, serviceKey }) {
   async function readLatest(table, limit = 800, orderCol = "ts") {
     return request("GET", `/${table}?select=*&order=${orderCol}.desc&limit=${limit}`);
   }
-  async function queryEvents(table, fromISO, toISO, limit = 1000) {
+  async function queryEvents(table, fromISO, toISO, limit = 1000, filters = "") {
     const rows = await request(
       "GET",
-      `/${table}?select=*&ts=gte.${encodeURIComponent(fromISO)}&ts=lt.${encodeURIComponent(toISO)}&order=ts.asc&limit=${limit}`
+      `/${table}?select=*&ts=gte.${encodeURIComponent(fromISO)}&ts=lt.${encodeURIComponent(toISO)}&order=ts.asc&limit=${limit}${filters || ""}`
     );
     if (Array.isArray(rows) && rows.length >= limit) {
       console.log(`[supabase-writer] ⚠ queryEvents ${table} chạm giới hạn ${limit} dòng — cửa sổ có thể còn sự kiện chưa lấy`);
