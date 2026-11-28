@@ -138,7 +138,7 @@
   /* ---------------- Fetch có timeout + proxy ---------------- */
   async function getJson(url, ms) {
     const u = CFG.endpoints.proxy && !url.startsWith(CFG.endpoints.proxy)
-      && /polymarket|alternative\.me|binance|okx/.test(url) === false
+      && /polymarket|alternative\.me|binance|okx|raw\.githubusercontent/.test(url) === false
       ? CFG.endpoints.proxy + encodeURIComponent(url) : url;
     const ac = new AbortController();
     const t = setTimeout(() => ac.abort(), ms || 12000);
@@ -410,7 +410,8 @@
   })();
 
   /* ============================================================
-   * ADAPTER 7 — Dòng tiền ETF (JSON qua proxy của bạn)
+   * ADAPTER 7 — Dòng tiền ETF (JSON SoSoValue, cron ngày đẩy lên nhánh data;
+   * raw.githubusercontent.com cho CORS trực tiếp nên getJson không qua proxy)
    * ============================================================ */
   A.etf = (function () {
     let timer = null;
